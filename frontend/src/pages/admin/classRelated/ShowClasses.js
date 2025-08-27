@@ -41,10 +41,10 @@ const ShowClasses = () => {
     console.log(address);
     setMessage("Sorry the delete function has been disabled for now.")
     setShowPopup(true)
-    // dispatch(deleteUser(deleteID, address))
-    //   .then(() => {
-    //     dispatch(getAllSclasses(adminID, "Sclass"));
-    //   })
+    dispatch(deleteUser(deleteID, address))
+      .then(() => {
+        dispatch(getAllSclasses(adminID, "Sclass"));
+      })
   }
 
   const sclassColumns = [

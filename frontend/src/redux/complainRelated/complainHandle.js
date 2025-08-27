@@ -4,13 +4,15 @@ import {
     getSuccess,
     getFailed,
     getError
-} from './complainSlice';
+} 
+from './complainSlice';
+const REACT_APP_BASE_URL = "http://localhost:5000";
 
 export const getAllComplains = (id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/${address}List/${id}`);
+        const result = await axios.get(`${REACT_APP_BASE_URL}/${address}List/${id}`);
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
