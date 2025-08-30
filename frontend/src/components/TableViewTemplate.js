@@ -4,7 +4,17 @@ import { Table, TableBody, TableContainer, TableHead, TablePagination } from '@m
 
 const TableViewTemplate = ({ columns, rows }) => {
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [rowsPerPage, setRowsPerPage] = useState(() => {
+    const saved = localStorage.getItem('rowsPerPage');
+    return saved ? parseInt(saved, 10) : 5;
+    });
+
+    // Ensure current page is valid after deleting rows
+    React.useEffect(() => {
+        if (page > 0 && page * rowsPerPage >= rows.length) {
+            setPage(Math.max(0, Math.ceil(rows.length / rowsPerPage) - 1));
+        }
+    }, [rows, page, rowsPerPage]);
     return (
         <>
             <TableContainer>
@@ -54,8 +64,10 @@ const TableViewTemplate = ({ columns, rows }) => {
                 page={page}
                 onPageChange={(event, newPage) => setPage(newPage)}
                 onRowsPerPageChange={(event) => {
-                    setRowsPerPage(parseInt(event.target.value, 5));
-                    setPage(0);
+                const value = parseInt(event.target.value, 10);
+                setRowsPerPage(value);
+                localStorage.setItem('rowsPerPage', value);
+                setPage(0);
                 }}
             />
         </>
