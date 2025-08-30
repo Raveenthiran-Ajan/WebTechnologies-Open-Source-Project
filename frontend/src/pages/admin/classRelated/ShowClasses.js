@@ -58,6 +58,21 @@ const ShowClasses = () => {
     };
   })
 
+  // Sort rows by class name ascending
+  const sortedSclassRows = sclassRows && Array.isArray(sclassRows)
+  ? [...sclassRows].sort((a, b) => {
+      // Extract numbers from the class name
+      const numA = parseInt(a.name.match(/\d+/)?.[0] || '0', 10);
+      const numB = parseInt(b.name.match(/\d+/)?.[0] || '0', 10);
+      // If both have numbers, sort numerically
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+      // Otherwise, fallback to string comparison
+      return a.name.localeCompare(b.name);
+    })
+  : [];
+
   const SclassButtonHaver = ({ row }) => {
     const actions = [
       { icon: <PostAddIcon />, name: 'Add Subjects', action: () => navigate("/Admin/addsubject/" + row.id) },
@@ -157,7 +172,7 @@ const ShowClasses = () => {
             :
             <>
               {Array.isArray(sclassesList) && sclassesList.length > 0 &&
-                <TableTemplate buttonHaver={SclassButtonHaver} columns={sclassColumns} rows={sclassRows} />
+                <TableTemplate buttonHaver={SclassButtonHaver} columns={sclassColumns} rows={sortedSclassRows} />
               }
               <SpeedDialTemplate actions={actions} />
             </>}
