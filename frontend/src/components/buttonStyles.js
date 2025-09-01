@@ -1,104 +1,145 @@
 import styled from 'styled-components';
 import { Button } from '@mui/material';
 
-export const RedButton = styled(Button)`
+// Neumorphic/Soft Modern Button Styles
+const neumorphBase = `
   && {
-    background-color: #f00;
-    color: white;
+    border-radius: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 12px 28px;
+    background: #f5f7fa;
+    color: #22223b;
+    box-shadow: 4px 4px 16px #e4e9f7, -4px -4px 16px #ffffff;
+    border: none;
     margin-left: 4px;
+    text-transform: none;
+    transition: box-shadow 0.2s, background 0.2s, color 0.2s, transform 0.1s;
+  }
+`;
+
+export const RedButton = styled(Button)`
+  ${neumorphBase}
+  && {
+    background: #ff5858;
+    color: #fff;
     &:hover {
-      background-color: #eb7979;
-      border-color: #f26767;
-      box-shadow: none;
+      background: #f26767;
+      color: #fff;
+      box-shadow: 0 6px 24px #ffb3b3;
+      transform: translateY(-2px) scale(1.03);
     }
   }
 `;
 
 export const BlackButton = styled(Button)`
+  ${neumorphBase}
   && {
-    background-color: #000000;
-    color: white;
-    margin-left: 4px;
+    background: #232526;
+    color: #fff;
     &:hover {
-      background-color: #212020;
-      border-color: #212020;
-      box-shadow: none;
+      background: #414345;
+      color: #fff;
+      box-shadow: 0 6px 24px #bdbdbd;
+      transform: translateY(-2px) scale(1.03);
     }
   }
 `;
 
 export const DarkRedButton = styled(Button)`
+  ${neumorphBase}
   && {
-    background-color: #650909;
-    color: white;
+    background: #650909;
+    color: #fff;
     &:hover {
-      background-color: #eb7979;
-      border-color: #f26767;
-      box-shadow: none;
+      background: #eb7979;
+      color: #fff;
+      box-shadow: 0 6px 24px #f26767;
+      transform: translateY(-2px) scale(1.03);
     }
   }
 `;
 
 export const BlueButton = styled(Button)`
+  ${neumorphBase}
   && {
-    background-color: #080a43;
+    background: #080a43;
     color: #fff;
     &:hover {
-      background-color: #0a1e82;
+      background: #0a1e82;
+      color: #fff;
+      box-shadow: 0 6px 24px #4db5ff;
+      transform: translateY(-2px) scale(1.03);
     }
   }
 `;
 
 export const PurpleButton = styled(Button)`
+  ${neumorphBase}
   && {
-    background-color: #270843;
+    background: #270843;
     color: #fff;
     &:hover {
-      background-color: #3f1068;
+      background: #3f1068;
+      color: #fff;
+      box-shadow: 0 6px 24px #b39ddb;
+      transform: translateY(-2px) scale(1.03);
     }
   }
 `;
 
 export const LightPurpleButton = styled(Button)`
+  ${neumorphBase}
   && {
-    background-color: #7f56da;
+    background: #7f56da;
     color: #fff;
     &:hover {
-      background-color: #7a1ccb;
+      background: #7a1ccb;
+      color: #fff;
+      box-shadow: 0 6px 24px #d1b3ff;
+      transform: translateY(-2px) scale(1.03);
     }
   }
 `;
 
 export const GreenButton = styled(Button)`
+  ${neumorphBase}
   && {
-    background-color: #133104;
+    background: #133104;
     color: #fff;
     &:hover {
-      background-color: #266810;
+      background: #266810;
+      color: #fff;
+      box-shadow: 0 6px 24px #b2f2bb;
+      transform: translateY(-2px) scale(1.03);
     }
   }
 `;
 
 export const BrownButton = styled(Button)`
+  ${neumorphBase}
   && {
-    background-color: #2c1006;
-    color: white;
+    background: #2c1006;
+    color: #fff;
     &:hover {
-      background-color: #40220c;
-      border-color: #40220c;
-      box-shadow: none;
+      background: #40220c;
+      color: #fff;
+      box-shadow: 0 6px 24px #d7ccc8;
+      transform: translateY(-2px) scale(1.03);
     }
   }
 `;
 
 export const IndigoButton = styled(Button)`
+  ${neumorphBase}
   && {
-    background-color: #2f2b80;
-    color: white;
+    background: #2f2b80;
+    color: #fff;
     &:hover {
-      background-color: #534ea6;
-      border-color: #473d90;
-      box-shadow: none;
+      background: #534ea6;
+      color: #fff;
+      box-shadow: 0 6px 24px #b3b3ff;
+      transform: translateY(-2px) scale(1.03);
     }
   }
 `;

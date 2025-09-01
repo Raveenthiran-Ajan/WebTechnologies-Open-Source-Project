@@ -41,10 +41,10 @@ const ShowClasses = () => {
     console.log(address);
     setMessage("Sorry the delete function has been disabled for now.")
     setShowPopup(true)
-    // dispatch(deleteUser(deleteID, address))
-    //   .then(() => {
-    //     dispatch(getAllSclasses(adminID, "Sclass"));
-    //   })
+    dispatch(deleteUser(deleteID, address))
+      .then(() => {
+        dispatch(getAllSclasses(adminID, "Sclass"));
+      })
   }
 
   const sclassColumns = [
@@ -57,6 +57,21 @@ const ShowClasses = () => {
       id: sclass._id,
     };
   })
+
+  // Sort rows by class name ascending
+  const sortedSclassRows = sclassRows && Array.isArray(sclassRows)
+  ? [...sclassRows].sort((a, b) => {
+      // Extract numbers from the class name
+      const numA = parseInt(a.name.match(/\d+/)?.[0] || '0', 10);
+      const numB = parseInt(b.name.match(/\d+/)?.[0] || '0', 10);
+      // If both have numbers, sort numerically
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+      // Otherwise, fallback to string comparison
+      return a.name.localeCompare(b.name);
+    })
+  : [];
 
   const SclassButtonHaver = ({ row }) => {
     const actions = [
@@ -157,7 +172,7 @@ const ShowClasses = () => {
             :
             <>
               {Array.isArray(sclassesList) && sclassesList.length > 0 &&
-                <TableTemplate buttonHaver={SclassButtonHaver} columns={sclassColumns} rows={sclassRows} />
+                <TableTemplate buttonHaver={SclassButtonHaver} columns={sclassColumns} rows={sortedSclassRows} />
               }
               <SpeedDialTemplate actions={actions} />
             </>}
