@@ -32,6 +32,12 @@ const StudentSideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary="Attendance" />
                 </ListItemButton>
+                <ListItemButton component={Link} to="/assignments">
+                    <ListItemIcon>
+                        <AssignmentIcon color={location.pathname === "/assignments" ? 'primary' : 'inherit'} />
+                    </ListItemIcon>
+                    <ListItemText primary="Assignment Submission" />
+                </ListItemButton>
                 <ListItemButton component={Link} to="/Student/complain">
                     <ListItemIcon>
                         <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Student/complain") ? 'primary' : 'inherit'} />

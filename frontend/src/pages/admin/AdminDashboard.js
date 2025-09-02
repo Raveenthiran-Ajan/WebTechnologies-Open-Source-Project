@@ -46,6 +46,7 @@ import AddParent from './parentRelated/AddParent';
 import ShowParents from './parentRelated/ShowParents';
 import ParentDetails from './parentRelated/ParentDetails';
 
+
 const AdminDashboard = () => {
     const [open, setOpen] = useState(false);
     const toggleDrawer = () => {
@@ -95,6 +96,7 @@ const AdminDashboard = () => {
                 </Drawer>
                 <Box component="main" sx={styles.boxStyled}>
                     <Toolbar />
+                    
                     <Routes>
                         <Route path="/" element={<AdminHomePage />} />
                         <Route path='*' element={<Navigate to="/" />} />
