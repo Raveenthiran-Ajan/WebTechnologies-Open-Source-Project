@@ -10,14 +10,12 @@ import LoginPage from './pages/LoginPage';
 import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import ChooseUser from './pages/ChooseUser';
 import AssignmentsPage from './pages/AssignmentsPage';
-import LanguageSwitcher from './components/LanguageSwitcher';
 
 const App = () => {
   const { currentRole } = useSelector(state => state.user);
 
   return (
     <Router>
-      <LanguageSwitcher />
       {currentRole === null &&
         <Routes>
           <Route path="/" element={<Homepage />} />

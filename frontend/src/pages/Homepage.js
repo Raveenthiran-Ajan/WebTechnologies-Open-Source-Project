@@ -4,10 +4,8 @@ import { Container, Grid, Box, Button } from '@mui/material';
 import styled from 'styled-components';
 import Students from "../assets/students.svg";
 import { LightPurpleButton } from '../components/buttonStyles';
-import { useTranslation } from 'react-i18next';
 
 const Homepage = () => {
-    const { t } = useTranslation();
     return (
         <StyledContainer>
             <Grid container spacing={0}>
@@ -17,28 +15,34 @@ const Homepage = () => {
                 <Grid item xs={12} md={6}>
                     <StyledPaper elevation={3}>
                         <StyledTitle>
-                           {t('welcome')}
+                            Welcome to
+                            <br />
+                            School Management
+                            <br />
+                            System
                         </StyledTitle>
                         <StyledText>
-                            {t('homepage_description')}
+                            Streamline school management, class organization, and add students and faculty.
+                            Seamlessly track attendance, assess performance, and provide feedback.
+                            Access records, view marks, and communicate effortlessly.
                         </StyledText>
                         <StyledBox>
                             <StyledLink to="/choose">
                                 <LightPurpleButton variant="contained" fullWidth>
-                                    {t('login')}
+                                    Login
                                 </LightPurpleButton>
                             </StyledLink>
                             <StyledLink to="/chooseasguest">
                                 <Button variant="outlined" fullWidth
                                     sx={{ mt: 2, mb: 3, color: "#7f56da", borderColor: "#7f56da" }}
                                 >
-                                    {t('login_guest')}
+                                    Login as Guest
                                 </Button>
                             </StyledLink>
                             <StyledText>
-                                {t('no_account')}{' '}
+                                Don't have an account?{' '}
                                 <Link to="/Adminregister" style={{color:"#550080"}}>
-                                    {t('signup')}
+                                    Sign up
                                 </Link>
                             </StyledText>
                         </StyledBox>
