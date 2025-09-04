@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import ChooseUser from './pages/ChooseUser';
 import AssignmentsPage from './pages/AssignmentsPage';
+import AssignmentSubmission from "./components/AssignmentSubmission";
 
 const App = () => {
   const { currentRole } = useSelector(state => state.user);
@@ -28,6 +29,7 @@ const App = () => {
           <Route path="/Parentlogin" element={<LoginPage role="Parent" />} /> {/* Add Parent login route */}          
           <Route path="/Adminregister" element={<AdminRegisterPage />} />
           <Route path="/assignments" element={<AssignmentsPage />} />
+          <Route path="/teacher/upload-assignment" element={<AssignmentSubmission />} />
 
           <Route path='*' element={<Navigate to="/" />} />
         </Routes>}
