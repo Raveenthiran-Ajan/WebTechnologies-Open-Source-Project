@@ -36,9 +36,9 @@ const TeacherSideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary="Complain" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Teacher/upload-assignment">
+                <ListItemButton component={Link} to="/teacher/upload-assignment">
                     <ListItemIcon>
-                        <AssignmentIcon color={location.pathname === "/Teacher/upload-assignment" ? 'primary' : 'inherit'} />
+                        <AssignmentIcon color={location.pathname === "/teacher/upload-assignment" ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Upload Assignments" />
                 </ListItemButton>

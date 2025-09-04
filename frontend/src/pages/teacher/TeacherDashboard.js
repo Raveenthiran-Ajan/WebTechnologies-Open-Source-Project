@@ -23,6 +23,7 @@ import TeacherHomePage from './TeacherHomePage';
 import TeacherProfile from './TeacherProfile';
 import TeacherViewStudent from './TeacherViewStudent';
 import StudentExamMarks from '../admin/studentRelated/StudentExamMarks';
+import AssignmentSubmission from '../../components/AssignmentSubmission';
 
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -86,6 +87,7 @@ const TeacherDashboard = () => {
 
                         <Route path="/Teacher/class/student/attendance/:studentID/:subjectID" element={<StudentAttendance situation="Subject" />} />
                         <Route path="/Teacher/class/student/marks/:studentID/:subjectID" element={<StudentExamMarks situation="Subject" />} />
+                        <Route path="/Teacher/upload-assignment" element={<AssignmentSubmission />} />
 
                         <Route path="/logout" element={<Logout />} />
                     </Routes>
