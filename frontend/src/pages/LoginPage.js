@@ -9,6 +9,7 @@ import { LightPurpleButton } from '../components/buttonStyles';
 import styled from 'styled-components';
 import { loginUser } from '../redux/userRelated/userHandle';
 import Popup from '../components/Popup';
+import { useTranslation } from 'react-i18next';
 
 const defaultTheme = createTheme();
 
@@ -121,6 +122,7 @@ const LoginPage = ({ role }) => {
         }
     }, [status, currentRole, navigate, error, response, currentUser]);
 
+    const { t } = useTranslation();
     return (
         <ThemeProvider theme={defaultTheme}>
             <Grid container component="main" sx={{ height: '100vh' }}>
@@ -136,10 +138,10 @@ const LoginPage = ({ role }) => {
                         }}
                     >
                         <Typography variant="h4" sx={{ mb: 2, color: "#2c2143" }}>
-                            {role} Login
+                            {t('login_title', { role })}
                         </Typography>
                         <Typography variant="h7">
-                            Welcome back! Please enter your details
+                            {t('login_welcome')}
                         </Typography>
                         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 2 }}>
                             {role === "Student" ? (
@@ -149,13 +151,13 @@ const LoginPage = ({ role }) => {
                                         required
                                         fullWidth
                                         id="rollNumber"
-                                        label="Enter your Roll Number"
+                                        label={t('login_roll_label')}
                                         name="rollNumber"
                                         autoComplete="off"
                                         type="number"
                                         autoFocus
                                         error={rollNumberError}
-                                        helperText={rollNumberError && 'Roll Number is required'}
+                                        helperText={rollNumberError && t('login_roll_required')}
                                         onChange={handleInputChange}
                                     />
                                     <TextField
@@ -163,12 +165,12 @@ const LoginPage = ({ role }) => {
                                         required
                                         fullWidth
                                         id="studentName"
-                                        label="Enter your name"
+                                        label={t('login_name_label')}
                                         name="studentName"
                                         autoComplete="name"
                                         autoFocus
                                         error={studentNameError}
-                                        helperText={studentNameError && 'Name is required'}
+                                        helperText={studentNameError && t('login_name_required')}
                                         onChange={handleInputChange}
                                     />
                                 </>
@@ -178,12 +180,12 @@ const LoginPage = ({ role }) => {
                                     required
                                     fullWidth
                                     id="email"
-                                    label="Enter your email"
+                                    label={t('login_email_label')}
                                     name="email"
                                     autoComplete="email"
                                     autoFocus
                                     error={emailError}
-                                    helperText={emailError && 'Email is required'}
+                                    helperText={emailError && t('login_email_required')}
                                     onChange={handleInputChange}
                                 />
                             )}
@@ -192,12 +194,12 @@ const LoginPage = ({ role }) => {
                                 required
                                 fullWidth
                                 name="password"
-                                label="Password"
+                                label={t('login_password_label')}
                                 type={toggle ? 'text' : 'password'}
                                 id="password"
                                 autoComplete="current-password"
                                 error={passwordError}
-                                helperText={passwordError && 'Password is required'}
+                                helperText={passwordError && t('login_password_required')}
                                 onChange={handleInputChange}
                                 InputProps={{
                                     endAdornment: (
@@ -216,10 +218,10 @@ const LoginPage = ({ role }) => {
                             <Grid container sx={{ display: "flex", justifyContent: "space-between" }}>
                                 <FormControlLabel
                                     control={<Checkbox value="remember" color="primary" />}
-                                    label="Remember me"
+                                    label={t('login_remember')}
                                 />
                                 <StyledLink href="#">
-                                    Forgot password?
+                                    {t('login_forgot')}
                                 </StyledLink>
                             </Grid>
                             <LightPurpleButton
@@ -230,7 +232,7 @@ const LoginPage = ({ role }) => {
                             >
                                 {loader ?
                                     <CircularProgress size={24} color="inherit" />
-                                    : "Login"}
+                                    : t('login')}
                             </LightPurpleButton>
                             <Button
                                 fullWidth
@@ -238,16 +240,16 @@ const LoginPage = ({ role }) => {
                                 variant="outlined"
                                 sx={{ mt: 2, mb: 3, color: "#7f56da", borderColor: "#7f56da" }}
                             >
-                                Login as Guest
+                                {t('login_guest')}
                             </Button>
                             {role === "Admin" &&
                                 <Grid container>
                                     <Grid>
-                                        Don't have an account?
+                                        {t('no_account')}
                                     </Grid>
                                     <Grid item sx={{ ml: 2 }}>
                                         <StyledLink to="/Adminregister">
-                                            Sign up
+                                            {t('signup')}
                                         </StyledLink>
                                     </Grid>
                                 </Grid>
@@ -275,7 +277,7 @@ const LoginPage = ({ role }) => {
                 open={guestLoader}
             >
                 <CircularProgress color="primary" />
-                Please Wait
+                {t('please_wait')}
             </Backdrop>
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </ThemeProvider>

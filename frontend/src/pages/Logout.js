@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { authLogout } from '../redux/userRelated/userSlice';
 import styled from 'styled-components';
+import { useTranslation } from 'react-i18next';
 
 const Logout = () => {
     const currentUser = useSelector(state => state.user.currentUser);
@@ -15,6 +16,7 @@ const Logout = () => {
         navigate('/');
     };
 
+    const { t } = useTranslation();
     const handleCancel = () => {
         navigate(-1);
     };
@@ -22,9 +24,9 @@ const Logout = () => {
     return (
         <LogoutContainer>
             <h1>{currentUser.name}</h1>
-            <LogoutMessage>Are you sure you want to log out?</LogoutMessage>
-            <LogoutButtonLogout onClick={handleLogout}>Log Out</LogoutButtonLogout>
-            <LogoutButtonCancel onClick={handleCancel}>Cancel</LogoutButtonCancel>
+            <LogoutMessage>{t('logout_confirm')}</LogoutMessage>
+            <LogoutButtonLogout onClick={handleLogout}>{t('logout')}</LogoutButtonLogout>
+            <LogoutButtonCancel onClick={handleCancel}>{t('cancel')}</LogoutButtonCancel>
         </LogoutContainer>
     );
 };
