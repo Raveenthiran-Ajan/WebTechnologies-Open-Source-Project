@@ -15,6 +15,7 @@ dotenv.config();
 
 app.use(express.json({ limit: '10mb' }))
 app.use(cors())
+app.use('/uploads', express.static('uploads'))
 
 mongoose
     .connect(process.env.MONGO_URL, {

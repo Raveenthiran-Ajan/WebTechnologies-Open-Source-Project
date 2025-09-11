@@ -12,7 +12,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import TeacherSideBar from './TeacherSideBar';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import Logout from '../Logout'
+import Logout from '../Logout';
 import AccountMenu from '../../components/AccountMenu';
 import { AppBar, Drawer } from '../../components/styles';
 import StudentAttendance from '../admin/studentRelated/StudentAttendance';
@@ -23,81 +23,75 @@ import TeacherHomePage from './TeacherHomePage';
 import TeacherProfile from './TeacherProfile';
 import TeacherViewStudent from './TeacherViewStudent';
 import StudentExamMarks from '../admin/studentRelated/StudentExamMarks';
-import AssignmentSubmission from '../../components/AssignmentSubmission';
+import TeacherUploadAssignment from './TeacherUploadAssignment';
 
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);
-    const toggleDrawer = () => {
-        setOpen(!open);
-    };
+    const toggleDrawer = () => setOpen(!open);
 
     return (
-        <>
-            <Box sx={{ display: 'flex' }}>
-                <CssBaseline />
-                <AppBar open={open} position='absolute'>
-                    <Toolbar sx={{ pr: '24px' }}>
-                        <IconButton
-                            edge="start"
-                            color="inherit"
-                            aria-label="open drawer"
-                            onClick={toggleDrawer}
-                            sx={{
-                                marginRight: '36px',
-                                ...(open && { display: 'none' }),
-                            }}
-                        >
-                            <MenuIcon />
-                        </IconButton>
-                        <Typography
-                            component="h1"
-                            variant="h6"
-                            color="inherit"
-                            noWrap
-                            sx={{ flexGrow: 1 }}
-                        >
-                            Teacher Dashboard
-                        </Typography>
-                        <AccountMenu />
-                    </Toolbar>
-                </AppBar>
-                <Drawer variant="permanent" open={open} sx={open ? styles.drawerStyled : styles.hideDrawer}>
-                    <Toolbar sx={styles.toolBarStyled}>
-                        <IconButton onClick={toggleDrawer}>
-                            <ChevronLeftIcon />
-                        </IconButton>
-                    </Toolbar>
-                    <Divider />
-                    <List component="nav">
-                        <TeacherSideBar />
-                    </List>
-                </Drawer>
-                <Box component="main" sx={styles.boxStyled}>
-                    <Toolbar />
-                    <Routes>
-                        <Route path="/" element={<TeacherHomePage />} />
-                        <Route path='*' element={<Navigate to="/" />} />
-                        <Route path="/Teacher/dashboard" element={<TeacherHomePage />} />
-                        <Route path="/Teacher/profile" element={<TeacherProfile />} />
+        <Box sx={{ display: 'flex' }}>
+            <CssBaseline />
+            <AppBar open={open} position="absolute">
+                <Toolbar sx={{ pr: '24px' }}>
+                    <IconButton
+                        edge="start"
+                        color="inherit"
+                        aria-label="open drawer"
+                        onClick={toggleDrawer}
+                        sx={{
+                            marginRight: '36px',
+                            ...(open && { display: 'none' }),
+                        }}
+                    >
+                        <MenuIcon />
+                    </IconButton>
+                    <Typography
+                        component="h1"
+                        variant="h6"
+                        color="inherit"
+                        noWrap
+                        sx={{ flexGrow: 1 }}
+                    >
+                        Teacher Dashboard
+                    </Typography>
+                    <AccountMenu />
+                </Toolbar>
+            </AppBar>
 
-                        <Route path="/Teacher/complain" element={<TeacherComplain />} />
+            <Drawer variant="permanent" open={open} sx={open ? styles.drawerStyled : styles.hideDrawer}>
+                <Toolbar sx={styles.toolBarStyled}>
+                    <IconButton onClick={toggleDrawer}>
+                        <ChevronLeftIcon />
+                    </IconButton>
+                </Toolbar>
+                <Divider />
+                <List component="nav">
+                    <TeacherSideBar />
+                </List>
+            </Drawer>
 
-                        <Route path="/Teacher/class" element={<TeacherClassDetails />} />
-                        <Route path="/Teacher/class/student/:id" element={<TeacherViewStudent />} />
-
-                        <Route path="/Teacher/class/student/attendance/:studentID/:subjectID" element={<StudentAttendance situation="Subject" />} />
-                        <Route path="/Teacher/class/student/marks/:studentID/:subjectID" element={<StudentExamMarks situation="Subject" />} />
-                        <Route path="/Teacher/upload-assignment" element={<AssignmentSubmission />} />
-
-                        <Route path="/logout" element={<Logout />} />
-                    </Routes>
-                </Box>
+            <Box component="main" sx={styles.boxStyled}>
+                <Toolbar />
+                <Routes>
+                    <Route path="/" element={<TeacherHomePage />} />
+                    <Route path="*" element={<Navigate to="/" />} />
+                    <Route path="/teacher/dashboard" element={<TeacherHomePage />} />
+                    <Route path="/teacher/profile" element={<TeacherProfile />} />
+                    <Route path="/teacher/complain" element={<TeacherComplain />} />
+                    <Route path="/teacher/class" element={<TeacherClassDetails />} />
+                    <Route path="/teacher/class/student/:id" element={<TeacherViewStudent />} />
+                    <Route path="/teacher/class/student/attendance/:studentID/:subjectID" element={<StudentAttendance situation="Subject" />} />
+                    <Route path="/teacher/class/student/marks/:studentID/:subjectID" element={<StudentExamMarks situation="Subject" />} />
+                    <Route path="/teacher/upload-assignment" element={<TeacherUploadAssignment />} />
+                    <Route path="/logout" element={<Logout />} />
+                </Routes>
             </Box>
-        </>
+        </Box>
     );
-}
+};
 
-export default TeacherDashboard
+export default TeacherDashboard;
 
 const styles = {
     boxStyled: {
@@ -116,7 +110,7 @@ const styles = {
         px: [1],
     },
     drawerStyled: {
-        display: "flex"
+        display: 'flex',
     },
     hideDrawer: {
         display: 'flex',
@@ -124,4 +118,4 @@ const styles = {
             display: 'none',
         },
     },
-}
+};
