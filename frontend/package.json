@@ -48,5 +48,6 @@
   },
   "devDependencies": {
     "webpack": "^5.81.0"
-  }
+  },
+  "proxy": "http://localhost:5000"
 }

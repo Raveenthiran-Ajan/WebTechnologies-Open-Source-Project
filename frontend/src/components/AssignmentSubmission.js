@@ -1,68 +1,134 @@
 import React, { useState } from "react";
+import {
+  Box,
+  Paper,
+  Grid,
+  TextField,
+  Button,
+  Typography,
+  Snackbar,
+  Alert,
+} from "@mui/material";
 import axios from "axios";
 
-function AssignmentSubmission() {
-  const [studentId, setStudentId] = useState("");
-  const [title, setTitle] = useState("");
+const AssignmentSubmission = function ({ assignmentId, studentId, onClose, onSubmitted }) {
   const [file, setFile] = useState(null);
-  const [message, setMessage] = useState("");
+  const [answerText, setAnswerText] = useState("");
+  const [alert, setAlert] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
-  const handleSubmit = async (e) => {
+  function handleSubmit(e) {
     e.preventDefault();
-    if (!studentId || !title || !file) {
-      setMessage("Please fill all fields.");
-      return;
-    }
 
     const formData = new FormData();
+    formData.append("assignmentId", assignmentId);
     formData.append("studentId", studentId);
-    formData.append("title", title);
-    formData.append("file", file);
-
-    try {
-      const res = await axios.post("/assignments/submit", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      setMessage(res.data.message || "Assignment submitted successfully!");
-    } catch (err) {
-      setMessage("Submission failed.");
+    if (file) {
+      formData.append("file", file);
     }
-  };
+    if (answerText) {
+      formData.append("answerText", answerText);
+    }
 
-  return (
-    <div>
-      <h2>Submit Assignment</h2>
-      <form onSubmit={handleSubmit} encType="multipart/form-data">
-        <div>
-          <label>Student ID:</label>
-          <input
-            type="text"
-            value={studentId}
-            onChange={(e) => setStudentId(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Assignment Title:</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>File:</label>
-          <input
-            type="file"
-            onChange={(e) => setFile(e.target.files[0])}
-            required
-          />
-        </div>
-        <button type="submit">Submit</button>
-      </form>
-      {message && <p>{message}</p>}
-    </div>
+    console.log("Submitting submission with formData:", formData);
+
+    axios
+      .post("http://localhost:5000/submissions", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then(function (res) {
+        console.log("Backend response:", res.data);
+        setAlert({
+          open: true,
+          message: "Submission uploaded successfully!",
+          severity: "success",
+        });
+        setFile(null);
+        setAnswerText("");
+        if (onSubmitted) onSubmitted();
+      })
+      .catch(function (err) {
+        console.error("Upload failed:", err.response ? err.response.data : err);
+        setAlert({
+          open: true,
+          message:
+            (err.response && err.response.data.error) ||
+            "Failed to upload submission.",
+          severity: "error",
+        });
+      });
+  }
+
+  return React.createElement(
+    Box,
+    { sx: { mt: 2, display: "flex", justifyContent: "center" } },
+    React.createElement(
+      Paper,
+      { sx: { p: 3, width: "100%", boxShadow: 2 } },
+      React.createElement(Typography, { variant: "h6", mb: 2 }, "Submit Assignment"),
+      React.createElement(
+        "form",
+        { onSubmit: handleSubmit },
+        React.createElement(
+          Grid,
+          { container: true, spacing: 2 },
+          React.createElement(
+            Grid,
+            { item: true, xs: 12 },
+            React.createElement(TextField, {
+              label: "Answer Text (optional)",
+              fullWidth: true,
+              value: answerText,
+              onChange: (e) => setAnswerText(e.target.value),
+              multiline: true,
+              rows: 3,
+            })
+          ),
+          React.createElement(
+            Grid,
+            { item: true, xs: 12 },
+            React.createElement("input", {
+              type: "file",
+              accept: ".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png",
+              onChange: (e) => setFile(e.target.files[0]),
+              style: { width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "4px" },
+            })
+          ),
+          React.createElement(
+            Grid,
+            { item: true, xs: 6 },
+            React.createElement(
+              Button,
+              { type: "button", variant: "outlined", color: "secondary", fullWidth: true, onClick: onClose },
+              "Cancel"
+            )
+          ),
+          React.createElement(
+            Grid,
+            { item: true, xs: 6 },
+            React.createElement(
+              Button,
+              { type: "submit", variant: "contained", color: "primary", fullWidth: true },
+              "Submit"
+            )
+          )
+        )
+      )
+    ),
+    React.createElement(
+      Snackbar,
+      {
+        open: alert.open,
+        autoHideDuration: 4000,
+        onClose: () => setAlert({ ...alert, open: false }),
+      },
+      React.createElement(Alert, { severity: alert.severity, sx: { width: "100%" } }, alert.message)
+    )
   );
 };
 

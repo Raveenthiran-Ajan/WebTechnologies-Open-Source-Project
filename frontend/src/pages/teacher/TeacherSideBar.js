@@ -12,57 +12,76 @@ import { useSelector } from 'react-redux';
 
 const TeacherSideBar = () => {
     const { currentUser } = useSelector((state) => state.user);
-    const sclassName = currentUser.teachSclass
+    const sclassName = currentUser?.teachSclass;
 
     const location = useLocation();
+
     return (
         <>
             <React.Fragment>
                 <ListItemButton component={Link} to="/">
                     <ListItemIcon>
-                        <HomeIcon color={location.pathname === ("/" || "/Teacher/dashboard") ? 'primary' : 'inherit'} />
+                        <HomeIcon
+                            color={
+                                location.pathname === "/" || location.pathname === "/teacher/dashboard"
+                                    ? "primary"
+                                    : "inherit"
+                            }
+                        />
                     </ListItemIcon>
                     <ListItemText primary="Home" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Teacher/class">
+                <ListItemButton component={Link} to="/teacher/class">
                     <ListItemIcon>
-                        <ClassOutlinedIcon color={location.pathname.startsWith("/Teacher/class") ? 'primary' : 'inherit'} />
+                        <ClassOutlinedIcon
+                            color={location.pathname.startsWith("/teacher/class") ? "primary" : "inherit"}
+                        />
                     </ListItemIcon>
-                    <ListItemText primary={`Class ${sclassName.sclassName}`} />
+                    <ListItemText primary={`Class ${sclassName?.sclassName || ""}`} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Teacher/complain">
+                <ListItemButton component={Link} to="/teacher/complain">
                     <ListItemIcon>
-                        <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Teacher/complain") ? 'primary' : 'inherit'} />
+                        <AnnouncementOutlinedIcon
+                            color={location.pathname.startsWith("/teacher/complain") ? "primary" : "inherit"}
+                        />
                     </ListItemIcon>
                     <ListItemText primary="Complain" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Teacher/upload-assignment">
+                <ListItemButton component={Link} to="/teacher/upload-assignment">
                     <ListItemIcon>
-                        <AssignmentIcon color={location.pathname === "/Teacher/upload-assignment" ? 'primary' : 'inherit'} />
+                        <AssignmentIcon
+                            color={location.pathname === "/teacher/upload-assignment" ? "primary" : "inherit"}
+                        />
                     </ListItemIcon>
                     <ListItemText primary="Upload Assignments" />
                 </ListItemButton>
             </React.Fragment>
+
             <Divider sx={{ my: 1 }} />
+
             <React.Fragment>
                 <ListSubheader component="div" inset>
                     User
                 </ListSubheader>
-                <ListItemButton component={Link} to="/Teacher/profile">
+                <ListItemButton component={Link} to="/teacher/profile">
                     <ListItemIcon>
-                        <AccountCircleOutlinedIcon color={location.pathname.startsWith("/Teacher/profile") ? 'primary' : 'inherit'} />
+                        <AccountCircleOutlinedIcon
+                            color={location.pathname.startsWith("/teacher/profile") ? "primary" : "inherit"}
+                        />
                     </ListItemIcon>
                     <ListItemText primary="Profile" />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/logout">
                     <ListItemIcon>
-                        <ExitToAppIcon color={location.pathname.startsWith("/logout") ? 'primary' : 'inherit'} />
+                        <ExitToAppIcon
+                            color={location.pathname.startsWith("/logout") ? "primary" : "inherit"}
+                        />
                     </ListItemIcon>
                     <ListItemText primary="Logout" />
                 </ListItemButton>
             </React.Fragment>
         </>
-    )
-}
+    );
+};
 
-export default TeacherSideBar
+export default TeacherSideBar;

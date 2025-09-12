@@ -1,15 +1,53 @@
-const Assignment = require("../models/Assignment");
+const Assignment = require("../models/assignment");
+const Student = require("../models/studentSchema");
+const multer = require("multer");
+const path = require("path");
 
-// Submit a new assignment
-exports.submitAssignment = async (req, res) => {
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/assignments/"); // Directory to save files
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /pdf|doc|docx|txt|jpg|jpeg|png/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error("Only PDF, DOC, DOCX, TXT, JPG, JPEG, PNG files are allowed"));
+    }
+  },
+});
+
+// Teacher creates a new assignment
+const mongoose = require("mongoose");
+const Sclass = require("../models/sclassSchema");
+
+const createAssignment = async (req, res) => {
   try {
-    const { title, description, dueDate, studentId } = req.body;
+    const { title, description, dueDate, subject, teacherId } = req.body;
+
+    // Get fileUrl from uploaded file if present
+    const fileUrl = req.file ? req.file.path : null;
 
     const assignment = new Assignment({
       title,
       description,
       dueDate,
-      studentId,
+      subject,
+      teacherId,
+      fileUrl,
     });
 
     await assignment.save();
@@ -19,18 +57,33 @@ exports.submitAssignment = async (req, res) => {
   }
 };
 
-// Get assignments by student
-exports.getAssignmentsByStudent = async (req, res) => {
+// Student fetches assignments for their class
+const getAssignmentsByStudent = async (req, res) => {
   try {
-    const assignments = await Assignment.find({ studentId: req.params.studentId });
-    res.json(assignments);
+    const { studentId } = req.params;
+
+    const student = await Student.findById(studentId).populate('sclassName');
+    if (!student) {
+      console.log(`Student with id ${studentId} not found`);
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    if (!student.sclassName || !student.sclassName._id) {
+      console.log(`Student class info incomplete for student ${studentId}:`, student.sclassName);
+      return res.status(400).json({ error: "Student class information is incomplete" });
+    }
+
+    const assignments = await Assignment.find({ classId: student.sclassName._id });
+    console.log(`Assignments found for student ${studentId}:`, assignments);
+    res.json({ assignments });
   } catch (error) {
+    console.error('Error in getAssignmentsByStudent:', error);
     res.status(500).json({ error: error.message });
   }
 };
 
-// Get all assignments (for admin/teacher)
-exports.getAllAssignments = async (req, res) => {
+// Admin/teacher fetch all assignments
+const getAllAssignments = async (req, res) => {
   try {
     const assignments = await Assignment.find();
     res.json(assignments);
@@ -38,3 +91,20 @@ exports.getAllAssignments = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Get assignments by teacher
+const getAssignmentsByTeacher = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const assignments = await Assignment.find({ teacherId });
+    res.json(assignments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.submitAssignment = createAssignment;   // teacher creates
+exports.getAssignmentsByStudent = getAssignmentsByStudent;
+exports.getAllAssignments = getAllAssignments;
+exports.getAssignmentsByTeacher = getAssignmentsByTeacher;
+exports.upload = upload;
