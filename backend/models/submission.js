@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const submissionSchema = new mongoose.Schema({
   assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: "Assignment", required: true },
-  studentId: { type: mongoose.Schema.Types.ObjectId, ref: "Student", required: true },
+  studentId: { type: mongoose.Schema.Types.ObjectId, ref: "student", required: true },
   fileUrl: { type: String }, // optional if students upload files
   answerText: { type: String }, // optional if text answers
   submittedAt: { type: Date, default: Date.now },

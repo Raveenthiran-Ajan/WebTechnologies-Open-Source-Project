@@ -12,6 +12,7 @@ import Assignment from "../../assets/assignment.svg";
 import { getSubjectList } from '../../redux/sclassRelated/sclassHandle';
 import axios from 'axios';
 import AssignmentSubmission from '../../components/AssignmentSubmission';
+import { API_BASE_URL } from '../../config';
 
 const StudentHomePage = () => {
     const dispatch = useDispatch();
@@ -31,7 +32,7 @@ const StudentHomePage = () => {
         if (!currentUser._id) return;
         setAssignmentsLoading(true);
         try {
-            const res = await axios.get(`http://localhost:5000/assignments/student/${currentUser._id}`);
+            const res = await axios.get(`${API_BASE_URL}/assignments/student/${currentUser._id}`);
             setAssignments(res.data.assignments || []);
         } catch (err) {
             console.error('Error fetching assignments:', err);
@@ -44,7 +45,7 @@ const StudentHomePage = () => {
     const fetchSubmissions = async () => {
         if (!currentUser._id) return;
         try {
-            const res = await axios.get(`http://localhost:5000/submissions/student/${currentUser._id}`);
+            const res = await axios.get(`${API_BASE_URL}/submissions/student/${currentUser._id}`);
             setSubmissions(res.data || []);
         } catch (err) {
             console.error('Error fetching submissions:', err);
@@ -172,7 +173,7 @@ const StudentHomePage = () => {
                                                         <Button
                                                             variant="outlined"
                                                             size="small"
-                                                            href={`http://localhost:5000${assignment.fileUrl}`}
+                                                            href={`${API_BASE_URL}${assignment.fileUrl}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                         >

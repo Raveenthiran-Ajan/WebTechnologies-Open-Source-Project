@@ -1,4 +1,4 @@
-const Assignment = require("../models/assignment");
+const Assignment = require("../models/Assignment");
 const Student = require("../models/studentSchema");
 const multer = require("multer");
 const path = require("path");
@@ -36,10 +36,10 @@ const Sclass = require("../models/sclassSchema");
 
 const createAssignment = async (req, res) => {
   try {
-    const { title, description, dueDate, subject, teacherId } = req.body;
+    const { title, description, dueDate, subject, teacherId, classId } = req.body;
 
     // Get fileUrl from uploaded file if present
-    const fileUrl = req.file ? req.file.path : null;
+    const fileUrl = req.file ? "/" + req.file.path : null;
 
     const assignment = new Assignment({
       title,
@@ -47,6 +47,7 @@ const createAssignment = async (req, res) => {
       dueDate,
       subject,
       teacherId,
+      classId,
       fileUrl,
     });
 

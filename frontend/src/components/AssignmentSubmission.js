@@ -10,6 +10,7 @@ import {
   Alert,
 } from "@mui/material";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
 const AssignmentSubmission = function ({ assignmentId, studentId, onClose, onSubmitted }) {
   const [file, setFile] = useState(null);
@@ -36,7 +37,7 @@ const AssignmentSubmission = function ({ assignmentId, studentId, onClose, onSub
     console.log("Submitting submission with formData:", formData);
 
     axios
-      .post("http://localhost:5000/submissions", formData, {
+      .post(`${API_BASE_URL}/submissions`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

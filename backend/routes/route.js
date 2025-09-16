@@ -75,6 +75,7 @@ const {
   submitAssignment: studentSubmit,
   getSubmissionsByAssignment,
   getSubmissionsByStudent,
+  upload: submissionUpload,
 } = require("../controllers/submission-controller");
 
 // ------------------- Admin -------------------
@@ -158,7 +159,7 @@ router.get("/assignments", getAllAssignments);
 router.get("/assignments/teacher/:teacherId", getAssignmentsByTeacher);
 
 // ------------------- Submissions (student side) -------------------
-router.post("/submissions", upload.single('file'), studentSubmit);
+router.post("/submissions", submissionUpload.single('file'), studentSubmit);
 router.get("/submissions/assignment/:assignmentId", getSubmissionsByAssignment);
 router.get("/submissions/student/:studentId", getSubmissionsByStudent);
 

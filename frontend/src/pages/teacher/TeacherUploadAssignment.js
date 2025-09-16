@@ -18,6 +18,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { API_BASE_URL } from "../../config";
 
 const TeacherUploadAssignment = () => {
   const [title, setTitle] = useState("");
@@ -42,7 +43,7 @@ const TeacherUploadAssignment = () => {
     // Fetch assignments by current teacher
     if (currentUser && currentUser._id) {
       axios
-        .get(`http://localhost:5000/assignments/teacher/${currentUser._id}`)
+        .get(`${API_BASE_URL}/assignments/teacher/${currentUser._id}`)
         .then((res) => {
           setAssignments(res.data);
           if (res.data.length > 0) {
@@ -59,7 +60,7 @@ const TeacherUploadAssignment = () => {
     if (selectedAssignmentId) {
       setLoadingSubmissions(true);
       axios
-        .get(`http://localhost:5000/submissions/assignment/${selectedAssignmentId}`)
+        .get(`${API_BASE_URL}/submissions/assignment/${selectedAssignmentId}`)
         .then((res) => {
           setSubmissions(res.data);
           setLoadingSubmissions(false);
@@ -91,12 +92,13 @@ const TeacherUploadAssignment = () => {
     formData.append("subject", subject);
     formData.append("dueDate", dueDate);
     formData.append("teacherId", currentUser._id);
+    formData.append("classId", currentUser.teachSclass._id);
     if (file) {
       formData.append("file", file);
     }
 
     axios
-      .post("http://localhost:5000/assignments/submit", formData, {
+      .post(`${API_BASE_URL}/assignments/submit`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -114,7 +116,7 @@ const TeacherUploadAssignment = () => {
         setDueDate("");
         setFile(null);
         // Refresh assignments list
-        return axios.get(`http://localhost:5000/assignments/teacher/${currentUser._id}`);
+        return axios.get(`${API_BASE_URL}/assignments/teacher/${currentUser._id}`);
       })
       .then((res) => {
         setAssignments(res.data);
@@ -267,7 +269,7 @@ const TeacherUploadAssignment = () => {
                       <TableCell>{new Date(submission.submittedAt).toLocaleString()}</TableCell>
                       <TableCell>
                         {submission.fileUrl ? (
-                          <Link href={`http://localhost:5000${submission.fileUrl}`} target="_blank" rel="noopener">
+                          <Link href={`${API_BASE_URL}${submission.fileUrl}`} target="_blank" rel="noopener">
                             View File
                           </Link>
                         ) : (
