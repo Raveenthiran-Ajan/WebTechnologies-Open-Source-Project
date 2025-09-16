@@ -24,6 +24,8 @@ const {
     removeStudentAttendance } = require('../controllers/student_controller.js');
 const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects } = require('../controllers/subject-controller.js');
 const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, teacherAttendance } = require('../controllers/teacher-controller.js');
+const { submitAssignment, getAssignmentsByStudent, getAllAssignments } = require("../controllers/assignment-controller");
+
 
 // Admin
 router.post('/AdminReg', adminRegister);
@@ -115,5 +117,12 @@ router.get("/Subject/:id", getSubjectDetail)
 router.delete("/Subject/:id", deleteSubject)
 router.delete("/Subjects/:id", deleteSubjects)
 router.delete("/SubjectsClass/:id", deleteSubjectsByClass)
+
+
+// Assignment routes
+router.post("/assignments/submit", submitAssignment);
+router.get("/assignments/student/:studentId", getAssignmentsByStudent);
+router.get("/assignments", getAllAssignments);
+
 
 module.exports = router;
