@@ -9,6 +9,7 @@ import Time from "../../assets/time.svg";
 import { getClassStudents, getSubjectDetails } from '../../redux/sclassRelated/sclassHandle';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const TeacherHomePage = () => {
     const dispatch = useDispatch();
@@ -27,6 +28,7 @@ const TeacherHomePage = () => {
     const numberOfStudents = sclassStudents && sclassStudents.length;
     const numberOfSessions = subjectDetails && subjectDetails.sessions
 
+    const { t } = useTranslation();
     return (
         <>
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -35,7 +37,7 @@ const TeacherHomePage = () => {
                         <StyledPaper>
                             <img src={Students} alt="Students" />
                             <Title>
-                                Class Students
+                                {t('class_students')}
                             </Title>
                             <Data start={0} end={numberOfStudents} duration={2.5} />
                         </StyledPaper>
@@ -44,7 +46,7 @@ const TeacherHomePage = () => {
                         <StyledPaper>
                             <img src={Lessons} alt="Lessons" />
                             <Title>
-                                Total Lessons
+                                {t('total_lessons')}
                             </Title>
                             <Data start={0} end={numberOfSessions} duration={5} />
                         </StyledPaper>
@@ -53,7 +55,7 @@ const TeacherHomePage = () => {
                         <StyledPaper>
                             <img src={Tests} alt="Tests" />
                             <Title>
-                                Tests Taken
+                                {t('tests_taken')}
                             </Title>
                             <Data start={0} end={24} duration={4} />
                         </StyledPaper>
@@ -62,9 +64,9 @@ const TeacherHomePage = () => {
                         <StyledPaper>
                             <img src={Time} alt="Time" />
                             <Title>
-                                Total Hours
+                                {t('total_hours')}
                             </Title>
-                            <Data start={0} end={30} duration={4} suffix="hrs"/>                        </StyledPaper>
+                            <Data start={0} end={30} duration={4} suffix={t('hours_suffix')}/>                        </StyledPaper>
                     </Grid>
                     <Grid item xs={12}>
                         <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>

@@ -10,6 +10,7 @@ import CountUp from 'react-countup';
 import Subject from "../../assets/subjects.svg";
 import Assignment from "../../assets/assignment.svg";
 import { getSubjectList } from '../../redux/sclassRelated/sclassHandle';
+import { useTranslation } from 'react-i18next';
 
 const StudentHomePage = () => {
     const dispatch = useDispatch();
@@ -41,6 +42,8 @@ const StudentHomePage = () => {
         { name: 'Present', value: overallAttendancePercentage },
         { name: 'Absent', value: overallAbsentPercentage }
     ];
+
+    const { t } = useTranslation();
     return (
         <>
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>

@@ -29,5 +29,15 @@
   "choose_teacher": "Teacher",
   "choose_teacher_desc": "Login as a teacher to create courses, assignments, and track student progress.",
   "choose_parent": "Parent",
-  "choose_parent_desc": "Login as a parent to view your children's attendance and marks."
+  "choose_parent_desc": "Login as a parent to view your children's attendance and marks.",
+  "class_students": "Class Students",
+  "total_lessons": "Total Lessons",
+  "tests_taken": "Tests Taken",
+  "total_hours": "Total Hours",
+  "hours_suffix": "hrs",
+  "totalStudents": "Total Students",
+  "totalClasses": "Total Classes",
+  "totalTeachers": "Total Teachers",
+  "feesCollection": "Fees Collection"
+  
 }

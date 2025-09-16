@@ -29,5 +29,15 @@
   "choose_teacher": "ගුරුවරයා",
   "choose_teacher_desc": "පාඨමාලා, පැවරුම් නිර්මාණය කිරීමට සහ ශිෂ්‍ය ප්‍රගතිය පරීක්ෂා කිරීමට ගුරුවරයා ලෙස පුරනය වන්න.",
   "choose_parent": "දෙමාපියන්",
-  "choose_parent_desc": "දරුවන්ගේ පැමිණීම සහ ලකුණු බැලීමට පිවිසෙන්න."
+  "choose_parent_desc": "දරුවන්ගේ පැමිණීම සහ ලකුණු බැලීමට පිවිසෙන්න.",
+  "class_students": "පන්ති ශිෂ්‍යයන්",
+  "total_lessons": "මුළු පාඩම්",
+  "tests_taken": "ගත් පරීක්ෂණ",
+  "total_hours": "මුළු පැය",
+  "hours_suffix": "පැය",
+  "totalStudents": "මුළු ශිෂ්‍යයන්",
+    "totalClasses": "මුළු පන්ති",
+    "totalTeachers": "මුළු ගුරුවරුන්",
+    "feesCollection": "ගාස්තු එකතුව"
+    
 }
