@@ -130,7 +130,7 @@ const updateStudent = async (req, res) => {
     try {
         if (req.body.password) {
             const salt = await bcrypt.genSalt(10)
-            res.body.password = await bcrypt.hash(res.body.password, salt)
+            req.body.password = await bcrypt.hash(req.body.password, salt)
         }
         let result = await Student.findByIdAndUpdate(req.params.id,
             { $set: req.body },
@@ -191,7 +191,6 @@ const studentAttendance = async (req, res) => {
         if (existingAttendance) {
             existingAttendance.status = status;
         } else {
-            // Check if the student has already attended the maximum number of sessions
             const attendedSessions = student.attendance.filter(
                 (a) => a.subName.toString() === subName
             ).length;
@@ -271,6 +270,32 @@ const removeStudentAttendance = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const student = await Student.findById(req.params.id);
+
+        if (!student) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+
+        const isMatch = await bcrypt.compare(oldPassword, student.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid old password" });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        student.password = hashedPassword;
+        await student.save();
+
+        res.json({ message: "Password changed successfully" });
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
 
 module.exports = {
     studentRegister,
@@ -283,9 +308,9 @@ module.exports = {
     studentAttendance,
     deleteStudentsByClass,
     updateExamResult,
-
     clearAllStudentsAttendanceBySubject,
     clearAllStudentsAttendance,
     removeStudentAttendanceBySubject,
     removeStudentAttendance,
+    changePassword,
 };

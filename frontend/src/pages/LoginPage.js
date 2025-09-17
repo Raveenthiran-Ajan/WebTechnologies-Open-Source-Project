@@ -6,7 +6,6 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import bgpic from "../assets/designlogin.jpg"
 import { LightPurpleButton } from '../components/buttonStyles';
-import styled from 'styled-components';
 import { loginUser } from '../redux/userRelated/userHandle';
 import Popup from '../components/Popup';
 
@@ -218,9 +217,9 @@ const LoginPage = ({ role }) => {
                                     control={<Checkbox value="remember" color="primary" />}
                                     label="Remember me"
                                 />
-                                <StyledLink href="#">
+                                <Link to={`/forgot-password/${role}`}>
                                     Forgot password?
-                                </StyledLink>
+                                </Link>
                             </Grid>
                             <LightPurpleButton
                                 type="submit"
@@ -246,9 +245,9 @@ const LoginPage = ({ role }) => {
                                         Don't have an account?
                                     </Grid>
                                     <Grid item sx={{ ml: 2 }}>
-                                        <StyledLink to="/Adminregister">
+                                        <Link to="/Adminregister">
                                             Sign up
-                                        </StyledLink>
+                                        </Link>
                                     </Grid>
                                 </Grid>
                             }
@@ -283,9 +282,3 @@ const LoginPage = ({ role }) => {
 }
 
 export default LoginPage
-
-const StyledLink = styled(Link)`
-  margin-top: 9px;
-  text-decoration: none;
-  color: #7f56da;
-`;

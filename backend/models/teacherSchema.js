@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const crypto = require('crypto');
 
 const teacherSchema = new mongoose.Schema({
     name: {
@@ -43,7 +44,18 @@ const teacherSchema = new mongoose.Schema({
         absentCount: {
             type: String,
         }
-    }]
+    }],
+    resetPasswordToken: String,
+    resetPasswordExpire: Date
 }, { timestamps: true });
+
+teacherSchema.methods.getResetPasswordToken = function () {
+    const resetToken = crypto.randomBytes(20).toString('hex');
+
+    this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    this.resetPasswordExpire = Date.now() + 10 * (60 * 1000); // Ten Minutes
+
+    return resetToken;
+};
 
 module.exports = mongoose.model("teacher", teacherSchema)

@@ -26,7 +26,7 @@ export const loginUser = (fields, role) => async (dispatch) => {
             dispatch(authFailed(result.data.message));
         }
     } catch (error) {
-        dispatch(authError(error));
+        dispatch(authError(error.response ? error.response.data.message : error.message));
     }
 };
 
@@ -47,7 +47,7 @@ export const registerUser = (fields, role) => async (dispatch) => {
             dispatch(authFailed(result.data.message));
         }
     } catch (error) {
-        dispatch(authError(error));
+        dispatch(authError(error.response ? error.response.data.message : error.message));
     }
 };
 
@@ -64,7 +64,7 @@ export const getUserDetails = (id, address) => async (dispatch) => {
             dispatch(doneSuccess(result.data));
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError(error.response ? error.response.data.message : error.message));
     }
 }
 
@@ -79,15 +79,9 @@ export const deleteUser = (id, address) => async (dispatch) => {
             dispatch(getDeleteSuccess());
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError(error.response ? error.response.data.message : error.message));
     }
 }
-
-
-// export const deleteUser = (id, address) => async (dispatch) => {
-//     dispatch(getRequest());
-//     dispatch(getFailed("Sorry the delete function has been disabled for now."));
-// }
 
 export const updateUser = (fields, id, address) => async (dispatch) => {
     dispatch(getRequest());
@@ -100,10 +94,10 @@ export const updateUser = (fields, id, address) => async (dispatch) => {
             dispatch(authSuccess(result.data));
         }
         else {
-            dispatch(doneSuccess(result.data));
+            dispatch(stuffAdded(result.data));
         }
     } catch (error) {
-        dispatch(getError(error));
+        dispatch(getError(error.response ? error.response.data.message : error.message));
     }
 }
 
@@ -121,6 +115,40 @@ export const addStuff = (fields, address) => async (dispatch) => {
             dispatch(stuffAdded(result.data));
         }
     } catch (error) {
-        dispatch(authError(error));
+        dispatch(authError(error.response ? error.response.data.message : error.message));
+    }
+};
+
+export const forgotPassword = (role, fields) => async (dispatch) => {
+    dispatch(authRequest());
+
+    try {
+        const result = await axios.post(`${REACT_APP_BASE_URL}/${role}/forgot-password`, fields, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        if (result.data.success) {
+            dispatch(stuffAdded(result.data));
+        } else {
+            dispatch(authFailed(result.data.message));
+        }
+    } catch (error) {
+        dispatch(authError(error.response ? error.response.data.message : error.message));
+    }
+};
+
+export const resetPassword = (role, token, fields) => async (dispatch) => {
+    dispatch(authRequest());
+
+    try {
+        const result = await axios.put(`${REACT_APP_BASE_URL}/${role}/reset-password/${token}`, fields, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        if (result.data.success) {
+            dispatch(stuffAdded(result.data));
+        } else {
+            dispatch(authFailed(result.data.message));
+        }
+    } catch (error) {
+        dispatch(authError(error.response ? error.response.data.message : error.message));
     }
 };
