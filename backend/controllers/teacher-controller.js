@@ -192,6 +192,33 @@ const teacherAttendance = async (req, res) => {
     }
 };
 
+const changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const teacher = await Teacher.findById(req.params.id);
+
+        if (!teacher) {
+            return res.status(404).json({ message: "Teacher not found" });
+        }
+
+        const isMatch = await bcrypt.compare(oldPassword, teacher.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid old password" });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        teacher.password = hashedPassword;
+        await teacher.save();
+
+        res.json({ message: "Password changed successfully" });
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
 module.exports = {
     teacherRegister,
     teacherLogIn,
@@ -201,5 +228,6 @@ module.exports = {
     deleteTeacher,
     deleteTeachers,
     deleteTeachersByClass,
-    teacherAttendance
+    teacherAttendance,
+    changePassword
 };

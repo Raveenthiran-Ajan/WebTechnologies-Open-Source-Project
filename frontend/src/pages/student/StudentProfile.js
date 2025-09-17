@@ -1,16 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Card, CardContent, Typography, Grid, Box, Avatar, Container, Paper, TextField, Button } from '@mui/material';
+import { Card, CardContent, Typography, Grid, Box, Avatar, Container, Paper, TextField, Button, Modal, Snackbar, Alert } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
-
-// You should have an action like updateStudentProfile in your redux/actions
-// import { updateStudentProfile } from '../../redux/actions/userActions';
+import { updateUser } from '../../redux/userRelated/userHandle';
+import { underControl } from '../../redux/userRelated/userSlice';
 
 const StudentProfile = () => {
   const dispatch = useDispatch();
-  const { currentUser, response, error } = useSelector((state) => state.user);
+  const { currentUser, status } = useSelector((state) => state.user);
 
-  // Local state for editable fields
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({
     name: currentUser.name || '',
@@ -22,6 +20,12 @@ const StudentProfile = () => {
     address: currentUser.address || '',
     emergencyContact: currentUser.emergencyContact || '',
   });
+
+  const [open, setOpen] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+
+  const [openSnackbar, setOpenSnackbar] = useState(false);
 
   const sclassName = currentUser.sclassName;
   const studentSchool = currentUser.school;
@@ -51,6 +55,33 @@ const StudentProfile = () => {
     setEditMode(false);
     // Optionally show a success message
   };
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  const handlePasswordChange = () => {
+    dispatch(updateUser({ oldPassword, newPassword }, currentUser._id, 'Student/password'));
+    handleClose();
+  };
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
+
+  useEffect(() => {
+    if (status === 'added') {
+      setOpenSnackbar(true);
+      dispatch(underControl());
+    }
+  }, [status, dispatch]);
 
   return (
     <Container maxWidth="md">
@@ -239,9 +270,57 @@ const StudentProfile = () => {
                 Edit
               </Button>
             )}
+            <Button variant="contained" onClick={handleOpen} sx={{ ml: 1 }}>Change Password</Button>
           </Box>
         </CardContent>
       </Card>
+      <Modal
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: 400,
+          bgcolor: 'background.paper',
+          border: '2px solid #000',
+          boxShadow: 24,
+          p: 4,
+        }}>
+          <h2 id="modal-modal-title">Change Password</h2>
+          <TextField
+            label="Old Password"
+            type="password"
+            value={oldPassword}
+            onChange={(e) => setOldPassword(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label="New Password"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <Button onClick={handlePasswordChange}>Change</Button>
+        </Box>
+      </Modal>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+          Password changed successfully!
+        </Alert>
+      </Snackbar>
     </Container>
   )
 }

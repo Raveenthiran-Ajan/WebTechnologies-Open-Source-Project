@@ -1,106 +1,150 @@
-// import React, { useState } from 'react';
-// import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material'
-// import { useDispatch, useSelector } from 'react-redux';
-// import { deleteUser, updateUser } from '../../redux/userRelated/userHandle';
-// import { useNavigate } from 'react-router-dom'
-// import { authLogout } from '../../redux/userRelated/userSlice';
-// import { Button, Collapse } from '@mui/material';
-
-import { useSelector } from 'react-redux';
-
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import {
+    Button,
+    TextField,
+    Modal,
+    Box,
+    Snackbar,
+    Alert,
+    Container,
+    Paper,
+    Typography,
+    Avatar
+} from '@mui/material';
+import { updateUser } from '../../redux/userRelated/userHandle';
+import { underControl } from '../../redux/userRelated/userSlice';
+import styled from 'styled-components';
 
 const AdminProfile = () => {
-    // const [showTab, setShowTab] = useState(false);
-    // const buttonText = showTab ? 'Cancel' : 'Edit profile';
+    const { currentUser, status } = useSelector((state) => state.user);
+    const dispatch = useDispatch();
 
-    // const navigate = useNavigate()
-    // const dispatch = useDispatch();
-        const { currentUser } = useSelector((state) => state.user);
-    // const { currentUser, response, error } = useSelector((state) => state.user);
-    // const address = "Admin"
+    const [open, setOpen] = useState(false);
+    const [oldPassword, setOldPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
 
-    // if (response) { console.log(response) }
-    // else if (error) { console.log(error) }
+    const [openSnackbar, setOpenSnackbar] = useState(false);
 
-    // const [name, setName] = useState(currentUser.name);
-    // const [email, setEmail] = useState(currentUser.email);
-    // const [password, setPassword] = useState("");
-    // const [schoolName, setSchoolName] = useState(currentUser.schoolName);
+    const handleOpen = () => {
+        setOpen(true);
+    };
 
-    // const fields = password === "" ? { name, email, schoolName } : { name, email, password, schoolName }
+    const handleClose = () => {
+        setOpen(false);
+    };
 
-    // const submitHandler = (event) => {
-    //     event.preventDefault()
-    //     dispatch(updateUser(fields, currentUser._id, address))
-    // }
+    const handlePasswordChange = () => {
+        dispatch(updateUser({ oldPassword, newPassword }, currentUser._id, 'Admin/password'));
+        handleClose();
+    };
 
-    // const deleteHandler = () => {
-    //     try {
-    //         dispatch(deleteUser(currentUser._id, "Students"));
-    //         dispatch(deleteUser(currentUser._id, address));
-    //         dispatch(authLogout());
-    //         navigate('/');
-    //     } catch (error) {
-    //         console.error(error);
-    //     }
-    // }
+    const handleSnackbarClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenSnackbar(false);
+    };
+
+    useEffect(() => {
+        if (status === 'added') {
+            setOpenSnackbar(true);
+            dispatch(underControl());
+        }
+    }, [status, dispatch]);
 
     return (
-        <div>
-            Name: {currentUser.name}
-            <br />
-            Email: {currentUser.email}
-            <br />
-            School: {currentUser.schoolName}
-            <br />
-            {/* <Button variant="contained" color="error" onClick={deleteHandler}>Delete</Button> */}
-            {/* <Button variant="contained" sx={styles.showButton}
-                onClick={() => setShowTab(!showTab)}>
-                {showTab ? <KeyboardArrowUp /> : <KeyboardArrowDown />}{buttonText}
-            </Button>
-            <Collapse in={showTab} timeout="auto" unmountOnExit>
-                <div className="register">
-                    <form className="registerForm" onSubmit={submitHandler}>
-                        <span className="registerTitle">Edit Details</span>
-                        <label>Name</label>
-                        <input className="registerInput" type="text" placeholder="Enter your name..."
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            autoComplete="name" required />
-
-                        <label>School</label>
-                        <input className="registerInput" type="text" placeholder="Enter your school name..."
-                            value={schoolName}
-                            onChange={(event) => setSchoolName(event.target.value)}
-                            autoComplete="name" required />
-
-                        <label>Email</label>
-                        <input className="registerInput" type="email" placeholder="Enter your email..."
-                            value={email}
-                            onChange={(event) => setEmail(event.target.value)}
-                            autoComplete="email" required />
-
-                        <label>Password</label>
-                        <input className="registerInput" type="password" placeholder="Enter your password..."
-                            value={password}
-                            onChange={(event) => setPassword(event.target.value)}
-                            autoComplete="new-password" />
-
-                        <button className="registerButton" type="submit" >Update</button>
-                    </form>
-                </div>
-            </Collapse> */}
-        </div>
-    )
+        <>
+            <Container maxWidth="md" sx={{ mt: 4 }}>
+                <StyledPaper elevation={3}>
+                    <Box sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center'
+                    }}>
+                        <Avatar sx={{ width: 100, height: 100, mb: 2, bgcolor: 'primary.main' }}>
+                            {String(currentUser.name).charAt(0)}
+                        </Avatar>
+                        <Typography variant="h4" component="h1" gutterBottom>
+                            {currentUser.name}
+                        </Typography>
+                        <Typography variant="body1" color="textSecondary" gutterBottom>
+                            {currentUser.email}
+                        </Typography>
+                        <Typography variant="body1" color="textSecondary">
+                            {currentUser.schoolName}
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleOpen}
+                            sx={{ mt: 3, borderRadius: '20px', py: 1, px: 3 }}
+                        >
+                            Change Password
+                        </Button>
+                    </Box>
+                </StyledPaper>
+            </Container>
+            <Modal
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={modalStyles}>
+                    <h2 id="modal-modal-title">Change Password</h2>
+                    <TextField
+                        label="Old Password"
+                        type="password"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        fullWidth
+                        margin="normal"
+                    />
+                    <TextField
+                        label="New Password"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        fullWidth
+                        margin="normal"
+                    />
+                    <Button onClick={handlePasswordChange}>Change</Button>
+                </Box>
+            </Modal>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={6000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+                    Password changed successfully!
+                </Alert>
+            </Snackbar>
+        </>
+    );
 }
 
-export default AdminProfile
+const StyledPaper = styled(Paper)`
+  padding: 32px;
+  margin: auto;
+  max-width: 500px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+`;
 
-// const styles = {
-//     attendanceButton: {
-//         backgroundColor: "#270843",
-//         "&:hover": {
-//             backgroundColor: "#3f1068",
-//         }
-//     }
-// }
+const modalStyles = {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: 400,
+    bgcolor: 'background.paper',
+    border: '2px solid #000',
+    boxShadow: 24,
+    p: 4,
+};
+
+export default AdminProfile;

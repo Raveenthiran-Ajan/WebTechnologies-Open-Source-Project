@@ -100,7 +100,7 @@ export const updateUser = (fields, id, address) => async (dispatch) => {
             dispatch(authSuccess(result.data));
         }
         else {
-            dispatch(doneSuccess(result.data));
+            dispatch(stuffAdded(result.data));
         }
     } catch (error) {
         dispatch(getError(error));
