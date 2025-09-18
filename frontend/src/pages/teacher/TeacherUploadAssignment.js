@@ -135,6 +135,31 @@ const TeacherUploadAssignment = () => {
       });
   };
 
+  function handleSaveMarking(submissionId) {
+    const submission = submissions.find((sub) => sub._id === submissionId);
+    if (!submission) return;
+
+    axios
+      .put(`${API_BASE_URL}/submissions/${submissionId}/marking`, {
+        grade: submission.grade,
+        feedback: submission.feedback,
+      })
+      .then(() => {
+        setAlert({
+          open: true,
+          message: "Marking saved successfully",
+          severity: "success",
+        });
+      })
+      .catch(() => {
+        setAlert({
+          open: true,
+          message: "Failed to save marking",
+          severity: "error",
+        });
+      });
+  }
+
   return (
     <Box sx={{ mt: 2, display: "flex", flexDirection: "column", alignItems: "center" }}>
       <Paper sx={{ p: 3, width: "100%", maxWidth: 800, boxShadow: 2, mb: 4 }}>
@@ -277,10 +302,47 @@ const TeacherUploadAssignment = () => {
                         )}
                       </TableCell>
                       <TableCell>{submission.answerText || "-"}</TableCell>
-                      <TableCell>{submission.grade || "-"}</TableCell>
-                      <TableCell>{submission.feedback || "-"}</TableCell>
-                    </TableRow>
-                  ))}
+                  <TableCell>
+                    <TextField
+                      value={submission.grade || ""}
+                      onChange={(e) => {
+                        const newGrade = e.target.value;
+                        setSubmissions((prev) =>
+                          prev.map((sub) =>
+                            sub._id === submission._id ? { ...sub, grade: newGrade } : sub
+                          )
+                        );
+                      }}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      value={submission.feedback || ""}
+                      onChange={(e) => {
+                        const newFeedback = e.target.value;
+                        setSubmissions((prev) =>
+                          prev.map((sub) =>
+                            sub._id === submission._id ? { ...sub, feedback: newFeedback } : sub
+                          )
+                        );
+                      }}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => handleSaveMarking(submission._id)}
+                    >
+                      Save
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
                 </TableBody>
               </Table>
             ) : (

@@ -199,13 +199,18 @@ const TeacherViewStudent = () => {
                             })}
                         </>
                     }
-                    <PurpleButton variant="contained"
-                        onClick={() =>
-                            navigate(
-                                `/Teacher/class/student/marks/${studentID}/${teachSubjectID}`
-                            )}>
-                        Add Marks
-                    </PurpleButton>
+import { useNavigate } from 'react-router-dom';
+import { PurpleButton } from '../../components/buttonStyles';
+
+...
+
+<PurpleButton variant="contained"
+    onClick={() =>
+        navigate(
+            `/teacher/marking/${studentID}/${teachSubjectID}`
+        )}>
+    Add Marks
+</PurpleButton>
                     <br /><br /><br />
                 </div>
             }

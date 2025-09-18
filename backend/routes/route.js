@@ -163,4 +163,7 @@ router.post("/submissions", submissionUpload.single('file'), studentSubmit);
 router.get("/submissions/assignment/:assignmentId", getSubmissionsByAssignment);
 router.get("/submissions/student/:studentId", getSubmissionsByStudent);
 
+// Update submission marking (grade and feedback)
+router.put("/submissions/:submissionId/marking", require("../controllers/submission-controller").updateSubmissionMarking);
+
 module.exports = router;

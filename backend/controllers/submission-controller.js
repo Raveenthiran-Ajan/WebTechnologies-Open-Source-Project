@@ -73,7 +73,8 @@ exports.getSubmissionsByAssignment = async (req, res) => {
 exports.getSubmissionsByStudent = async (req, res) => {
   try {
     const submissions = await Submission.find({ studentId: req.params.studentId })
-      .populate("assignmentId", "title dueDate");
+      .populate("assignmentId", "title dueDate")
+      .select("assignmentId submittedAt grade feedback"); // include grade and feedback fields
     res.json(submissions);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -81,3 +82,24 @@ exports.getSubmissionsByStudent = async (req, res) => {
 };
 
 exports.upload = upload;
+
+// Add updateSubmissionMarking function to update grade and feedback
+exports.updateSubmissionMarking = async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+    const { grade, feedback } = req.body;
+
+    const submission = await Submission.findById(submissionId);
+    if (!submission) {
+      return res.status(404).json({ error: "Submission not found" });
+    }
+
+    submission.grade = grade;
+    submission.feedback = feedback;
+
+    await submission.save();
+    res.json({ message: "Marking updated successfully", submission });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

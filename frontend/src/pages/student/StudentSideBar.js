@@ -38,12 +38,18 @@ const StudentSideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary="Assignment Submission" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Student/complain">
-                    <ListItemIcon>
-                        <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Student/complain") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Complain" />
-                </ListItemButton>
+            <ListItemButton component={Link} to="/Student/complain">
+                <ListItemIcon>
+                    <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Student/complain") ? 'primary' : 'inherit'} />
+                </ListItemIcon>
+                <ListItemText primary="Complain" />
+            </ListItemButton>
+            <ListItemButton component={Link} to="/Student/grades">
+                <ListItemIcon>
+                    <AssignmentIcon color={location.pathname.startsWith("/Student/grades") ? 'primary' : 'inherit'} />
+                </ListItemIcon>
+                <ListItemText primary="Grades" />
+            </ListItemButton>
             </React.Fragment>
             <Divider sx={{ my: 1 }} />
             <React.Fragment>

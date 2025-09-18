@@ -1,12 +1,7 @@
-# TODO: Add Submit Button and Deadline Countdown for Student Assignments
+# TODO List for Student Grade and Feedback Viewing Feature
 
-## Tasks
-- [ ] Modify StudentHomePage.js to add countdown timer for each assignment's dueDate
-- [ ] Add submit button next to each assignment in StudentHomePage.js
-- [ ] Show inline submission form when submit button is clicked
-- [ ] Fetch student's submissions to check if already submitted and disable submit button accordingly
-- [ ] Disable submit button if deadline has passed
-- [ ] Adapt AssignmentSubmission.js component for student submission form
-- [ ] Implement submission logic in adapted component to call backend API
-- [ ] Add success/error feedback for submission
-- [ ] Test end-to-end submission flow and countdown functionality
+- [ ] Add new section/tab in frontend/src/pages/student/StudentSubjects.js to show assignment submissions with grades and feedback.
+- [ ] Fetch submissions for current student from backend GET /submissions/student/:studentId.
+- [ ] Display submissions in a table with columns: Assignment Title, Submitted At, Grade, Feedback.
+- [ ] Add UI toggle to switch between subject marks and assignment submissions.
+- [ ] Test the new feature for correct data display and UI behavior.

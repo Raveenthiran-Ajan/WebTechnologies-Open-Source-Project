@@ -36,15 +36,32 @@ const Sclass = require("../models/sclassSchema");
 
 const createAssignment = async (req, res) => {
   try {
+    console.log("Request body:", req.body);
+    console.log("Uploaded file:", req.file);
+
     const { title, description, dueDate, subject, teacherId, classId } = req.body;
 
+    // Validate required fields
+    if (!title || !subject || !teacherId || !classId) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Convert dueDate string to Date object if present
+    let dueDateObj = null;
+    if (dueDate) {
+      dueDateObj = new Date(dueDate);
+      if (isNaN(dueDateObj.getTime())) {
+        return res.status(400).json({ error: "Invalid dueDate format" });
+      }
+    }
+
     // Get fileUrl from uploaded file if present
-    const fileUrl = req.file ? "/" + req.file.path : null;
+    const fileUrl = req.file ? "/" + req.file.path.replace(/\\\\/g, "/").replace(/\\/g, "/") : null;
 
     const assignment = new Assignment({
       title,
       description,
-      dueDate,
+      dueDate: dueDateObj,
       subject,
       teacherId,
       classId,
@@ -54,6 +71,11 @@ const createAssignment = async (req, res) => {
     await assignment.save();
     res.status(201).json({ message: "Assignment submitted successfully", assignment });
   } catch (error) {
+    console.error("Error in createAssignment:", error);
+    if (error instanceof multer.MulterError) {
+      // Multer-specific errors
+      return res.status(400).json({ error: error.message });
+    }
     res.status(500).json({ error: error.message });
   }
 };
