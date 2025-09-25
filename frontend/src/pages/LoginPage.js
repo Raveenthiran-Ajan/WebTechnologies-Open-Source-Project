@@ -106,6 +106,8 @@ const LoginPage = ({ role }) => {
                 navigate('/Student/dashboard');
             } else if (currentRole === 'Teacher') {
                 navigate('/Teacher/dashboard');
+            } else if (currentRole === 'Parent') {
+                navigate('/Parent/dashboard');
             }
         }
         else if (status === 'failed') {

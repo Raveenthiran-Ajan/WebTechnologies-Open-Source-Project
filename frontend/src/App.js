@@ -11,11 +11,12 @@ import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import ChooseUser from './pages/ChooseUser';
 
 const App = () => {
-  const { currentRole } = useSelector(state => state.user);
+  const { currentRole, currentUser } = useSelector(state => state.user);
+  const { currentParent } = useSelector(state => state.parent);
 
   return (
     <Router>
-      {currentRole === null &&
+      {!currentRole && !currentUser && !currentParent &&
         <Routes>
           <Route path="/" element={<Homepage />} />
           <Route path="/choose" element={<ChooseUser visitor="normal" />} />
@@ -31,25 +32,25 @@ const App = () => {
           <Route path='*' element={<Navigate to="/" />} />
         </Routes>}
 
-      {currentRole === "Admin" &&
+      {currentRole === "Admin" && currentUser &&
         <>
           <AdminDashboard />
         </>
       }
 
-      {currentRole === "Student" &&
+      {currentRole === "Student" && currentUser &&
         <>
           <StudentDashboard />
         </>
       }
 
-      {currentRole === "Teacher" &&
+      {currentRole === "Teacher" && currentUser &&
         <>
           <TeacherDashboard />
         </>
       }
 
-      {currentRole === "Parent" &&
+      {currentParent && currentParent.role === "Parent" &&
         <>
           <ParentDashboard />
         </>
