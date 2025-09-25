@@ -5,9 +5,23 @@ const Teacher = require('../models/teacherSchema.js');
 
 const sclassCreate = async (req, res) => {
     try {
+        const defaultTimetable = [
+            { day: 'Monday', period: 1, subject: 'Maths' },
+            { day: 'Monday', period: 2, subject: 'Science' },
+            { day: 'Tuesday', period: 1, subject: 'History' },
+            { day: 'Tuesday', period: 2, subject: 'IT' },
+            { day: 'Wednesday', period: 1, subject: 'Geography' },
+            { day: 'Wednesday', period: 2, subject: 'Civic' },
+            { day: 'Thursday', period: 1, subject: 'Maths' },
+            { day: 'Thursday', period: 2, subject: 'Science' },
+            { day: 'Friday', period: 1, subject: 'History' },
+            { day: 'Friday', period: 2, subject: 'IT' }
+        ];
+
         const sclass = new Sclass({
             sclassName: req.body.sclassName,
-            school: req.body.adminID
+            school: req.body.adminID,
+            timetable: defaultTimetable
         });
 
         const existingSclassByName = await Sclass.findOne({
@@ -101,5 +115,35 @@ const deleteSclasses = async (req, res) => {
     }
 }
 
+const getTimetable = async (req, res) => {
+    try {
+        const sclass = await Sclass.findById(req.params.id);
+        if (sclass) {
+            res.send(sclass.timetable);
+        } else {
+            res.send({ message: "No class found" });
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
+}
 
-module.exports = { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents };
+const updateTimetable = async (req, res) => {
+    try {
+        const sclass = await Sclass.findByIdAndUpdate(
+            req.params.id,
+            { timetable: req.body.timetable },
+            { new: true }
+        );
+        if (sclass) {
+            res.send(sclass.timetable);
+        } else {
+            res.send({ message: "No class found" });
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
+}
+
+
+module.exports = { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable };

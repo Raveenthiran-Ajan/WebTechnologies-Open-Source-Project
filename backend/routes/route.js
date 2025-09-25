@@ -136,6 +136,8 @@ router.post("/SclassCreate", sclassCreate);
 router.get("/SclassList/:id", sclassList);
 router.get("/Sclass/:id", getSclassDetail);
 router.get("/Sclass/Students/:id", getSclassStudents);
+router.get("/Sclass/Timetable/:id", require("../controllers/class-controller").getTimetable);
+router.put("/Sclass/Timetable/:id", require("../controllers/class-controller").updateTimetable);
 
 router.delete("/Sclasses/:id", deleteSclasses);
 router.delete("/Sclass/:id", deleteSclass);

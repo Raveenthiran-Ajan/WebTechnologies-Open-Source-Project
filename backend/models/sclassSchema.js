@@ -9,6 +9,23 @@ const sclassSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin'
     },
+    timetable: [{
+        day: {
+            type: String,
+            enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            required: true
+        },
+        period: {
+            type: Number,
+            required: true,
+            min: 1,
+            max: 8
+        },
+        subject: {
+            type: String,
+            required: true
+        }
+    }]
 }, { timestamps: true });
 
 module.exports = mongoose.model("sclass", sclassSchema);

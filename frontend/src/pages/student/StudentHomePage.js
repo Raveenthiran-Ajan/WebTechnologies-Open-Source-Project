@@ -143,69 +143,93 @@ const StudentHomePage = () => {
                         </Paper>
                     </Grid>
                     <Grid item xs={12}>
-                        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+                        <Paper sx={{ p: 3, width: "100%", maxWidth: 1200, boxShadow: 2, display: 'flex', flexDirection: 'column' }}>
                             <Typography variant="h6" gutterBottom>
                                 Recent Assignments
                             </Typography>
                             {assignmentsLoading ? (
                                 <Typography>Loading assignments...</Typography>
                             ) : assignments.length > 0 ? (
-                                <List>
-                                    {assignments.map((assignment) => {
-                                        const submission = submissions.find(
-                                            (sub) => sub.assignmentId._id === assignment._id
-                                        );
-                                        const isSubmitted = !!submission;
-                                        const timeLeft = calculateTimeLeft(assignment.dueDate);
-                                        const isOverdue = timeLeft === 'Overdue';
+                                <Box sx={{ width: "100%" }}>
+                                    <Box sx={{ maxHeight: 600, overflowY: "auto", width: "100%" }}>
+                                        <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "25%", fontWeight: "bold" }}>Title</th>
+                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Due Date</th>
+                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "15%", fontWeight: "bold" }}>Status</th>
+                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Time Left</th>
+                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {assignments.map((assignment) => {
+                                                    const submission = submissions.find(
+                                                        (sub) => sub.assignmentId._id === assignment._id
+                                                    );
+                                                    const isSubmitted = !!submission;
+                                                    const timeLeft = calculateTimeLeft(assignment.dueDate);
+                                                    const isOverdue = timeLeft === 'Overdue';
 
-                                        return (
-                                            <ListItem key={assignment._id} divider sx={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                                                <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <ListItemText
-                                                        primary={assignment.title}
-                                                        secondary={`Due: ${assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No due date'}`}
-                                                    />
-                                                    <Chip label={timeLeft} color={isOverdue ? 'error' : 'primary'} />
-                                                </Box>
-                                                <Box sx={{ mt: 1, width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    {assignment.fileUrl && (
-                                                        <Button
-                                                            variant="outlined"
-                                                            size="small"
-                                                            href={`${API_BASE_URL}${assignment.fileUrl}`}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                        >
-                                                            Download
-                                                        </Button>
-                                                    )}
-                                                    <Button
-                                                        variant="contained"
-                                                        size="small"
-                                                        disabled={isSubmitted || isOverdue}
-                                                        onClick={() => setShowSubmissionForm(assignment._id)}
-                                                    >
-                                                        {isSubmitted ? 'Submitted' : 'Submit'}
-                                                    </Button>
-                                                </Box>
-                                                {showSubmissionForm === assignment._id && (
-                                                    <Box sx={{ mt: 2, width: '100%' }}>
-                                                        <AssignmentSubmission
-                                                            assignmentId={assignment._id}
-                                                            studentId={currentUser._id}
-                                                            onClose={() => setShowSubmissionForm(null)}
-                                                            onSubmitted={() => {
-                                                                setShowSubmissionForm(null);
-                                                                fetchSubmissions();
-                                                            }}
-                                                        />
-                                                    </Box>
-                                                )}
-                                            </ListItem>
-                                        );
-                                    })}
-                                </List>
+                                                    return (
+                                                        <tr key={assignment._id} style={{ borderBottom: "1px solid #eee" }}>
+                                                            <td style={{ padding: "8px", verticalAlign: "top", wordBreak: "break-word" }}>
+                                                                {assignment.title}
+                                                            </td>
+                                                            <td style={{ padding: "8px", verticalAlign: "top", wordBreak: "break-word" }}>
+                                                                {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No due date'}
+                                                            </td>
+                                                            <td style={{ padding: "8px", verticalAlign: "top" }}>
+                                                                <Chip label={isSubmitted ? 'Submitted' : 'Pending'} color={isSubmitted ? 'success' : 'warning'} />
+                                                            </td>
+                                                            <td style={{ padding: "8px", verticalAlign: "top" }}>
+                                                                <Chip label={timeLeft} color={isOverdue ? 'error' : 'primary'} />
+                                                            </td>
+                                                            <td style={{ padding: "8px", verticalAlign: "top" }}>
+                                                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                                                                    {assignment.fileUrl && (
+                                                                        <Button
+                                                                            variant="outlined"
+                                                                            size="small"
+                                                                            href={`${API_BASE_URL}${assignment.fileUrl}`}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                        >
+                                                                            Download
+                                                                        </Button>
+                                                                    )}
+                                                                    <Button
+                                                                        variant="contained"
+                                                                        size="small"
+                                                                        disabled={isSubmitted || isOverdue}
+                                                                        onClick={() => setShowSubmissionForm(assignment._id)}
+                                                                    >
+                                                                        {isSubmitted ? 'Submitted' : 'Submit'}
+                                                                    </Button>
+                                                                </Box>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </Box>
+                                    {assignments.map((assignment) => (
+                                        showSubmissionForm === assignment._id && (
+                                            <Box key={assignment._id} sx={{ mt: 2, width: '100%' }}>
+                                                <AssignmentSubmission
+                                                    assignmentId={assignment._id}
+                                                    studentId={currentUser._id}
+                                                    onClose={() => setShowSubmissionForm(null)}
+                                                    onSubmitted={() => {
+                                                        setShowSubmissionForm(null);
+                                                        fetchSubmissions();
+                                                    }}
+                                                />
+                                            </Box>
+                                        )
+                                    ))}
+                                </Box>
                             ) : (
                                 <Typography>No assignments found.</Typography>
                             )}

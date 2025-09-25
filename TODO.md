@@ -1,7 +1,27 @@
-# TODO List for Student Grade and Feedback Viewing Feature
+# TODO: Improve Upload Assignment Form UI
 
-- [ ] Add new section/tab in frontend/src/pages/student/StudentSubjects.js to show assignment submissions with grades and feedback.
-- [ ] Fetch submissions for current student from backend GET /submissions/student/:studentId.
-- [ ] Display submissions in a table with columns: Assignment Title, Submitted At, Grade, Feedback.
-- [ ] Add UI toggle to switch between subject marks and assignment submissions.
-- [ ] Test the new feature for correct data display and UI behavior.
+- [x] Add icons to form fields (e.g., TitleIcon, DescriptionIcon, etc.)
+- [x] Improve form layout with better spacing and modern design
+- [x] Create a custom drag-and-drop file upload component with preview and file size display
+- [x] Add real-time form validation with error messages
+- [x] Include a progress bar during file upload
+- [x] Enhance responsiveness and overall UI aesthetics
+
+# TODO: Improve View Submissions UI
+
+- [x] Add icons to table headers and improve table design
+- [x] Add status indicators for graded/ungraded submissions
+- [x] Implement search/filter functionality for submissions
+- [x] Enhance grade and feedback input fields
+- [x] Add download buttons for submitted files
+- [x] Improve table responsiveness and overall layout
+
+# TODO: Add Timetable Feature to Class Details
+
+- [x] Update sclassSchema to include timetable array with day, period, subject fields
+- [x] Update class-controller to initialize default timetable on class creation
+- [x] Add getTimetable and updateTimetable controller functions
+- [x] Add routes for GET and PUT timetable endpoints
+- [x] Update redux sclassHandle to include getTimetable and updateTimetable async actions
+- [x] Create Timetable component with table display and edit functionality
+- [x] Integrate Timetable component into Admin ClassDetails page as a new tab

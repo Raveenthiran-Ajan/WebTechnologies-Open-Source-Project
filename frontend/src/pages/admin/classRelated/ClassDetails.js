@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getClassDetails, getClassStudents, getSubjectList } from "../../../redux/sclassRelated/sclassHandle";
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import {
-    Box, Container, Typography, Tab, IconButton
+    Box, Container, Typography, Tab, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 } from '@mui/material';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -18,6 +18,9 @@ import SpeedDialTemplate from "../../../components/SpeedDialTemplate";
 import Popup from "../../../components/Popup";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PostAddIcon from '@mui/icons-material/PostAdd';
+import axios from 'axios';
+import { API_BASE_URL } from '../../../config';
+import Timetable from './Timetable';
 
 const ClassDetails = () => {
     const params = useParams()
@@ -263,6 +266,7 @@ const ClassDetails = () => {
                                     <Tab label="Subjects" value="2" />
                                     <Tab label="Students" value="3" />
                                     <Tab label="Teachers" value="4" />
+                                    <Tab label="Timetable" value="5" />
                                 </TabList>
                             </Box>
                             <Container sx={{ marginTop: "3rem", marginBottom: "4rem" }}>
@@ -277,6 +281,9 @@ const ClassDetails = () => {
                                 </TabPanel>
                                 <TabPanel value="4">
                                     <ClassTeachersSection />
+                                </TabPanel>
+                                <TabPanel value="5">
+                                    <Timetable classID={classID} />
                                 </TabPanel>
                             </Container>
                         </TabContext>

@@ -98,3 +98,36 @@ export const getSubjectDetails = (id, address) => async (dispatch) => {
         dispatch(getError(error));
     }
 }
+
+export const getTimetable = (id) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.get(`${REACT_APP_BASE_URL}/Sclass/Timetable/${id}`);
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            // You may want to create a new action to store timetable in state
+            // For now, just log or handle as needed
+            console.log("Timetable data:", result.data);
+        }
+    } catch (error) {
+        dispatch(getError(error));
+    }
+}
+
+export const updateTimetable = (id, timetable) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.put(`${REACT_APP_BASE_URL}/Sclass/Timetable/${id}`, { timetable });
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            // You may want to create a new action to update timetable in state
+            console.log("Updated timetable:", result.data);
+        }
+    } catch (error) {
+        dispatch(getError(error));
+    }
+}
