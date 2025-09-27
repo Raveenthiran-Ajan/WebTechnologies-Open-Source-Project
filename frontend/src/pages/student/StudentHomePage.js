@@ -52,7 +52,7 @@ const StudentHomePage = () => {
                         <StyledPaper>
                             <img src={Subject} alt="Subjects" />
                             <Title>
-                                Total Subjects
+                                {t('student_total_subjects')}
                             </Title>
                             <Data start={0} end={numberOfSubjects} duration={2.5} />
                         </StyledPaper>
@@ -61,7 +61,7 @@ const StudentHomePage = () => {
                         <StyledPaper>
                             <img src={Assignment} alt="Assignments" />
                             <Title>
-                                Total Assignments
+                                 {t('student_total_assignments')}
                             </Title>
                             <Data start={0} end={15} duration={4} />
                         </StyledPaper>
@@ -70,7 +70,7 @@ const StudentHomePage = () => {
                         <ChartContainer>
                             {
                                 response ?
-                                    <Typography variant="h6">No Attendance Found</Typography>
+                                    <Typography variant="h6">{t('student_no_attendance')}</Typography>
                                     :
                                     <>
                                         {loading
@@ -86,7 +86,7 @@ const StudentHomePage = () => {
                                                         </>
                                                     )
                                                         :
-                                                        <Typography variant="h6">No Attendance Found</Typography>
+                                                        <Typography variant="h6">{t('student_no_attendance')}</Typography>
                                                 }
                                             </>
                                         }

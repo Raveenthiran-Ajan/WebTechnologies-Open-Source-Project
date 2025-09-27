@@ -38,6 +38,24 @@
   "totalStudents": "Total Students",
   "totalClasses": "Total Classes",
   "totalTeachers": "Total Teachers",
-  "feesCollection": "Fees Collection"
-  
+  "feesCollection": "Fees Collection",
+  "student_total_subjects": "Total Subjects",
+  "student_total_assignments": "Total Assignments",
+  "student_no_attendance": "No Attendance Found",
+  "menu_home": "Home",
+  "menu_classes": "Classes",
+  "menu_subjects": "Subjects",
+  "menu_teachers": "Teachers",
+  "menu_students": "Students",
+  "menu_notices": "Notices",
+  "menu_complains": "Complaints",
+  "menu_parents": "Parents",
+  "menu_user": "User",
+  "menu_profile": "Profile",
+  "menu_logout": "Logout",
+  "menu_attendance": "Attendance",
+  "menu_assignment_submission": "Assignment Submission",
+  "menu_complain": "Complain",
+  "menu_upload_assignments": "Upload Assignments",
+  "menu_class_label": "Class {{name}}"
 }
