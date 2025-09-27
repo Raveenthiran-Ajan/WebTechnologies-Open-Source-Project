@@ -3,6 +3,8 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
     parentsList: [],
     parentDetails: null,
+    currentParent: JSON.parse(localStorage.getItem('parent')) || null,
+    currentChild: null,
     loading: false,
     error: null,
     response: null,
@@ -33,7 +35,7 @@ const parentSlice = createSlice({
             state.error = null;
         },
         getChildDetailsSuccess: (state, action) => {
-            state.childDetails = action.payload;
+            state.currentChild = action.payload;
             state.loading = false;
             state.error = null;
         },

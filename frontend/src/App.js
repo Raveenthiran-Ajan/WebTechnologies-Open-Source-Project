@@ -12,11 +12,11 @@ import ChooseUser from './pages/ChooseUser';
 
 const App = () => {
   const { currentRole, currentUser } = useSelector(state => state.user);
-  const { currentParent } = useSelector(state => state.parent);
+  
 
   return (
     <Router>
-      {!currentRole && !currentUser && !currentParent &&
+      {!currentRole && !currentUser && 
         <Routes>
           <Route path="/" element={<Homepage />} />
           <Route path="/choose" element={<ChooseUser visitor="normal" />} />
@@ -44,17 +44,17 @@ const App = () => {
         </>
       }
 
-      {currentRole === "Teacher" && currentUser &&
+      {currentRole === "Teacher" && currentUser && (
         <>
           <TeacherDashboard />
         </>
-      }
+      )}
 
-      {currentParent && currentParent.role === "Parent" &&
+      {currentRole === "Parent" && currentUser && (
         <>
           <ParentDashboard />
         </>
-      }
+      )}
     </Router>
   )
 }
