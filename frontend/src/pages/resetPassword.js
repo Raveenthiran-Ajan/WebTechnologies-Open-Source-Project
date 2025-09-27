@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { resetPassword } from '../redux/userRelated/userHandle';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ import {
     Typography
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { stuffAdded } from '../redux/userRelated/userSlice';
 
 const ResetPassword = () => {
     const dispatch = useDispatch();
@@ -30,8 +31,15 @@ const ResetPassword = () => {
             return;
         }
         dispatch(resetPassword(userRole, token, { password }));
-        navigate(`/${userRole}login`);
     };
+
+    useEffect(() => {
+        if (status === 'added') {
+            alert("Password reset successfully!");
+            navigate(`/${userRole}login`);
+            dispatch(stuffAdded());
+        }
+    }, [status, navigate, userRole, dispatch]);
 
     return (
         <Container component="main" maxWidth="xs">

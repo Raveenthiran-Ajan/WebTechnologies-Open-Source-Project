@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const Admin = require('../models/adminSchema');
 const Student = require('../models/studentSchema');
 const Teacher = require('../models/teacherSchema');
@@ -36,7 +37,7 @@ const forgotPassword = async (req, res, next) => {
 
         await user.save();
 
-        const resetUrl = `${process.env.CLIENT_URL}/${role.toLowerCase()}/reset-password/${resetToken}`;
+        const resetUrl = `${process.env.CLIENT_URL}/reset-password/${role}/${resetToken}`;
 
         const message = `
             <h1>You have requested a password reset</h1>
@@ -67,7 +68,7 @@ const forgotPassword = async (req, res, next) => {
 };
 
 const resetPassword = async (req, res, next) => {
-    const { role } = req.body;
+    const role = req.userRole;
     const Model = getModel(role);
 
     if (!Model) {
@@ -86,7 +87,15 @@ const resetPassword = async (req, res, next) => {
             return res.status(400).json({ message: "Invalid Token" });
         }
 
-        user.password = req.body.password;
+        // Hash password for Student and Teacher, but keep plain text for Admin
+        if (role === 'Student' || role === 'Teacher') {
+            const salt = await bcrypt.genSalt(10);
+            user.password = await bcrypt.hash(req.body.password, salt);
+        } else {
+            // Admin uses plain text password
+            user.password = req.body.password;
+        }
+        
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
 
