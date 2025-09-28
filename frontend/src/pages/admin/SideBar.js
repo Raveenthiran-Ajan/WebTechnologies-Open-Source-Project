@@ -10,6 +10,7 @@ import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
 import ReportIcon from '@mui/icons-material/Report';
+import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 
 const SideBar = () => {
@@ -19,7 +20,7 @@ const SideBar = () => {
             <React.Fragment>
                 <ListItemButton component={Link} to="/">
                     <ListItemIcon>
-                        <HomeIcon color={location.pathname === ("/" || "/Admin/dashboard") ? 'primary' : 'inherit'} />
+                        <HomeIcon color={(location.pathname === "/" || location.pathname === "/Admin/dashboard") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Home" />
                 </ListItemButton>
@@ -62,7 +63,7 @@ const SideBar = () => {
                 {/* Parent menu item */}
                 <ListItemButton component={Link} to="/Admin/parents">
                     <ListItemIcon>
-                        <PersonOutlineIcon color={location.pathname.startsWith("/Admin/parents") ? 'primary' : 'inherit'} />
+                        <FamilyRestroomIcon color={location.pathname.startsWith("/Admin/parents") || location.pathname.startsWith("/Admin/addparent") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Parents" />
                 </ListItemButton>

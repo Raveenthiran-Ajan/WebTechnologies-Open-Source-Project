@@ -19,7 +19,8 @@ const ChooseUser = ({ visitor }) => {
   const navigate = useNavigate()
   const password = "zxc"
 
-  const { status, currentUser, currentRole } = useSelector(state => state.user);;
+  const { status: userStatus, currentUser, currentRole } = useSelector(state => state.user);
+  const { status: parentStatus } = useSelector(state => state.parent);
 
   const [loader, setLoader] = useState(false)
   const [showPopup, setShowPopup] = useState(false);
@@ -76,7 +77,7 @@ const ChooseUser = ({ visitor }) => {
   }
 
   useEffect(() => {
-    if (status === 'success' || currentUser !== null) {
+    if (userStatus === 'success' || currentUser !== null) {
       if (currentRole === 'Admin') {
         navigate('/Admin/dashboard');
       }
@@ -88,12 +89,12 @@ const ChooseUser = ({ visitor }) => {
         navigate('/Parent/dashboard');
       }
     }
-    else if (status === 'error') {
+    else if (userStatus === 'error' || parentStatus === 'error') {
       setLoader(false)
       setMessage("Network Error")
       setShowPopup(true)
     }
-  }, [status, currentRole, navigate, currentUser]);
+  }, [userStatus, parentStatus, currentRole, navigate, currentUser]);
 
   return (
     <StyledContainer>

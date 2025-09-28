@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteUser, getUserDetails, updateUser } from '../../../redux/userRelated/userHandle';
+import { getUserDetails } from '../../../redux/userRelated/userHandle';
 import { useNavigate, useParams } from 'react-router-dom'
 import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
 import { Box, Button, Collapse, IconButton, Table, TableBody, TableHead, Typography, Tab, Paper, BottomNavigation, BottomNavigationAction, Container } from '@mui/material';
@@ -21,8 +21,6 @@ import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import Popup from '../../../components/Popup';
 
 const ViewStudent = () => {
-    const [showTab, setShowTab] = useState(false);
-
     const navigate = useNavigate()
     const params = useParams()
     const dispatch = useDispatch()
@@ -44,9 +42,6 @@ const ViewStudent = () => {
     if (response) { console.log(response) }
     else if (error) { console.log(error) }
 
-    const [name, setName] = useState('');
-    const [rollNum, setRollNum] = useState('');
-    const [password, setPassword] = useState('');
     const [sclassName, setSclassName] = useState('');
     const [studentSchool, setStudentSchool] = useState('');
     const [subjectMarks, setSubjectMarks] = useState('');
@@ -75,31 +70,14 @@ const ViewStudent = () => {
         setSelectedSection(newSection);
     };
 
-    const fields = password === ""
-        ? { name, rollNum }
-        : { name, rollNum, password }
-
     useEffect(() => {
         if (userDetails) {
-            setName(userDetails.name || '');
-            setRollNum(userDetails.rollNum || '');
             setSclassName(userDetails.sclassName || '');
             setStudentSchool(userDetails.school || '');
             setSubjectMarks(userDetails.examResult || '');
             setSubjectAttendance(userDetails.attendance || []);
         }
     }, [userDetails]);
-
-    const submitHandler = (event) => {
-        event.preventDefault()
-        dispatch(updateUser(fields, studentID, address))
-            .then(() => {
-                dispatch(getUserDetails(studentID, address));
-            })
-            .catch((error) => {
-                console.error(error)
-            })
-    }
 
     const deleteHandler = () => {
         setMessage("Sorry the delete function has been disabled for now.")
