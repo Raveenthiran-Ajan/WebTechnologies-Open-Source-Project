@@ -47,7 +47,7 @@ const App = () => {
         </>
       }
 
-      {currentRole === "Teacher" && currentUser && (
+      {currentRole === "Teacher" && currentUser && 
         <>
           <TeacherDashboard />
         </>
