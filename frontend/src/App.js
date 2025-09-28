@@ -5,11 +5,10 @@ import Homepage from './pages/Homepage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import StudentDashboard from './pages/student/StudentDashboard';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import ParentDashboard from './pages/parent/ParentDashboard'; // Add this import
 import LoginPage from './pages/LoginPage';
 import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import ChooseUser from './pages/ChooseUser';
-import ForgotPassword from './pages/forgotPassword';
-import ResetPassword from './pages/resetPassword';
 
 const App = () => {
   const { currentRole, currentUser } = useSelector(state => state.user);
@@ -26,9 +25,7 @@ const App = () => {
           <Route path="/Adminlogin" element={<LoginPage role="Admin" />} />
           <Route path="/Studentlogin" element={<LoginPage role="Student" />} />
           <Route path="/Teacherlogin" element={<LoginPage role="Teacher" />} />
-
-          <Route path="/forgot-password/:userRole" element={<ForgotPassword />} />
-          <Route path="/reset-password/:userRole/:token" element={<ResetPassword />} />
+          <Route path="/Parentlogin" element={<LoginPage role="Parent" />} /> {/* Add Parent login route */}
 
           <Route path="/Adminregister" element={<AdminRegisterPage />} />
 
@@ -47,11 +44,17 @@ const App = () => {
         </>
       }
 
-      {currentRole === "Teacher" && currentUser && 
+      {currentRole === "Teacher" && currentUser && (
         <>
           <TeacherDashboard />
         </>
-      }
+      )}
+
+      {currentRole === "Parent" && currentUser && (
+        <>
+          <ParentDashboard />
+        </>
+      )}
     </Router>
   )
 }
