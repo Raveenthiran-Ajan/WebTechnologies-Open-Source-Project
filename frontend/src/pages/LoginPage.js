@@ -249,11 +249,8 @@ const LoginPage = ({ role }) => {
                                         {t('no_account')}
                                     </Grid>
                                     <Grid item sx={{ ml: 2 }}>
-                                        <StyledLink to="/Adminregister">
-                                            {t('signup')}
-                                        </StyledLink>
                                         <Link to="/Adminregister">
-                                            Sign up
+                                            {t('signup')}
                                         </Link>
                                     </Grid>
                                 </Grid>

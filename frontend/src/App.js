@@ -10,6 +10,10 @@ import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import ChooseUser from './pages/ChooseUser';
 import ForgotPassword from './pages/forgotPassword';
 import ResetPassword from './pages/resetPassword';
+import ParentDashboard from './pages/parent/ParentDashboard';
+import LanguageSwitcher from './components/LanguageSwitcher';
+import './i18n'; 
+
 
 const App = () => {
   const { currentRole, currentUser } = useSelector(state => state.user);
