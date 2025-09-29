@@ -1,8 +1,10 @@
 const router = require('express').Router();
 
 const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
+const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChildDetails, addAnotherChild,deleteParent } = require('../controllers/parent-controller.js');
+
 const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents } = require('../controllers/class-controller.js');
-const { complainCreate, complainList } = require('../controllers/complain-controller.js');
+const { complainCreate, complainList, complainUpdate } = require('../controllers/complain-controller.js');
 const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice } = require('../controllers/notice-controller.js');
 const {
     studentRegister,
@@ -30,6 +32,20 @@ router.post('/AdminReg', adminRegister);
 router.post('/AdminLogin', adminLogIn);
 router.get("/Admin/:id", getAdminDetail)
 router.put("/Admin/password/:id", adminChangePassword);
+// router.delete("/Admin/:id", deleteAdmin)
+
+// router.put("/Admin/:id", updateAdmin)
+
+// Parent
+
+router.post('/ParentReg', parentRegister);
+router.post('/ParentLogin', parentLogIn);
+router.get('/Parents/:id', getParents);
+router.get('/Parent/:id', getParentDetails);
+router.get('/Parent/Child/:id', getParentChildDetails);
+router.put('/Parent/AddChild/:id', addAnotherChild);
+router.delete("/Parent/:id", deleteParent);
+
 
 // Student
 router.post('/StudentReg', studentRegister);
@@ -70,6 +86,8 @@ router.put("/Notice/:id", updateNotice)
 // Complain
 router.post('/ComplainCreate', complainCreate);
 router.get('/ComplainList/:id', complainList);
+
+router.put('/ComplainUpdate/:id', complainUpdate);
 
 // Sclass
 router.post('/SclassCreate', sclassCreate);

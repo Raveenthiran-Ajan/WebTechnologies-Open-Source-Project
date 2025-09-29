@@ -23,11 +23,10 @@ import {
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import AddIcon from '@mui/icons-material/Add';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import SchoolIcon from '@mui/icons-material/School';
 import { addStuff } from '../../redux/userRelated/userHandle';
 import { getAllComplains } from '../../redux/complainRelated/complainHandle';
 
-const TeacherComplain = () => {
+const ParentComplaints = () => {
     const dispatch = useDispatch();
     const { currentUser, status, error: userError } = useSelector((state) => state.user);
     const { complainsList, loading: complainLoading } = useSelector((state) => state.complain);
@@ -75,7 +74,7 @@ const TeacherComplain = () => {
         setSubmitLoading(true);
         const fields = {
             user: currentUser._id,
-            userType: 'teacher',
+            userType: 'parent',
             date,
             complaint: complaint.trim(),
             school: currentUser.school._id,
@@ -105,20 +104,20 @@ const TeacherComplain = () => {
                         height: 80, 
                         mx: 'auto', 
                         mb: 2,
-                        bgcolor: 'success.main',
+                        bgcolor: 'primary.main',
                         fontSize: '2rem',
                         fontWeight: 'bold',
                         boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
                     }}
                 >
-                    <SchoolIcon sx={{ fontSize: 40 }} />
+                    <ReportProblemIcon sx={{ fontSize: 40 }} />
                 </Avatar>
                 <Typography 
                     variant="h3" 
                     gutterBottom 
                     sx={{ 
                         fontWeight: 'bold',
-                        background: 'linear-gradient(45deg, #43a047 0%, #66bb6a 100%)',
+                        background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
                         backgroundClip: 'text',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent',
@@ -130,7 +129,7 @@ const TeacherComplain = () => {
                     <Chip 
                         icon={<ReportProblemIcon />}
                         label={`${userComplaints.length} Total Complaints`} 
-                        color="success" 
+                        color="primary" 
                         size="large"
                     />
                 </Box>
@@ -173,7 +172,7 @@ const TeacherComplain = () => {
                                 transition: 'all 0.3s ease-in-out'
                             }}>
                                 <Box sx={{
-                                    background: 'linear-gradient(135deg, #43a047 0%, #66bb6a 100%)',
+                                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                     color: 'white',
                                     p: 3
                                 }}>
@@ -240,17 +239,17 @@ const TeacherComplain = () => {
 
             {/* Floating Action Button */}
             <Fab 
-                color="success" 
+                color="primary" 
                 aria-label="add complaint"
                 onClick={() => setOpenDialog(true)}
                 sx={{ 
                     position: 'fixed', 
                     bottom: 24, 
                     right: 24,
-                    background: 'linear-gradient(45deg, #43a047 0%, #66bb6a 100%)',
+                    background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
                     '&:hover': {
                         transform: 'scale(1.1)',
-                        background: 'linear-gradient(45deg, #388e3c 0%, #4caf50 100%)'
+                        background: 'linear-gradient(45deg, #5a6fd8 0%, #6a4190 100%)'
                     },
                     transition: 'all 0.3s ease-in-out'
                 }}
@@ -270,7 +269,7 @@ const TeacherComplain = () => {
             >
                 <DialogTitle sx={{ 
                     textAlign: 'center',
-                    background: 'linear-gradient(135deg, #43a047 0%, #66bb6a 100%)',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     color: 'white',
                     fontWeight: 'bold'
                 }}>
@@ -309,7 +308,8 @@ const TeacherComplain = () => {
                     <DialogActions sx={{ p: 3, pt: 0 }}>
                         <Button 
                             onClick={() => setOpenDialog(false)}
-                            sx={{ mr: 1 }}
+                            variant="outlined"
+                            sx={{ borderRadius: 2 }}
                         >
                             Cancel
                         </Button>
@@ -317,14 +317,15 @@ const TeacherComplain = () => {
                             type="submit"
                             variant="contained"
                             disabled={submitLoading}
-                            sx={{
-                                background: 'linear-gradient(45deg, #43a047 0%, #66bb6a 100%)',
+                            sx={{ 
+                                borderRadius: 2,
+                                background: 'linear-gradient(45deg, #fa709a 0%, #fee140 100%)',
                                 '&:hover': {
-                                    background: 'linear-gradient(45deg, #388e3c 0%, #4caf50 100%)'
+                                    background: 'linear-gradient(45deg, #e9639b 0%, #e8d441 100%)',
                                 }
                             }}
                         >
-                            {submitLoading ? <CircularProgress size={24} color="inherit" /> : 'Submit Complaint'}
+                            {submitLoading ? <CircularProgress size={24} color="inherit" /> : "Submit Complaint"}
                         </Button>
                     </DialogActions>
                 </form>
@@ -333,4 +334,4 @@ const TeacherComplain = () => {
     );
 };
 
-export default TeacherComplain;
+export default ParentComplaints;

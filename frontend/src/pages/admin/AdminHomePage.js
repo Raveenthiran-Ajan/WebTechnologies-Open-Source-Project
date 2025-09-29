@@ -11,6 +11,7 @@ import { useEffect } from 'react';
 import { getAllSclasses } from '../../redux/sclassRelated/sclassHandle';
 import { getAllStudents } from '../../redux/studentRelated/studentHandle';
 import { getAllTeachers } from '../../redux/teacherRelated/teacherHandle';
+import { useTranslation } from 'react-i18next';
 
 const AdminHomePage = () => {
     const dispatch = useDispatch();
@@ -32,6 +33,7 @@ const AdminHomePage = () => {
     const numberOfClasses = sclassesList && sclassesList.length;
     const numberOfTeachers = teachersList && teachersList.length;
 
+    const { t } = useTranslation();
     return (
         <>
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -40,7 +42,7 @@ const AdminHomePage = () => {
                         <StyledPaper>
                             <img src={Students} alt="Students" />
                             <Title>
-                                Total Students
+                                {t('totalStudents')}
                             </Title>
                             <Data start={0} end={numberOfStudents} duration={2.5} />
                         </StyledPaper>
@@ -49,7 +51,7 @@ const AdminHomePage = () => {
                         <StyledPaper>
                             <img src={Classes} alt="Classes" />
                             <Title>
-                                Total Classes
+                                {t('totalClasses')}
                             </Title>
                             <Data start={0} end={numberOfClasses} duration={5} />
                         </StyledPaper>
@@ -58,7 +60,7 @@ const AdminHomePage = () => {
                         <StyledPaper>
                             <img src={Teachers} alt="Teachers" />
                             <Title>
-                                Total Teachers
+                                {t('totalTeachers')}
                             </Title>
                             <Data start={0} end={numberOfTeachers} duration={2.5} />
                         </StyledPaper>
@@ -67,7 +69,7 @@ const AdminHomePage = () => {
                         <StyledPaper>
                             <img src={Fees} alt="Fees" />
                             <Title>
-                                Fees Collection
+                                {t('feesCollection')}
                             </Title>
                             <Data start={0} end={0} duration={2.5} prefix="$" />                        </StyledPaper>
                     </Grid>

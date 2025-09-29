@@ -13,13 +13,15 @@ import styled from 'styled-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../redux/userRelated/userHandle';
 import Popup from '../components/Popup';
+import { useTranslation } from 'react-i18next';
 
 const ChooseUser = ({ visitor }) => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const password = "zxc"
 
-  const { status, currentUser, currentRole } = useSelector(state => state.user);;
+  const { status: userStatus, currentUser, currentRole } = useSelector(state => state.user);
+  const { status: parentStatus } = useSelector(state => state.parent);
 
   const [loader, setLoader] = useState(false)
   const [showPopup, setShowPopup] = useState(false);
@@ -76,7 +78,7 @@ const ChooseUser = ({ visitor }) => {
   }
 
   useEffect(() => {
-    if (status === 'success' || currentUser !== null) {
+    if (userStatus === 'success' || currentUser !== null) {
       if (currentRole === 'Admin') {
         navigate('/Admin/dashboard');
       }
@@ -88,26 +90,27 @@ const ChooseUser = ({ visitor }) => {
         navigate('/Parent/dashboard');
       }
     }
-    else if (status === 'error') {
+    else if (userStatus === 'error' || parentStatus === 'error') {
       setLoader(false)
       setMessage("Network Error")
       setShowPopup(true)
     }
-  }, [status, currentRole, navigate, currentUser]);
+  }, [userStatus, parentStatus, currentRole, navigate, currentUser]);
 
+  const { t } = useTranslation();
   return (
     <StyledContainer>
       <Container>
-        <Grid container spacing={4} justifyContent="center">
+        <Grid container spacing={4} justifyContent="center" alignItems="stretch">
           <Grid item xs={12} sm={6} md={6}>
             <StyledPaper elevation={3} onClick={() => navigateHandler("Admin")}>
               <Box mb={2}>
                 <AccountCircle fontSize="large" />
               </Box>
               <StyledTypography>
-                Admin
+                {t('choose_admin')}
               </StyledTypography>
-              Login as an administrator to access the dashboard to manage app data.
+              {t('choose_admin_desc')}
             </StyledPaper>
           </Grid>
           <Grid item xs={12} sm={6} md={6}>
@@ -116,9 +119,9 @@ const ChooseUser = ({ visitor }) => {
                 <Group fontSize="large" />
               </Box>
               <StyledTypography>
-                Teacher
+                {t('choose_teacher')}
               </StyledTypography>
-              Login as a teacher to create courses, assignments, and track student progress.
+              {t('choose_teacher_desc')}
             </StyledPaper>
           </Grid>
           <Grid item xs={12} sm={6} md={6}>
@@ -127,10 +130,10 @@ const ChooseUser = ({ visitor }) => {
                 <School fontSize="large" />
               </Box>
               <StyledTypography>
-                Student
+                {t('choose_student')}
               </StyledTypography>
-              Login as a student to explore course materials and assignments.
-            </StyledPaper>
+              {t('choose_student_desc')}
+              </StyledPaper>
           </Grid>
           <Grid item xs={12} sm={6} md={6}>
             <StyledPaper elevation={3} onClick={() => navigateHandler("Parent")}>
@@ -138,9 +141,9 @@ const ChooseUser = ({ visitor }) => {
                 <FamilyRestroom fontSize="large" />
               </Box>
               <StyledTypography>
-                Parent
+                {t('choose_parent')}
               </StyledTypography>
-              Login as a parent to view your children's attendance and marks.
+              {t('choose_parent_desc')}
             </StyledPaper>
           </Grid>
         </Grid>
@@ -150,7 +153,7 @@ const ChooseUser = ({ visitor }) => {
         open={loader}
       >
         <CircularProgress color="inherit" />
-        Please Wait
+        {t('please_wait')}
       </Backdrop>
       <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
     </StyledContainer>
@@ -173,7 +176,8 @@ const StyledPaper = styled(Paper)`
   background-color: #1f1f38;
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-
+  height: 100%;
+  
   &:hover {
     background-color: #2c2c6c;
     color: white;
