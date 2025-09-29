@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom'
-import { getClassDetails, getClassStudents, getSubjectList } from "../../../redux/sclassRelated/sclassHandle";
+import { getClassDetails, getClassStudents, getClassTeachers, getSubjectList } from "../../../redux/sclassRelated/sclassHandle";
+import { deleteUser } from '../../../redux/userRelated/userHandle';
 import {
-    Box, Container, Typography, Tab, IconButton
+    Box, Container, Typography, Tab, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
 } from '@mui/material';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -16,12 +17,15 @@ import SpeedDialTemplate from "../../../components/SpeedDialTemplate";
 import Popup from "../../../components/Popup";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PostAddIcon from '@mui/icons-material/PostAdd';
+import axios from 'axios';
+import { API_BASE_URL } from '../../../config';
+import Timetable from './Timetable';
 
 const ClassDetails = () => {
     const params = useParams()
     const navigate = useNavigate()
     const dispatch = useDispatch();
-    const { subjectsList, sclassStudents, sclassDetails, loading, error, response, getresponse } = useSelector((state) => state.sclass);
+    const { subjectsList, sclassStudents, sclassTeachers, sclassDetails, loading, error, response, getresponse, getTeachersResponse } = useSelector((state) => state.sclass);
 
     const classID = params.id
 
@@ -29,6 +33,7 @@ const ClassDetails = () => {
         dispatch(getClassDetails(classID, "Sclass"));
         dispatch(getSubjectList(classID, "ClassSubjects"))
         dispatch(getClassStudents(classID));
+        dispatch(getClassTeachers(classID));
     }, [dispatch, classID])
 
     if (error) {
@@ -201,10 +206,72 @@ const ClassDetails = () => {
         )
     }
 
+    const teacherColumns = [
+        { id: 'name', label: 'Name', minWidth: 170 },
+        { id: 'subject', label: 'Subject', minWidth: 100 },
+    ]
+
+    const teacherRows = sclassTeachers && sclassTeachers.length > 0 && sclassTeachers.map((teacher) => {
+        return {
+            name: teacher.name,
+            subject: teacher.teachSubject?.subName || 'N/A',
+            id: teacher._id,
+        };
+    })
+
+    const TeachersButtonHaver = ({ row }) => {
+        return (
+            <>
+                <IconButton onClick={() => deleteHandler(row.id, "Teacher")}>
+                    <DeleteIcon color="error" />
+                </IconButton>
+                <BlueButton
+                    variant="contained"
+                    onClick={() => {
+                        navigate(`/Admin/teachers/teacher/${row.id}`)
+                    }}
+                >
+                    View
+                </BlueButton >
+            </>
+        );
+    };
+
+    const teacherActions = [
+        {
+            icon: <PersonAddAlt1Icon color="primary" />, name: 'Add New Teacher',
+            action: () => navigate("/Admin/teachers/add?classId=" + classID)
+        },
+        {
+            icon: <PersonRemoveIcon color="error" />, name: 'Delete All Teachers',
+            action: () => deleteHandler(classID, "TeachersClass")
+        },
+    ];
+
     const ClassTeachersSection = () => {
         return (
             <>
-                Teachers
+                {getTeachersResponse ? (
+                    <>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                            <GreenButton
+                                variant="contained"
+                                onClick={() => navigate("/Admin/teachers/add?classId=" + classID)}
+                            >
+                                Add Teachers
+                            </GreenButton>
+                        </Box>
+                    </>
+                ) : (
+                    <>
+                        <Typography variant="h5" gutterBottom>
+                            Teachers List:
+                        </Typography>
+
+                        <TableTemplate buttonHaver={TeachersButtonHaver} columns={teacherColumns} rows={teacherRows} />
+                        <SpeedDialTemplate actions={teacherActions} />
+                    </>
+                )}
             </>
         )
     }
@@ -261,6 +328,7 @@ const ClassDetails = () => {
                                     <Tab label="Subjects" value="2" />
                                     <Tab label="Students" value="3" />
                                     <Tab label="Teachers" value="4" />
+                                    <Tab label="Timetable" value="5" />
                                 </TabList>
                             </Box>
                             <Container sx={{ marginTop: "3rem", marginBottom: "4rem" }}>
@@ -275,6 +343,9 @@ const ClassDetails = () => {
                                 </TabPanel>
                                 <TabPanel value="4">
                                     <ClassTeachersSection />
+                                </TabPanel>
+                                <TabPanel value="5">
+                                    <Timetable classID={classID} />
                                 </TabPanel>
                             </Container>
                         </TabContext>

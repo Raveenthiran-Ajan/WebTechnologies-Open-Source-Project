@@ -48,7 +48,7 @@ const ShowSubjects = () => {
         { id: 'sclassName', label: 'Class', minWidth: 170 },
     ]
 
-    const subjectRows = subjectsList.map((subject) => {
+    const subjectRows = Array.isArray(subjectsList) ? subjectsList.map((subject) => {
         return {
             subName: subject.subName,
             sessions: subject.sessions,
@@ -56,7 +56,7 @@ const ShowSubjects = () => {
             sclassID: subject.sclassName._id,
             id: subject._id,
         };
-    })
+    }) : [];
 
     const SubjectsButtonHaver = ({ row }) => {
         return (
@@ -98,9 +98,11 @@ const ShowSubjects = () => {
                         </Box>
                         :
                         <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                            {Array.isArray(subjectsList) && subjectsList.length > 0 &&
-                                <TableTemplate buttonHaver={SubjectsButtonHaver} columns={subjectColumns} rows={subjectRows} />
-                            }
+                        {Array.isArray(subjectsList) && subjectsList.length > 0 ?
+                            <TableTemplate buttonHaver={SubjectsButtonHaver} columns={subjectColumns} rows={subjectRows} />
+                            :
+                            <p>{typeof subjectsList === 'object' && subjectsList.message ? subjectsList.message : 'No subjects found.'}</p>
+                        }
                             <SpeedDialTemplate actions={actions} />
                         </Paper>
                     }

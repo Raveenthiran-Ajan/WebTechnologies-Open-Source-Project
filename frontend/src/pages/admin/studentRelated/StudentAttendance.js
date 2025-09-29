@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getUserDetails } from '../../../redux/userRelated/userHandle';
 import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
 import { updateStudentFields } from '../../../redux/studentRelated/studentHandle';
@@ -30,6 +30,8 @@ const StudentAttendance = ({ situation }) => {
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
     const [loader, setLoader] = useState(false)
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (situation === "Student") {
@@ -82,8 +84,14 @@ const StudentAttendance = ({ situation }) => {
             setLoader(false)
             setShowPopup(true)
             setMessage("Done Successfully")
+            // Navigate back to class attendance after success
+            if (situation === "Subject" && userDetails.sclassName?._id) {
+                setTimeout(() => {
+                    navigate(`/teacher/class/attendance/${userDetails.sclassName._id}`);
+                }, 1500); // Delay to show popup
+            }
         }
-    }, [response, statestatus, error])
+    }, [response, statestatus, error, situation, userDetails.sclassName?._id, navigate])
 
     return (
         <>

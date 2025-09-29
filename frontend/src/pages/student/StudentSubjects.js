@@ -17,15 +17,13 @@ const StudentSubjects = () => {
     const { subjectsList, sclassDetails } = useSelector((state) => state.sclass);
     const { userDetails, currentUser, loading, response, error } = useSelector((state) => state.user);
 
+    const [subjectMarks, setSubjectMarks] = useState([]);
+    const [submissions, setSubmissions] = useState([]);
+    const [selectedSection, setSelectedSection] = useState('table');
+
     useEffect(() => {
         dispatch(getUserDetails(currentUser._id, "Student"));
     }, [dispatch, currentUser._id])
-
-    if (response) { console.log(response) }
-    else if (error) { console.log(error) }
-
-    const [subjectMarks, setSubjectMarks] = useState([]);
-    const [selectedSection, setSelectedSection] = useState('table');
 
     useEffect(() => {
         if (userDetails) {
@@ -34,10 +32,24 @@ const StudentSubjects = () => {
     }, [userDetails])
 
     useEffect(() => {
-        if (subjectMarks === []) {
+        if (subjectMarks == []) {
             dispatch(getSubjectList(currentUser.sclassName._id, "ClassSubjects"));
         }
     }, [subjectMarks, dispatch, currentUser.sclassName._id]);
+
+    useEffect(() => {
+        // Fetch submissions for current student
+        if (currentUser && currentUser._id) {
+            fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000'}/submissions/student/${currentUser._id}`)
+                .then(res => res.json())
+                .then(data => {
+                    setSubmissions(data);
+                })
+                .catch(err => {
+                    console.error("Failed to fetch submissions", err);
+                });
+        }
+    }, [currentUser]);
 
     const handleSectionChange = (event, newSection) => {
         setSelectedSection(newSection);
@@ -70,6 +82,40 @@ const StudentSubjects = () => {
                         })}
                     </TableBody>
                 </Table>
+            </>
+        );
+    };
+
+    const renderSubmissionsSection = () => {
+        return (
+            <>
+                <Typography variant="h4" align="center" gutterBottom>
+                    Assignment Submissions
+                </Typography>
+                {submissions.length === 0 ? (
+                    <Typography>No submissions found.</Typography>
+                ) : (
+                    <Table>
+                        <TableHead>
+                            <StyledTableRow>
+                                <StyledTableCell>Assignment Title</StyledTableCell>
+                                <StyledTableCell>Submitted At</StyledTableCell>
+                                <StyledTableCell>Grade</StyledTableCell>
+                                <StyledTableCell>Feedback</StyledTableCell>
+                            </StyledTableRow>
+                        </TableHead>
+                        <TableBody>
+                            {submissions.map((submission) => (
+                                <StyledTableRow key={submission._id}>
+                                    <StyledTableCell>{submission.assignmentId?.title || "Unknown"}</StyledTableCell>
+                                    <StyledTableCell>{new Date(submission.submittedAt).toLocaleString()}</StyledTableCell>
+                                    <StyledTableCell>{submission.grade || "-"}</StyledTableCell>
+                                    <StyledTableCell>{submission.feedback || "-"}</StyledTableCell>
+                                </StyledTableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
             </>
         );
     };
@@ -112,6 +158,7 @@ const StudentSubjects = () => {
                         ?
                         (<>
                             {selectedSection === 'table' && renderTableSection()}
+                            {selectedSection === 'submissions' && renderSubmissionsSection()}
                             {selectedSection === 'chart' && renderChartSection()}
 
                             <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
@@ -120,6 +167,11 @@ const StudentSubjects = () => {
                                         label="Table"
                                         value="table"
                                         icon={selectedSection === 'table' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
+                                    />
+                                    <BottomNavigationAction
+                                        label="Submissions"
+                                        value="submissions"
+                                        icon={selectedSection === 'submissions' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
                                     />
                                     <BottomNavigationAction
                                         label="Chart"

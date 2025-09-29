@@ -11,6 +11,8 @@ import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import ForgotPassword from './pages/forgotPassword';
 import ResetPassword from './pages/resetPassword';
 import ChooseUser from './pages/ChooseUser';
+import AssignmentsPage from './pages/AssignmentsPage';
+import AssignmentSubmission from "./components/AssignmentSubmission";
 import LanguageSwitcher from './components/LanguageSwitcher';
 import './i18n'; 
 
@@ -35,6 +37,8 @@ const App = () => {
           <Route path="/forgot-password/:userRole" element={<ForgotPassword />} />
           <Route path="/reset-password/:userRole/:token" element={<ResetPassword />} />
           <Route path="/Adminregister" element={<AdminRegisterPage />} />
+          <Route path="/assignments" element={<AssignmentsPage />} />
+          <Route path="/teacher/upload-assignment" element={<AssignmentSubmission />} />
 
           <Route path='*' element={<Navigate to="/" />} />
         </Routes>}

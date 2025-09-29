@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Container, Grid, Paper, Typography } from '@mui/material'
+import { Container, Grid, Paper, Typography, List, ListItem, ListItemText, Button, Box, Chip } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux';
 import { calculateOverallAttendancePercentage } from '../../components/attendanceCalculator';
 import CustomPieChart from '../../components/CustomPieChart';
@@ -10,6 +10,9 @@ import CountUp from 'react-countup';
 import Subject from "../../assets/subjects.svg";
 import Assignment from "../../assets/assignment.svg";
 import { getSubjectList } from '../../redux/sclassRelated/sclassHandle';
+import axios from 'axios';
+import AssignmentSubmission from '../../components/AssignmentSubmission';
+import { API_BASE_URL } from '../../config';
 import { useTranslation } from 'react-i18next';
 
 const StudentHomePage = () => {
@@ -19,12 +22,55 @@ const StudentHomePage = () => {
     const { subjectsList } = useSelector((state) => state.sclass);
 
     const [subjectAttendance, setSubjectAttendance] = useState([]);
+    const [assignments, setAssignments] = useState([]);
+    const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+    const [submissions, setSubmissions] = useState([]);
+    const [showSubmissionForm, setShowSubmissionForm] = useState(null);
 
     const classID = currentUser.sclassName._id
+
+    const fetchAssignments = async () => {
+        if (!currentUser._id) return;
+        setAssignmentsLoading(true);
+        try {
+            const res = await axios.get(`${API_BASE_URL}/assignments/student/${currentUser._id}`);
+            setAssignments(res.data.assignments || []);
+        } catch (err) {
+            console.error('Error fetching assignments:', err);
+            setAssignments([]);
+        } finally {
+            setAssignmentsLoading(false);
+        }
+    };
+
+    const fetchSubmissions = async () => {
+        if (!currentUser._id) return;
+        try {
+            const res = await axios.get(`${API_BASE_URL}/submissions/student/${currentUser._id}`);
+            setSubmissions(res.data || []);
+        } catch (err) {
+            console.error('Error fetching submissions:', err);
+            setSubmissions([]);
+        }
+    };
+
+    const calculateTimeLeft = (dueDate) => {
+        if (!dueDate) return 'No due date';
+        const now = new Date();
+        const due = new Date(dueDate);
+        const diff = due - now;
+        if (diff <= 0) return 'Overdue';
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        return `${days}d ${hours}h ${minutes}m left`;
+    };
 
     useEffect(() => {
         dispatch(getUserDetails(currentUser._id, "Student"));
         dispatch(getSubjectList(classID, "ClassSubjects"));
+        fetchAssignments();
+        fetchSubmissions();
     }, [dispatch, currentUser._id, classID]);
 
     const numberOfSubjects = subjectsList && subjectsList.length;
@@ -54,7 +100,7 @@ const StudentHomePage = () => {
                             <Title>
                                 {t('student_total_subjects')}
                             </Title>
-                            <Data start={0} end={numberOfSubjects} duration={2.5} />
+                            <Data><CountUp start={0} end={numberOfSubjects} duration={2.5} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3} lg={3}>
@@ -63,7 +109,7 @@ const StudentHomePage = () => {
                             <Title>
                                  {t('student_total_assignments')}
                             </Title>
-                            <Data start={0} end={15} duration={4} />
+                            <Data><CountUp start={0} end={assignments.length} duration={4} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={4} lg={3}>
@@ -95,8 +141,106 @@ const StudentHomePage = () => {
                         </ChartContainer>
                     </Grid>
                     <Grid item xs={12}>
-                        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+                        <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', maxHeight: 400, overflow: 'auto' }}>
+                            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+                                School Notices
+                            </Typography>
                             <SeeNotice />
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Paper sx={{ p: 3, width: "100%", maxWidth: 1200, boxShadow: 2, display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="h6" gutterBottom>
+                                Recent Assignments
+                            </Typography>
+                            {assignmentsLoading ? (
+                                <Typography>Loading assignments...</Typography>
+                            ) : assignments.length > 0 ? (
+                                <Box sx={{ width: "100%" }}>
+                                    <Box sx={{ maxHeight: 600, overflowY: "auto", width: "100%" }}>
+                                        <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "25%", fontWeight: "bold" }}>Title</th>
+                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Due Date</th>
+                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "15%", fontWeight: "bold" }}>Status</th>
+                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Time Left</th>
+<th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold", verticalAlign: "middle" }}>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {assignments.map((assignment) => {
+                                                    const submission = submissions.find(
+                                                        (sub) => sub.assignmentId._id === assignment._id
+                                                    );
+                                                    const isSubmitted = !!submission;
+                                                    const timeLeft = calculateTimeLeft(assignment.dueDate);
+                                                    const isOverdue = timeLeft === 'Overdue';
+
+                                                    return (
+                                                        <tr key={assignment._id} style={{ borderBottom: "1px solid #eee" }}>
+                                                            <td style={{ padding: "8px", verticalAlign: "top", wordBreak: "break-word" }}>
+                                                                {assignment.title}
+                                                            </td>
+                                                            <td style={{ padding: "8px", verticalAlign: "top", wordBreak: "break-word" }}>
+                                                                {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No due date'}
+                                                            </td>
+                                                            <td style={{ padding: "8px", verticalAlign: "top" }}>
+                                                                <Chip label={isSubmitted ? 'Submitted' : 'Pending'} color={isSubmitted ? 'success' : 'warning'} />
+                                                            </td>
+                                                            <td style={{ padding: "8px", verticalAlign: "top" }}>
+                                                                <Chip label={timeLeft} color={isOverdue ? 'error' : 'primary'} />
+                                                            </td>
+<td style={{ padding: "8px", verticalAlign: "middle" }}>
+    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-start' }}>
+        {assignment.fileUrl && (
+            <Button
+                variant="outlined"
+                size="small"
+                sx={{ minWidth: 80 }}
+                href={`${API_BASE_URL}${assignment.fileUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Download
+            </Button>
+        )}
+        <Button
+            variant="contained"
+            size="small"
+            sx={{ minWidth: 80 }}
+            disabled={isSubmitted || isOverdue}
+            onClick={() => setShowSubmissionForm(assignment._id)}
+        >
+            {isSubmitted ? 'Submitted' : 'Submit'}
+        </Button>
+    </Box>
+</td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </Box>
+                                    {assignments.map((assignment) => (
+                                        showSubmissionForm === assignment._id && (
+                                            <Box key={assignment._id} sx={{ mt: 2, width: '100%' }}>
+                                                <AssignmentSubmission
+                                                    assignmentId={assignment._id}
+                                                    studentId={currentUser._id}
+                                                    onClose={() => setShowSubmissionForm(null)}
+                                                    onSubmitted={() => {
+                                                        setShowSubmissionForm(null);
+                                                        fetchSubmissions();
+                                                    }}
+                                                />
+                                            </Box>
+                                        )
+                                    ))}
+                                </Box>
+                            ) : (
+                                <Typography>No assignments found.</Typography>
+                            )}
                         </Paper>
                     </Grid>
                 </Grid>
@@ -129,7 +273,7 @@ const Title = styled.p`
   font-size: 1.25rem;
 `;
 
-const Data = styled(CountUp)`
+const Data = styled.span`
   font-size: calc(1.3rem + .6vw);
   color: green;
 `;

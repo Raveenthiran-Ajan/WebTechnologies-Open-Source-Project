@@ -21,6 +21,10 @@ const ShowClasses = () => {
   const dispatch = useDispatch();
 
   const { sclassesList, loading, error, getresponse } = useSelector((state) => state.sclass);
+
+  console.log("Admin ShowClasses sclassesList:", sclassesList);
+  console.log("Admin ShowClasses loading:", loading);
+  console.log("Admin ShowClasses error:", error);
   const { currentUser } = useSelector(state => state.user)
 
   const adminID = currentUser._id

@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllNotices } from '../redux/noticeRelated/noticeHandle';
-import { Paper } from '@mui/material';
-import TableViewTemplate from './TableViewTemplate';
+import { Paper, Card, CardContent, CardHeader, Typography, Grid, CircularProgress } from '@mui/material';
+import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 
 const SeeNotice = () => {
     const dispatch = useDispatch();
@@ -23,40 +23,55 @@ const SeeNotice = () => {
         console.log(error);
     }
 
-    const noticeColumns = [
-        { id: 'title', label: 'Title', minWidth: 170 },
-        { id: 'details', label: 'Details', minWidth: 100 },
-        { id: 'date', label: 'Date', minWidth: 170 },
-    ];
-
-    const noticeRows = noticesList.map((notice) => {
-        const date = new Date(notice.date);
-        const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
-        return {
-            title: notice.title,
-            details: notice.details,
-            date: dateString,
-            id: notice._id,
-        };
-    });
     return (
         <div style={{ marginTop: '50px', marginRight: '20px' }}>
             {loading ? (
-                <div style={{ fontSize: '20px' }}>Loading...</div>
+                <CircularProgress color="primary" sx={{ display: 'block', margin: 'auto' }} />
             ) : response ? (
-                <div style={{ fontSize: '20px' }}>No Notices to Show Right Now</div>
+                <Typography variant="body1" sx={{ fontSize: '20px', textAlign: 'center' }}>
+                    No Notices to Show Right Now
+                </Typography>
             ) : (
                 <>
-                    <h3 style={{ fontSize: '30px', marginBottom: '40px' }}>Notices</h3>
-                    <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                        {Array.isArray(noticesList) && noticesList.length > 0 &&
-                            <TableViewTemplate columns={noticeColumns} rows={noticeRows} />
-                        }
+                    <Typography variant="h4" component="h3" sx={{ fontSize: '30px', marginBottom: '40px', color: 'purple', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <AnnouncementOutlinedIcon />
+                        Recent Notices
+                    </Typography>
+                    <Paper sx={{ width: '100%', p: 2, borderRadius: 2, border: '1px solid purple' }}>
+                        <Grid container spacing={2}>
+                            {Array.isArray(noticesList) && noticesList.length > 0 ? (
+                                noticesList.map((notice) => {
+                                    const date = new Date(notice.date);
+                                    const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
+                                    const truncatedDetails = notice.details.length > 100 ? notice.details.substring(0, 100) + '...' : notice.details;
+                                    return (
+                                        <Grid item xs={12} sm={6} md={4} key={notice._id}>
+                                            <Card sx={{ height: '100%', '&:hover': { boxShadow: 3, borderColor: 'purple' } }}>
+                                                <CardHeader title={notice.title} sx={{ backgroundColor: 'purple', color: 'white' }} />
+                                                <CardContent>
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        {truncatedDetails}
+                                                    </Typography>
+                                                </CardContent>
+                                                <CardContent sx={{ pt: 0, pb: '8px !important' }}>
+                                                    <Typography variant="caption" color="text.secondary">
+                                                        {dateString}
+                                                    </Typography>
+                                                </CardContent>
+                                            </Card>
+                                        </Grid>
+                                    );
+                                })
+                            ) : (
+                                <Typography variant="body1" sx={{ width: '100%', textAlign: 'center' }}>
+                                    No notices available.
+                                </Typography>
+                            )}
+                        </Grid>
                     </Paper>
                 </>
             )}
         </div>
-
     )
 }
 

@@ -8,6 +8,7 @@ import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined
 import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import ScheduleIcon from '@mui/icons-material/Schedule';
 import { useTranslation } from 'react-i18next';
 
 const StudentSideBar = () => {
@@ -40,6 +41,24 @@ const StudentSideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary={t('menu_assignment_submission')} />
                 </ListItemButton>
+            <ListItemButton component={Link} to="/Student/complain">
+                <ListItemIcon>
+                    <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Student/complain") ? 'primary' : 'inherit'} />
+                </ListItemIcon>
+                <ListItemText primary="Complain" />
+            </ListItemButton>
+            <ListItemButton component={Link} to="/Student/timetable">
+                <ListItemIcon>
+                    <ScheduleIcon color={location.pathname.startsWith("/Student/timetable") ? 'primary' : 'inherit'} />
+                </ListItemIcon>
+                <ListItemText primary="Timetable" />
+            </ListItemButton>
+            <ListItemButton component={Link} to="/Student/grades">
+                <ListItemIcon>
+                    <AssignmentIcon color={location.pathname.startsWith("/Student/grades") ? 'primary' : 'inherit'} />
+                </ListItemIcon>
+                <ListItemText primary="Grades" />
+            </ListItemButton>
                 <ListItemButton component={Link} to="/Student/complain">
                     <ListItemIcon>
                         <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Student/complain") ? 'primary' : 'inherit'} />
