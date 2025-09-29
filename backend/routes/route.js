@@ -1,8 +1,8 @@
 const router = require('express').Router();
 
-const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
 const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChildDetails, addAnotherChild,deleteParent } = require('../controllers/parent-controller.js');
 
+const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
 const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents } = require('../controllers/class-controller.js');
 const { complainCreate, complainList, complainUpdate } = require('../controllers/complain-controller.js');
 const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice } = require('../controllers/notice-controller.js');
@@ -31,7 +31,6 @@ const { submitAssignment, getAssignmentsByStudent, getAllAssignments } = require
 router.post('/AdminReg', adminRegister);
 router.post('/AdminLogin', adminLogIn);
 router.get("/Admin/:id", getAdminDetail)
-router.put("/Admin/password/:id", adminChangePassword);
 // router.delete("/Admin/:id", deleteAdmin)
 
 // router.put("/Admin/:id", updateAdmin)
@@ -46,6 +45,7 @@ router.get('/Parent/Child/:id', getParentChildDetails);
 router.put('/Parent/AddChild/:id', addAnotherChild);
 router.delete("/Parent/:id", deleteParent);
 
+router.put("/Admin/password/:id", adminChangePassword);
 
 // Student
 router.post('/StudentReg', studentRegister);

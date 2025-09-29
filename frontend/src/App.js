@@ -5,12 +5,12 @@ import Homepage from './pages/Homepage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import StudentDashboard from './pages/student/StudentDashboard';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import ParentDashboard from './pages/parent/ParentDashboard'; 
 import LoginPage from './pages/LoginPage';
 import AdminRegisterPage from './pages/admin/AdminRegisterPage';
-import ChooseUser from './pages/ChooseUser';
 import ForgotPassword from './pages/forgotPassword';
 import ResetPassword from './pages/resetPassword';
-import ParentDashboard from './pages/parent/ParentDashboard';
+import ChooseUser from './pages/ChooseUser';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import './i18n'; 
 
@@ -31,10 +31,9 @@ const App = () => {
           <Route path="/Adminlogin" element={<LoginPage role="Admin" />} />
           <Route path="/Studentlogin" element={<LoginPage role="Student" />} />
           <Route path="/Teacherlogin" element={<LoginPage role="Teacher" />} />
-
+          <Route path="/Parentlogin" element={<LoginPage role="Parent" />} /> 
           <Route path="/forgot-password/:userRole" element={<ForgotPassword />} />
-          <Route path="/reset-password/:userRole/:token" element={<ResetPassword />} />
-
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/Adminregister" element={<AdminRegisterPage />} />
 
           <Route path='*' element={<Navigate to="/" />} />
