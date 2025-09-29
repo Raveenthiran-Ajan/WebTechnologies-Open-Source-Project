@@ -24,6 +24,14 @@ const sclassSchema = new mongoose.Schema({
         subject: {
             type: String,
             required: true
+        },
+        subjectId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'subject'
+        },
+        teacher: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'teacher'
         }
     }]
 }, { timestamps: true });

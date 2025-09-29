@@ -2,11 +2,16 @@ const Assignment = require("../models/Assignment");
 const Student = require("../models/studentSchema");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/assignments/"); // Directory to save files
+    const dir = "uploads/assignments/";
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir); // Directory to save files
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);

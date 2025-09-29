@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
     sclassesList: [],
     sclassStudents: [],
+    sclassTeachers: [],
     sclassDetails: [],
     subjectsList: [],
     subjectDetails: [],
@@ -11,6 +12,7 @@ const initialState = {
     error: null,
     response: null,
     getresponse: null,
+    getTeachersResponse: null,
 };
 
 const sclassSlice = createSlice({
@@ -35,6 +37,12 @@ const sclassSlice = createSlice({
             state.error = null;
             state.getresponse = null;
         },
+        getTeachersSuccess: (state, action) => {
+            state.sclassTeachers = action.payload;
+            state.loading = false;
+            state.error = null;
+            state.getTeachersResponse = null;
+        },
         getSubjectsSuccess: (state, action) => {
             state.subjectsList = action.payload;
             state.loading = false;
@@ -50,7 +58,14 @@ const sclassSlice = createSlice({
         getFailedTwo: (state, action) => {
             state.sclassesList = [];
             state.sclassStudents = [];
+            state.sclassTeachers = [];
             state.getresponse = action.payload;
+            state.loading = false;
+            state.error = null;
+        },
+        getTeachersFailed: (state, action) => {
+            state.sclassTeachers = [];
+            state.getTeachersResponse = action.payload;
             state.loading = false;
             state.error = null;
         },
@@ -81,9 +96,11 @@ export const {
     getFailed,
     getError,
     getStudentsSuccess,
+    getTeachersSuccess,
     getSubjectsSuccess,
     detailsSuccess,
     getFailedTwo,
+    getTeachersFailed,
     resetSubjects,
     getSubDetailsSuccess,
     getSubDetailsRequest

@@ -80,6 +80,7 @@ const TeacherDashboard = () => {
                     <Route path="/teacher/profile" element={<TeacherProfile />} />
                     <Route path="/teacher/complain" element={<TeacherComplain />} />
                     <Route path="/teacher/class" element={<TeacherClassDetails />} />
+                    <Route path="/teacher/class/attendance/:classId" element={<TeacherViewStudent />} />
                     <Route path="/teacher/class/student/:id" element={<TeacherViewStudent />} />
                     <Route path="/teacher/class/student/attendance/:studentID/:subjectID" element={<StudentAttendance situation="Subject" />} />
                     <Route path="/teacher/class/student/marks/:studentID/:subjectID" element={<StudentExamMarks situation="Subject" />} />

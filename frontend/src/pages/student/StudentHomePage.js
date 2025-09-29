@@ -162,7 +162,7 @@ const StudentHomePage = () => {
                                                     <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Due Date</th>
                                                     <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "15%", fontWeight: "bold" }}>Status</th>
                                                     <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Time Left</th>
-                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Actions</th>
+<th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold", verticalAlign: "middle" }}>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -188,29 +188,31 @@ const StudentHomePage = () => {
                                                             <td style={{ padding: "8px", verticalAlign: "top" }}>
                                                                 <Chip label={timeLeft} color={isOverdue ? 'error' : 'primary'} />
                                                             </td>
-                                                            <td style={{ padding: "8px", verticalAlign: "top" }}>
-                                                                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                                                                    {assignment.fileUrl && (
-                                                                        <Button
-                                                                            variant="outlined"
-                                                                            size="small"
-                                                                            href={`${API_BASE_URL}${assignment.fileUrl}`}
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                        >
-                                                                            Download
-                                                                        </Button>
-                                                                    )}
-                                                                    <Button
-                                                                        variant="contained"
-                                                                        size="small"
-                                                                        disabled={isSubmitted || isOverdue}
-                                                                        onClick={() => setShowSubmissionForm(assignment._id)}
-                                                                    >
-                                                                        {isSubmitted ? 'Submitted' : 'Submit'}
-                                                                    </Button>
-                                                                </Box>
-                                                            </td>
+<td style={{ padding: "8px", verticalAlign: "middle" }}>
+    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-start' }}>
+        {assignment.fileUrl && (
+            <Button
+                variant="outlined"
+                size="small"
+                sx={{ minWidth: 80 }}
+                href={`${API_BASE_URL}${assignment.fileUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Download
+            </Button>
+        )}
+        <Button
+            variant="contained"
+            size="small"
+            sx={{ minWidth: 80 }}
+            disabled={isSubmitted || isOverdue}
+            onClick={() => setShowSubmissionForm(assignment._id)}
+        >
+            {isSubmitted ? 'Submitted' : 'Submit'}
+        </Button>
+    </Box>
+</td>
                                                         </tr>
                                                     );
                                                 })}

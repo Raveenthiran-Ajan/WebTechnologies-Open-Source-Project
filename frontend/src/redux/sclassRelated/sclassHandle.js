@@ -5,6 +5,7 @@ import {
     getFailed,
     getError,
     getStudentsSuccess,
+    getTeachersSuccess,
     detailsSuccess,
     getFailedTwo,
     getSubjectsSuccess,
@@ -126,6 +127,21 @@ export const updateTimetable = (id, timetable) => async (dispatch) => {
         } else {
             // You may want to create a new action to update timetable in state
             console.log("Updated timetable:", result.data);
+        }
+    } catch (error) {
+        dispatch(getError(error));
+    }
+}
+
+export const getClassTeachers = (id) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.get(`${REACT_APP_BASE_URL}/Sclass/Teachers/${id}`);
+        if (result.data.message) {
+            dispatch(getTeachersFailed(result.data.message));
+        } else {
+            dispatch(getTeachersSuccess(result.data));
         }
     } catch (error) {
         dispatch(getError(error));
