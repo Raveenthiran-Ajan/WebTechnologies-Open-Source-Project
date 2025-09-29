@@ -39,7 +39,6 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/teacher/class") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary={`Class ${sclassName?.sclassName || ""}`} />
                     <ListItemText primary={t('menu_class_label', { name: sclassName.sclassName })} />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/complain">
