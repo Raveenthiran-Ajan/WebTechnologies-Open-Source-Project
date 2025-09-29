@@ -33,7 +33,7 @@ const App = () => {
           <Route path="/Teacherlogin" element={<LoginPage role="Teacher" />} />
           <Route path="/Parentlogin" element={<LoginPage role="Parent" />} /> 
           <Route path="/forgot-password/:userRole" element={<ForgotPassword />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/reset-password/:userRole/:token" element={<ResetPassword />} />
           <Route path="/Adminregister" element={<AdminRegisterPage />} />
 
           <Route path='*' element={<Navigate to="/" />} />
