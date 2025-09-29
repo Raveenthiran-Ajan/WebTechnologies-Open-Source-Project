@@ -1,4 +1,4 @@
-const Assignment = require("../models/Assignment");
+const Assignment = require("../models/assignmentSchema");
 const Student = require("../models/studentSchema");
 const multer = require("multer");
 const path = require("path");
