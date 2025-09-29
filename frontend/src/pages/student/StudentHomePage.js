@@ -97,7 +97,7 @@ const StudentHomePage = () => {
                             <Title>
                                 Total Subjects
                             </Title>
-                            <Data start={0} end={numberOfSubjects} duration={2.5} />
+                            <Data><CountUp start={0} end={numberOfSubjects} duration={2.5} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3} lg={3}>
@@ -106,7 +106,7 @@ const StudentHomePage = () => {
                             <Title>
                                 Total Assignments
                             </Title>
-                            <Data start={0} end={assignments.length} duration={4} />
+                            <Data><CountUp start={0} end={assignments.length} duration={4} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={4} lg={3}>
@@ -138,7 +138,10 @@ const StudentHomePage = () => {
                         </ChartContainer>
                     </Grid>
                     <Grid item xs={12}>
-                        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+                        <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', maxHeight: 400, overflow: 'auto' }}>
+                            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+                                School Notices
+                            </Typography>
                             <SeeNotice />
                         </Paper>
                     </Grid>
@@ -265,7 +268,7 @@ const Title = styled.p`
   font-size: 1.25rem;
 `;
 
-const Data = styled(CountUp)`
+const Data = styled.span`
   font-size: calc(1.3rem + .6vw);
   color: green;
 `;

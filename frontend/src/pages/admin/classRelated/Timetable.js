@@ -17,12 +17,23 @@ import {
   Alert,
 } from "@mui/material";
 
-const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const periods = [1, 2, 3, 4, 5, 6, 7, 8];
+const timeSlots = [
+  '7:50 - 8:30',
+  '8:30 - 9:10',
+  '9:10 - 9:50',
+  '9:50 - 10:30',
+  '10:45 - 11:25',
+  '11:25 - 12:05',
+  '12:05 - 12:45',
+  '12:45 - 1:25'
+];
 
 const Timetable = ({ classID }) => {
   const dispatch = useDispatch();
 
-  const [timetable, setTimetable] = useState([]);
+  const [timetable, setTimetable] = useState({});
   const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
@@ -33,15 +44,22 @@ const Timetable = ({ classID }) => {
         if (Array.isArray(data)) {
           if (data.length === 0) {
             // Initialize with default empty timetable
-            const defaultTimetable = [];
-            for (let day = 0; day < 7; day++) {
-              for (let period = 1; period <= 8; period++) {
-                defaultTimetable.push({ day: daysOfWeek[day], period, subject: '' });
-              }
-            }
+            const defaultTimetable = {};
+            daysOfWeek.forEach(day => {
+              defaultTimetable[day] = {};
+              periods.forEach(period => {
+                defaultTimetable[day][period] = '';
+              });
+            });
             setTimetable(defaultTimetable);
           } else {
-            setTimetable(data);
+            // Convert array to object
+            const timetableObj = {};
+            data.forEach(entry => {
+              if (!timetableObj[entry.day]) timetableObj[entry.day] = {};
+              timetableObj[entry.day][entry.period] = entry.subject;
+            });
+            setTimetable(timetableObj);
           }
         }
       } catch (error) {
@@ -53,41 +71,45 @@ const Timetable = ({ classID }) => {
     }
   }, [classID]);
 
-  // New effect to initialize timetable when entering edit mode if empty
-  useEffect(() => {
-    if (editMode && timetable.length === 0) {
-      const defaultTimetable = [];
-      for (let day = 0; day < 7; day++) {
-        for (let period = 1; period <= 8; period++) {
-          defaultTimetable.push({ day: daysOfWeek[day], period, subject: '' });
-        }
+  const handleSubjectChange = (day, period, value) => {
+    setTimetable(prev => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [period]: value
       }
-      setTimetable(defaultTimetable);
-    }
-  }, [editMode, timetable.length]);
-
-  const handleSubjectChange = (index, value) => {
-    const newTimetable = [...timetable];
-    newTimetable[index] = { ...newTimetable[index], subject: value };
-    setTimetable(newTimetable);
+    }));
   };
 
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
 
   const handleSave = async () => {
     try {
-      console.log('Saving timetable:', timetable);
+      // Convert object to array
+      const timetableArray = [];
+      Object.entries(timetable).forEach(([day, periodsObj]) => {
+        Object.entries(periodsObj).forEach(([period, subject]) => {
+          timetableArray.push({ day, period: parseInt(period), subject });
+        });
+      });
+      console.log('Saving timetable:', timetableArray);
       const response = await fetch(`http://localhost:5000/Sclass/Timetable/${classID}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ timetable }),
+        body: JSON.stringify({ timetable: timetableArray }),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
       console.log('Save response data:', data);
-      setTimetable(data);
+      // Convert back to object
+      const timetableObj = {};
+      data.forEach(entry => {
+        if (!timetableObj[entry.day]) timetableObj[entry.day] = {};
+        timetableObj[entry.day][entry.period] = entry.subject;
+      });
+      setTimetable(timetableObj);
       setEditMode(false);
       setAlert({ open: true, message: 'Timetable saved successfully', severity: 'success' });
     } catch (error) {
@@ -105,29 +127,41 @@ const Timetable = ({ classID }) => {
         <Table aria-label="timetable table">
           <TableHead>
             <TableRow>
-              <TableCell>Day</TableCell>
-              <TableCell>Period</TableCell>
-              <TableCell>Subject</TableCell>
+              <TableCell>Time</TableCell>
+              {daysOfWeek.map(day => (
+                <TableCell key={day}>{day}</TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {timetable.map((entry, index) => (
-              <TableRow key={`${entry.day}-${entry.period}`}>
-                <TableCell>{entry.day}</TableCell>
-                <TableCell>{entry.period}</TableCell>
-                <TableCell>
-                  {editMode ? (
-                    <TextField
-                      value={entry.subject}
-                      onChange={(e) => handleSubjectChange(index, e.target.value)}
-                      size="small"
-                      fullWidth
-                    />
-                  ) : (
-                    entry.subject
-                  )}
-                </TableCell>
-              </TableRow>
+            {periods.map(period => (
+              <React.Fragment key={period}>
+                <TableRow>
+                  <TableCell>{timeSlots[period - 1]}</TableCell>
+                  {daysOfWeek.map(day => (
+                    <TableCell key={`${day}-${period}`}>
+                      {editMode ? (
+                        <TextField
+                          value={timetable[day]?.[period] || ''}
+                          onChange={(e) => handleSubjectChange(day, period, e.target.value)}
+                          size="small"
+                          fullWidth
+                        />
+                      ) : (
+                        timetable[day]?.[period] || ''
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+                {period === 4 && (
+                  <TableRow key="interval">
+                    <TableCell>Interval (10:30 - 10:45)</TableCell>
+                    {daysOfWeek.map(day => (
+                      <TableCell key={`interval-${day}`}></TableCell>
+                    ))}
+                  </TableRow>
+                )}
+              </React.Fragment>
             ))}
           </TableBody>
         </Table>
@@ -148,6 +182,18 @@ const Timetable = ({ classID }) => {
           </Button>
         )}
       </Box>
+      <Snackbar
+        open={alert.open}
+        autoHideDuration={6000}
+        onClose={() => setAlert({ ...alert, open: false })}
+      >
+        <Alert
+          onClose={() => setAlert({ ...alert, open: false })}
+          severity={alert.severity}
+        >
+          {alert.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

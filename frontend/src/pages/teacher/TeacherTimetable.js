@@ -25,14 +25,14 @@ const timeSlots = [
   '12:45 - 1:25'
 ];
 
-const StudentTimetable = () => {
+const TeacherTimetable = () => {
   const { currentUser } = useSelector((state) => state.user);
   const [timetable, setTimetable] = useState({});
 
   useEffect(() => {
     async function fetchTimetable() {
       try {
-        const response = await fetch(`http://localhost:5000/Sclass/Timetable/${currentUser.sclassName._id}`);
+        const response = await fetch(`http://localhost:5000/Sclass/Timetable/${currentUser.teachSclass._id}`);
         const data = await response.json();
         if (Array.isArray(data)) {
           // Convert array to object
@@ -47,7 +47,7 @@ const StudentTimetable = () => {
         console.error("Failed to fetch timetable", error);
       }
     }
-    if (currentUser && currentUser.sclassName) {
+    if (currentUser && currentUser.teachSclass) {
       fetchTimetable();
     }
   }, [currentUser]);
@@ -95,4 +95,4 @@ const StudentTimetable = () => {
   );
 };
 
-export default StudentTimetable;
+export default TeacherTimetable;

@@ -1,4 +1,4 @@
-import { Container, Grid, Paper } from '@mui/material'
+import { Container, Grid, Paper, Typography } from '@mui/material'
 import SeeNotice from '../../components/SeeNotice';
 import CountUp from 'react-countup';
 import styled from 'styled-components';
@@ -24,8 +24,8 @@ const TeacherHomePage = () => {
         dispatch(getClassStudents(classID));
     }, [dispatch, subjectID, classID]);
 
-    const numberOfStudents = sclassStudents && sclassStudents.length;
-    const numberOfSessions = subjectDetails && subjectDetails.sessions
+    const numberOfStudents = sclassStudents ? sclassStudents.length : 0;
+    const numberOfSessions = subjectDetails ? (subjectDetails.sessions || 0) : 0;
 
     return (
         <>
@@ -37,7 +37,7 @@ const TeacherHomePage = () => {
                             <Title>
                                 Class Students
                             </Title>
-                            <Data start={0} end={numberOfStudents} duration={2.5} />
+                            <Data><CountUp key={numberOfStudents} start={0} end={numberOfStudents} duration={2.5} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3} lg={3}>
@@ -46,7 +46,7 @@ const TeacherHomePage = () => {
                             <Title>
                                 Total Lessons
                             </Title>
-                            <Data start={0} end={numberOfSessions} duration={5} />
+                            <Data><CountUp key={numberOfSessions} start={0} end={numberOfSessions} duration={5} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3} lg={3}>
@@ -55,7 +55,7 @@ const TeacherHomePage = () => {
                             <Title>
                                 Tests Taken
                             </Title>
-                            <Data start={0} end={24} duration={4} />
+                            <Data><CountUp key="tests" start={0} end={24} duration={4} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3} lg={3}>
@@ -64,10 +64,14 @@ const TeacherHomePage = () => {
                             <Title>
                                 Total Hours
                             </Title>
-                            <Data start={0} end={30} duration={4} suffix="hrs"/>                        </StyledPaper>
+                            <Data><CountUp key="hours" start={0} end={30} duration={4} suffix="hrs" /></Data>
+                        </StyledPaper>
                     </Grid>
                     <Grid item xs={12}>
-                        <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column' }}>
+                        <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', maxHeight: 400, overflow: 'auto' }}>
+                            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+                                School Notices
+                            </Typography>
                             <SeeNotice />
                         </Paper>
                     </Grid>
@@ -91,7 +95,7 @@ const Title = styled.p`
   font-size: 1.25rem;
 `;
 
-const Data = styled(CountUp)`
+const Data = styled.span`
   font-size: calc(1.3rem + .6vw);
   color: green;
 `;

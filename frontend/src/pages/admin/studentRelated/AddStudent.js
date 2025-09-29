@@ -100,12 +100,15 @@ const AddStudent = ({ situation }) => {
                         onChange={(event) => setName(event.target.value)}
                         autoComplete="name" required />
 
-                    {
-                        situation === "Student" &&
-                        <>
-                            {/* Removed class selection dropdown as per user request */}
-                        </>
-                    }
+                    <label>Class</label>
+                    <select className="registerInput" value={className} onChange={changeHandler} required>
+                        <option value="Select Class">Select Class</option>
+                        {sclassesList.map((sclass) => (
+                            <option key={sclass._id} value={sclass._id}>
+                                {sclass.sclassName}
+                            </option>
+                        ))}
+                    </select>
 
                     <label>Roll Number</label>
                     <input className="registerInput" type="number" placeholder="Enter student's Roll Number..."
