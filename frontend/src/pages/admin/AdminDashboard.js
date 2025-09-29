@@ -45,7 +45,7 @@ import AccountMenu from '../../components/AccountMenu';
 import AddParent from './parentRelated/AddParent';
 import ShowParents from './parentRelated/ShowParents';
 import ParentDetails from './parentRelated/ParentDetails';
-
+import ManageTimetable from './timetable/ManageTimetable';
 
 const AdminDashboard = () => {
     const [open, setOpen] = useState(false);
@@ -145,6 +145,9 @@ const AdminDashboard = () => {
                         <Route path="/Admin/parents" element={<ShowParents />} />
                         <Route path="/Admin/parents/parent/:id" element={<ParentDetails />} />
 
+                        {/* Timetable */}
+                        <Route path="/Admin/timetable" element={<ManageTimetable />} />
+                        
                         <Route path="/logout" element={<Logout />} />
                     </Routes>
                 </Box>

@@ -24,6 +24,7 @@ const {
 const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects } = require('../controllers/subject-controller.js');
 const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, teacherAttendance, changePassword: teacherChangePassword } = require('../controllers/teacher-controller.js');
 const { submitAssignment, getAssignmentsByStudent, getAllAssignments } = require("../controllers/assignment-controller");
+const { upsertTimetable, getTimetableByClass, deleteTimetableByClass } = require('../controllers/timetable-controller.js');
 
 // Admin
 router.post('/AdminReg', adminRegister);
@@ -93,5 +94,10 @@ router.delete("/SubjectsClass/:id", deleteSubjectsByClass)
 router.post("/assignments/submit", submitAssignment);
 router.get("/assignments/student/:studentId", getAssignmentsByStudent);
 router.get("/assignments", getAllAssignments);
+
+// Timetable
+router.post('/Timetable', upsertTimetable);
+router.get('/Timetable/:classId', getTimetableByClass);
+router.delete('/Timetable/:classId', deleteTimetableByClass);
 
 module.exports = router;

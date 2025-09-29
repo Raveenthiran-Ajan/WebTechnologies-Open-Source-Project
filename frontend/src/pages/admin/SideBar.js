@@ -11,6 +11,7 @@ import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
 import ReportIcon from '@mui/icons-material/Report';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 const SideBar = () => {
     const location = useLocation();
@@ -52,6 +53,12 @@ const SideBar = () => {
                         <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Admin/notices") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Notices" />
+                </ListItemButton>
+                <ListItemButton component={Link} to="/Admin/timetable">
+                    <ListItemIcon>
+                        <AccessTimeIcon color={location.pathname.startsWith("/Admin/timetable") ? 'primary' : 'inherit'} />
+                    </ListItemIcon>
+                    <ListItemText primary="Timetable" />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/Admin/complains">
                     <ListItemIcon>
