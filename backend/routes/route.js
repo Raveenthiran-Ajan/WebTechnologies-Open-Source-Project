@@ -4,6 +4,7 @@ const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePa
 const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents } = require('../controllers/class-controller.js');
 const { complainCreate, complainList } = require('../controllers/complain-controller.js');
 const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice } = require('../controllers/notice-controller.js');
+// const { adminRegister, adminLogIn, deleteAdmin, getAdminDetail, updateAdmin } = require('../controllers/admin-controller.js');
 const {
     studentRegister,
     studentLogIn,
@@ -23,13 +24,26 @@ const {
 } = require('../controllers/student_controller.js');
 const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects } = require('../controllers/subject-controller.js');
 const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, teacherAttendance, changePassword: teacherChangePassword } = require('../controllers/teacher-controller.js');
-const { submitAssignment, getAssignmentsByStudent, getAllAssignments } = require("../controllers/assignment-controller");
-
+const {
+  submitAssignment,
+  getAssignmentsByStudent,
+  getAllAssignments,
+  getAssignmentsByTeacher,
+  upload,
+} = require("../controllers/assignment-controller");
+const {
+  submitAssignment: studentSubmit,
+  getSubmissionsByAssignment,
+  getSubmissionsByStudent,
+  upload: submissionUpload,
+} = require("../controllers/submission-controller");
 // Admin
 router.post('/AdminReg', adminRegister);
 router.post('/AdminLogin', adminLogIn);
 router.get("/Admin/:id", getAdminDetail)
 router.put("/Admin/password/:id", adminChangePassword);
+// router.delete("/Admin/:id", deleteAdmin)
+// router.put("/Admin/:id", updateAdmin)
 
 // Student
 router.post('/StudentReg', studentRegister);
@@ -66,6 +80,7 @@ router.get('/NoticeList/:id', noticeList);
 router.delete("/Notices/:id", deleteNotices)
 router.delete("/Notice/:id", deleteNotice)
 router.put("/Notice/:id", updateNotice)
+// ------------------- Notice -------------------
 
 // Complain
 router.post('/ComplainCreate', complainCreate);
@@ -78,6 +93,11 @@ router.get("/Sclass/:id", getSclassDetail)
 router.get("/Sclass/Students/:id", getSclassStudents)
 router.delete("/Sclasses/:id", deleteSclasses)
 router.delete("/Sclass/:id", deleteSclass)
+router.get("/Sclass/Teachers/:id", require("../controllers/class-controller").getClassTeachers);
+router.get("/Sclass/Timetable/:id", require("../controllers/class-controller").getTimetable);
+router.put("/Sclass/Timetable/:id", require("../controllers/class-controller").updateTimetable);
+router.get("/Sclass/AvailableSubjects/:id", require("../controllers/class-controller").getAvailableSubjects);
+router.get("/Sclass/AvailableTeachers/:classId/:subjectId/:day/:period", require("../controllers/class-controller").getAvailableTeachers);
 
 // Subject
 router.post('/SubjectCreate', subjectCreate);
@@ -88,10 +108,21 @@ router.get("/Subject/:id", getSubjectDetail)
 router.delete("/Subject/:id", deleteSubject)
 router.delete("/Subjects/:id", deleteSubjects)
 router.delete("/SubjectsClass/:id", deleteSubjectsByClass)
+// ------------------- Subject -------------------
 
-// Assignment routes
-router.post("/assignments/submit", submitAssignment);
+// ------------------- Assignments (teacher side) -------------------
+router.post("/assignments/submit", upload.single('file'), submitAssignment);
 router.get("/assignments/student/:studentId", getAssignmentsByStudent);
 router.get("/assignments", getAllAssignments);
+router.get("/assignments/teacher/:teacherId", getAssignmentsByTeacher);
+
+// ------------------- Submissions (student side) -------------------
+router.post("/submissions", submissionUpload.single('file'), studentSubmit);
+router.get("/submissions/assignment/:assignmentId", getSubmissionsByAssignment);
+router.get("/submissions/student/:studentId", getSubmissionsByStudent);
+
+// Update submission marking (grade and feedback)
+router.put("/submissions/:submissionId/marking", require("../controllers/submission-controller").updateSubmissionMarking);
 
 module.exports = router;
+

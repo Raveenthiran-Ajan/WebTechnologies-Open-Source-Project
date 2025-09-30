@@ -46,10 +46,15 @@ const AddStudent = ({ situation }) => {
             setSclassName('');
         } else {
             const selectedClass = sclassesList.find(
-                (classItem) => classItem.sclassName === event.target.value
+                (classItem) => classItem._id === event.target.value
             );
-            setClassName(selectedClass.sclassName);
-            setSclassName(selectedClass._id);
+            if (selectedClass) {
+                setClassName(selectedClass.sclassName);
+                setSclassName(selectedClass._id);
+            } else {
+                setClassName('');
+                setSclassName('');
+            }
         }
     }
 
@@ -95,23 +100,15 @@ const AddStudent = ({ situation }) => {
                         onChange={(event) => setName(event.target.value)}
                         autoComplete="name" required />
 
-                    {
-                        situation === "Student" &&
-                        <>
-                            <label>Class</label>
-                            <select
-                                className="registerInput"
-                                value={className}
-                                onChange={changeHandler} required>
-                                <option value='Select Class'>Select Class</option>
-                                {sclassesList.map((classItem, index) => (
-                                    <option key={index} value={classItem.sclassName}>
-                                        {classItem.sclassName}
-                                    </option>
-                                ))}
-                            </select>
-                        </>
-                    }
+                    <label>Class</label>
+                    <select className="registerInput" value={className} onChange={changeHandler} required>
+                        <option value="Select Class">Select Class</option>
+                        {sclassesList.map((sclass) => (
+                            <option key={sclass._id} value={sclass._id}>
+                                {sclass.sclassName}
+                            </option>
+                        ))}
+                    </select>
 
                     <label>Roll Number</label>
                     <input className="registerInput" type="number" placeholder="Enter student's Roll Number..."

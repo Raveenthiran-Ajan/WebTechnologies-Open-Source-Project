@@ -8,6 +8,8 @@ import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import LoginPage from './pages/LoginPage';
 import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import ChooseUser from './pages/ChooseUser';
+import AssignmentsPage from './pages/AssignmentsPage';
+import AssignmentSubmission from "./components/AssignmentSubmission";
 import ForgotPassword from './pages/forgotPassword';
 import ResetPassword from './pages/resetPassword';
 
@@ -30,6 +32,8 @@ const App = () => {
           <Route path="/reset-password/:userRole/:token" element={<ResetPassword />} />
 
           <Route path="/Adminregister" element={<AdminRegisterPage />} />
+          <Route path="/assignments" element={<AssignmentsPage />} />
+          <Route path="/teacher/upload-assignment" element={<AssignmentSubmission />} />
 
           <Route path='*' element={<Navigate to="/" />} />
         </Routes>}

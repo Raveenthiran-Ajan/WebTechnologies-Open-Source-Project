@@ -55,10 +55,10 @@ const TeacherClassDetails = () => {
         };
 
         const handleAttendance = () => {
-            navigate(`/Teacher/class/student/attendance/${row.id}/${subjectID}`)
+            navigate(`/teacher/class/student/attendance/${row.id}/${subjectID}`)
         }
         const handleMarks = () => {
-            navigate(`/Teacher/class/student/marks/${row.id}/${subjectID}`)
+            navigate(`/teacher/class/student/marks/${row.id}/${subjectID}`)
         };
 
         const handleMenuItemClick = (event, index) => {
@@ -82,7 +82,7 @@ const TeacherClassDetails = () => {
                 <BlueButton
                     variant="contained"
                     onClick={() =>
-                        navigate("/Teacher/class/student/" + row.id)
+                        navigate("/teacher/class/attendance/" + classID)
                     }
                 >
                     View
