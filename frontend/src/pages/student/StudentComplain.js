@@ -23,6 +23,7 @@ const StudentComplain = () => {
 
     const fields = {
         user,
+        userType: 'student',
         date,
         complaint,
         school,

@@ -10,6 +10,7 @@ import CountUp from 'react-countup';
 import Subject from "../../assets/subjects.svg";
 import Assignment from "../../assets/assignment.svg";
 import { getSubjectList } from '../../redux/sclassRelated/sclassHandle';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import AssignmentSubmission from '../../components/AssignmentSubmission';
 import { API_BASE_URL } from '../../config';
@@ -87,6 +88,8 @@ const StudentHomePage = () => {
         { name: 'Present', value: overallAttendancePercentage },
         { name: 'Absent', value: overallAbsentPercentage }
     ];
+
+    const { t } = useTranslation();
     return (
         <>
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -95,7 +98,7 @@ const StudentHomePage = () => {
                         <StyledPaper>
                             <img src={Subject} alt="Subjects" />
                             <Title>
-                                Total Subjects
+                                {t('student_total_subjects')}
                             </Title>
                             <Data><CountUp start={0} end={numberOfSubjects} duration={2.5} /></Data>
                         </StyledPaper>
@@ -104,7 +107,7 @@ const StudentHomePage = () => {
                         <StyledPaper>
                             <img src={Assignment} alt="Assignments" />
                             <Title>
-                                Total Assignments
+                                 {t('student_total_assignments')}
                             </Title>
                             <Data><CountUp start={0} end={assignments.length} duration={4} /></Data>
                         </StyledPaper>
@@ -113,7 +116,7 @@ const StudentHomePage = () => {
                         <ChartContainer>
                             {
                                 response ?
-                                    <Typography variant="h6">No Attendance Found</Typography>
+                                    <Typography variant="h6">{t('student_no_attendance')}</Typography>
                                     :
                                     <>
                                         {loading
@@ -129,7 +132,7 @@ const StudentHomePage = () => {
                                                         </>
                                                     )
                                                         :
-                                                        <Typography variant="h6">No Attendance Found</Typography>
+                                                        <Typography variant="h6">{t('student_no_attendance')}</Typography>
                                                 }
                                             </>
                                         }

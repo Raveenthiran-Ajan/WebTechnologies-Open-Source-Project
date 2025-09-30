@@ -44,7 +44,7 @@ import AccountMenu from '../../components/AccountMenu';
 
 import AddParent from './parentRelated/AddParent';
 import ShowParents from './parentRelated/ShowParents';
-import ParentDetails from './parentRelated/ParentDetails';
+import ViewParent from './parentRelated/ViewParent';
 
 
 const AdminDashboard = () => {
@@ -143,7 +143,7 @@ const AdminDashboard = () => {
                         {/* Parent */}
                         <Route path="/Admin/addparent" element={<AddParent />} />
                         <Route path="/Admin/parents" element={<ShowParents />} />
-                        <Route path="/Admin/parents/parent/:id" element={<ParentDetails />} />
+                        <Route path="/Admin/parents/view/:id" element={<ViewParent />} />
 
                         <Route path="/logout" element={<Logout />} />
                     </Routes>

@@ -9,13 +9,14 @@ import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import { useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 
 const TeacherSideBar = () => {
     const { currentUser } = useSelector((state) => state.user);
     const sclassName = currentUser?.teachSclass;
 
     const location = useLocation();
-
+    const { t } = useTranslation();
     return (
         <>
             <React.Fragment>
@@ -29,7 +30,7 @@ const TeacherSideBar = () => {
                             }
                         />
                     </ListItemIcon>
-                    <ListItemText primary="Home" />
+                    <ListItemText primary={t('menu_home')} />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/class">
                     <ListItemIcon>
@@ -37,7 +38,7 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/teacher/class") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary={`Class ${sclassName?.sclassName || ""}`} />
+                    <ListItemText primary={t('menu_class_label', { name: sclassName.sclassName })} />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/complain">
                     <ListItemIcon>
@@ -45,7 +46,7 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/teacher/complain") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary="Complain" />
+                    <ListItemText primary={t('menu_complain')} />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/upload-assignment">
                     <ListItemIcon>
@@ -53,7 +54,7 @@ const TeacherSideBar = () => {
                             color={location.pathname === "/teacher/upload-assignment" ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary="Upload Assignments" />
+                    <ListItemText primary={t('menu_upload_assignments')} />
                 </ListItemButton>
             </React.Fragment>
 
@@ -61,7 +62,7 @@ const TeacherSideBar = () => {
 
             <React.Fragment>
                 <ListSubheader component="div" inset>
-                    User
+                    {t('menu_user')}
                 </ListSubheader>
                 <ListItemButton component={Link} to="/teacher/profile">
                     <ListItemIcon>
@@ -69,7 +70,7 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/teacher/profile") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary="Profile" />
+                    <ListItemText primary={t('menu_profile')} />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/logout">
                     <ListItemIcon>
@@ -77,7 +78,7 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/logout") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary="Logout" />
+                    <ListItemText primary={t('menu_logout')} />
                 </ListItemButton>
             </React.Fragment>
         </>

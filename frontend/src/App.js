@@ -12,13 +12,18 @@ import AssignmentsPage from './pages/AssignmentsPage';
 import AssignmentSubmission from "./components/AssignmentSubmission";
 import ForgotPassword from './pages/forgotPassword';
 import ResetPassword from './pages/resetPassword';
+import ParentDashboard from './pages/parent/ParentDashboard';
+import LanguageSwitcher from './components/LanguageSwitcher';
+
 
 const App = () => {
   const { currentRole } = useSelector(state => state.user);
+  
 
   return (
     <Router>
-      {currentRole === null &&
+      <LanguageSwitcher />
+      {currentRole === null && 
         <Routes>
           <Route path="/" element={<Homepage />} />
           <Route path="/choose" element={<ChooseUser visitor="normal" />} />
@@ -27,6 +32,7 @@ const App = () => {
           <Route path="/Adminlogin" element={<LoginPage role="Admin" />} />
           <Route path="/Studentlogin" element={<LoginPage role="Student" />} />
           <Route path="/Teacherlogin" element={<LoginPage role="Teacher" />} />
+          <Route path="/Parentlogin" element={<LoginPage role="Parent" />} />
 
           <Route path="/forgot-password/:userRole" element={<ForgotPassword />} />
           <Route path="/reset-password/:userRole/:token" element={<ResetPassword />} />
@@ -38,21 +44,27 @@ const App = () => {
           <Route path='*' element={<Navigate to="/" />} />
         </Routes>}
 
-      {currentRole === "Admin" &&
+      {currentRole === "Admin" && 
         <>
           <AdminDashboard />
         </>
       }
 
-      {currentRole === "Student" &&
+      {currentRole === "Student" && 
         <>
           <StudentDashboard />
         </>
       }
 
-      {currentRole === "Teacher" &&
+      {currentRole === "Teacher" && 
         <>
           <TeacherDashboard />
+        </>
+      }
+
+      {currentRole === "Parent" && 
+        <>
+          <ParentDashboard />
         </>
       }
     </Router>
