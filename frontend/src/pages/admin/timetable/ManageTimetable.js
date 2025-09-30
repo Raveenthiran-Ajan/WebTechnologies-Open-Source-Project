@@ -28,7 +28,7 @@ export default function ManageTimetable() {
 
 	const [selectedClassId, setSelectedClassId] = useState("");
 	const [grid, setGrid] = useState({});
-const [successOpen, setSuccessOpen] = useState(false);
+	const [successOpen, setSuccessOpen] = useState(false);
 
 	useEffect(() => {
 		if (currentUser?._id) {
@@ -56,13 +56,21 @@ const [successOpen, setSuccessOpen] = useState(false);
 	}, [subjectsList]);
 
 	const updateCell = (day, period, field, value) => {
-		setGrid(prev => ({
-			...prev,
-			[day]: {
-				...(prev?.[day] || {}),
-				[period]: { ...(prev?.[day]?.[period] || {}), [field]: value || undefined }
+		setGrid(prev => {
+			const prevCell = prev?.[day]?.[period] || {};
+			let newCell = { ...prevCell, [field]: value || undefined };
+			// If subject changes, reset teacher
+			if (field === 'subject') {
+				newCell.teacher = undefined;
 			}
-		}));
+			return {
+				...prev,
+				[day]: {
+					...(prev?.[day] || {}),
+					[period]: newCell
+				}
+			};
+		});
 	};
 
 	const save = async () => {
@@ -110,6 +118,7 @@ const [successOpen, setSuccessOpen] = useState(false);
 											<select
 												value={(grid?.[d]?.[p.key]?.subject?._id) || (grid?.[d]?.[p.key]?.subject) || ''}
 												onChange={(e) => updateCell(d, p.key, 'subject', e.target.value)}
+												disabled={!selectedClassId}
 											>
 												<option value="">Select subject</option>
 												{subjectsList.map(s => <option key={s._id} value={s._id}>{s.subName}</option>)}
@@ -117,6 +126,7 @@ const [successOpen, setSuccessOpen] = useState(false);
 											<select
 												value={(grid?.[d]?.[p.key]?.teacher?._id) || (grid?.[d]?.[p.key]?.teacher) || ''}
 												onChange={(e) => updateCell(d, p.key, 'teacher', e.target.value)}
+												disabled={!((grid?.[d]?.[p.key]?.subject?._id) || (grid?.[d]?.[p.key]?.subject))}
 											>
 												<option value="">Select teacher</option>
 												{teachersList
@@ -142,5 +152,3 @@ const [successOpen, setSuccessOpen] = useState(false);
 		</div>
 	);
 }
-
-
