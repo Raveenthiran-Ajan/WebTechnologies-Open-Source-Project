@@ -123,7 +123,7 @@ export const forgotPassword = (role, fields) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
-        const result = await axios.post(`${REACT_APP_BASE_URL}/${role}/forgot-password`, fields, {
+        const result = await axios.post(`${API_BASE_URL}/${role}/forgot-password`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
         if (result.data.success) {
@@ -140,7 +140,7 @@ export const resetPassword = (role, token, fields) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
-        const result = await axios.put(`${REACT_APP_BASE_URL}/${role}/reset-password/${token}`, fields, {
+        const result = await axios.put(`${API_BASE_URL}/${role}/reset-password/${token}`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
         if (result.data.success) {

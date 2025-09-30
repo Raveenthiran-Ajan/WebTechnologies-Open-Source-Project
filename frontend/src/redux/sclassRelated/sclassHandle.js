@@ -6,6 +6,7 @@ import {
     getError,
     getStudentsSuccess,
     getTeachersSuccess,
+    getTeachersFailed,
     detailsSuccess,
     getFailedTwo,
     getSubjectsSuccess,
