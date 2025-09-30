@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from 'react-redux';
 import { Box, Typography, Grid, CircularProgress, Card, CardContent, Avatar, Container, Pagination, Chip, Paper, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
@@ -16,6 +17,7 @@ const ParentHomePage = () => {
     const { noticesList } = useSelector((state) => state.notice);
     const [page, setPage] = useState(1);
     const childrenPerPage = 4; // Show fewer children on dashboard
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (currentUser && currentUser.school) {
@@ -46,7 +48,7 @@ const ParentHomePage = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <CircularProgress size={60} />
                     <Typography variant="h6" sx={{ mt: 2 }}>
-                        Loading dashboard...
+                        {t('parent_dashboard_loading')}
                     </Typography>
                 </Box>
             </Container>
@@ -91,18 +93,18 @@ const ParentHomePage = () => {
                         WebkitTextFillColor: 'transparent',
                     }}
                 >
-                    Welcome, {currentUser.name}
+                    {t('parent_dashboard_welcome', { name: currentUser.name })}
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
                     <Chip 
                         icon={<GradeIcon />}
-                        label={`Parent Portal`} 
+                        label={t('parent_portal_chip')} 
                         color="primary" 
                         size="large"
                     />
-                    <Chip 
-                        icon={<SchoolIcon />}
-                        label={`${children.length} ${children.length === 1 ? 'Child' : 'Children'}`} 
+                        <Chip 
+                            icon={<SchoolIcon />}
+                            label={`${children.length} ${children.length === 1 ? t('parent_portal_children_chip') : t('parent_portal_children_chip_plural')}`}
                         color="secondary" 
                         size="large"
                     />
@@ -129,7 +131,7 @@ const ParentHomePage = () => {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
             }}>
-                Recent Children
+                {t('parent_dashboard_recent_children')}
             </Typography>
 
             <Grid container spacing={4}>
@@ -189,7 +191,7 @@ const ParentHomePage = () => {
                     <Grid item xs={12}>
                         <Paper sx={{ p: 4, textAlign: 'center' }}>
                             <PersonIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                            <Typography variant="h6">No child details found.</Typography>
+                            <Typography variant="h6">{t('parent_dashboard_no_child')}</Typography>
                         </Paper>
                     </Grid>
                 )}
@@ -215,7 +217,7 @@ const ParentHomePage = () => {
                         transition: 'all 0.3s ease-in-out'
                     }}
                 >
-                    View All Children ({children.length})
+                    {t('parent_dashboard_view_all_children', { count: children.length })}
                 </Button>
             </Box>
 

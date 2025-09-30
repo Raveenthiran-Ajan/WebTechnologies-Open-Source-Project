@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     CssBaseline,
     Box,
@@ -28,6 +29,7 @@ const ParentDashboard = () => {
     const toggleDrawer = () => {
         setOpen(!open);
     };
+    const { t } = useTranslation();
 
     return (
         <>
@@ -54,7 +56,7 @@ const ParentDashboard = () => {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Parent Dashboard
+                            {t('parent_dashboard_title')}
                         </Typography>
                         <AccountMenu />
                     </Toolbar>
