@@ -52,8 +52,8 @@ const ShowSubjects = () => {
         return {
             subName: subject.subName,
             sessions: subject.sessions,
-            sclassName: subject.sclassName.sclassName,
-            sclassID: subject.sclassName._id,
+            sclassName: subject.sclassName ? subject.sclassName.sclassName : 'No Class',
+            sclassID: subject.sclassName ? subject.sclassName._id : null,
             id: subject._id,
         };
     }) : [];
@@ -64,8 +64,10 @@ const ShowSubjects = () => {
                 <IconButton onClick={() => deleteHandler(row.id, "Subject")}>
                     <DeleteIcon color="error" />
                 </IconButton>
-                <BlueButton variant="contained"
-                    onClick={() => navigate(`/Admin/subjects/subject/${row.sclassID}/${row.id}`)}>
+                <BlueButton 
+                    variant="contained"
+                    disabled={!row.sclassID}
+                    onClick={() => row.sclassID && navigate(`/Admin/subjects/subject/${row.sclassID}/${row.id}`)}>
                     View
                 </BlueButton>
             </>

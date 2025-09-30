@@ -65,8 +65,8 @@ const ShowTeachers = () => {
         return {
             name: teacher.name,
             teachSubject: teacher.teachSubject?.subName || null,
-            teachSclass: teacher.teachSclass.sclassName,
-            teachSclassID: teacher.teachSclass._id,
+            teachSclass: teacher.teachSclass ? teacher.teachSclass.sclassName : 'No Class',
+            teachSclassID: teacher.teachSclass ? teacher.teachSclass._id : null,
             id: teacher._id,
         };
     });
@@ -116,9 +116,13 @@ const ShowTeachers = () => {
                                                         {value ? (
                                                             value
                                                         ) : (
-                                                            <Button variant="contained"
+                                                            <Button 
+                                                                variant="contained"
+                                                                disabled={!row.teachSclassID}
                                                                 onClick={() => {
-                                                                    navigate(`/Admin/teachers/choosesubject/${row.teachSclassID}/${row.id}`)
+                                                                    if (row.teachSclassID) {
+                                                                        navigate(`/Admin/teachers/choosesubject/${row.teachSclassID}/${row.id}`)
+                                                                    }
                                                                 }}>
                                                                 Add Subject
                                                             </Button>
