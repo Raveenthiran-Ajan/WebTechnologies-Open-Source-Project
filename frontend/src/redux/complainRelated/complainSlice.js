@@ -13,6 +13,7 @@ const complainSlice = createSlice({
     reducers: {
         getRequest: (state) => {
             state.loading = true;
+            state.error = null;
         },
         getSuccess: (state, action) => {
             state.complainsList = action.payload;
@@ -28,6 +29,15 @@ const complainSlice = createSlice({
         getError: (state, action) => {
             state.loading = false;
             state.error = action.payload;
+        },
+        updateComplainSuccess: (state, action) => {
+            const updatedComplain = action.payload;
+            const index = state.complainsList.findIndex(complain => complain._id === updatedComplain._id);
+            if (index !== -1) {
+                state.complainsList[index] = updatedComplain;
+            }
+            state.loading = false;
+            state.error = null;
         }
     },
 });
@@ -36,7 +46,8 @@ export const {
     getRequest,
     getSuccess,
     getFailed,
-    getError
+    getError,
+    updateComplainSuccess
 } = complainSlice.actions;
 
 export const complainReducer = complainSlice.reducer;
