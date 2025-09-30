@@ -52,7 +52,10 @@ const getTeachers = async (req, res) => {
     try {
         let teachers = await Teacher.find({ school: req.params.id })
             .populate("teachSubject", "subName")
-            .populate("teachSclass", "sclassName");
+            .populate("teachSclass", "sclassName")
+            .populate("teachSubjects", "subName")
+            .populate("teachSclasses", "sclassName")
+            .populate("attendanceClass", "sclassName");
         if (teachers.length > 0) {
             let modifiedTeachers = teachers.map((teacher) => {
                 return { ...teacher._doc, password: undefined };
@@ -72,6 +75,9 @@ const getTeacherDetail = async (req, res) => {
             .populate("teachSubject", "subName sessions")
             .populate("school", "schoolName")
             .populate("teachSclass", "sclassName")
+            .populate("teachSubjects", "subName sessions")
+            .populate("teachSclasses", "sclassName")
+            .populate("attendanceClass", "sclassName")
         if (teacher) {
             teacher.password = undefined;
             res.send(teacher);
@@ -87,17 +93,256 @@ const getTeacherDetail = async (req, res) => {
 const updateTeacherSubject = async (req, res) => {
     const { teacherId, teachSubject } = req.body;
     try {
+        // Get the teacher first
+        const teacher = await Teacher.findById(teacherId);
+        if (!teacher) {
+            return res.status(404).json({ message: "Teacher not found" });
+        }
+
+        // Get the subject to determine its class
+        const subject = await Subject.findById(teachSubject).populate('sclassName');
+        if (!subject) {
+            return res.status(404).json({ message: "Subject not found" });
+        }
+
+        // Initialize arrays if they don't exist (migrate old teachers)
+        const updateFields = {};
+        
+        // Handle subjects
+        if (!teacher.teachSubjects || !Array.isArray(teacher.teachSubjects)) {
+            // Migrate from old structure
+            updateFields.teachSubjects = teacher.teachSubject ? [teacher.teachSubject, teachSubject] : [teachSubject];
+        } else {
+            // Add to existing array if not already present
+            if (!teacher.teachSubjects.includes(teachSubject)) {
+                updateFields.$addToSet = { teachSubjects: teachSubject };
+            }
+        }
+
+        // Handle classes
+        const subjectClassId = subject.sclassName._id;
+        if (!teacher.teachSclasses || !Array.isArray(teacher.teachSclasses)) {
+            // Migrate from old structure
+            const existingClasses = teacher.teachSclass ? [teacher.teachSclass] : [];
+            if (!existingClasses.includes(subjectClassId)) {
+                existingClasses.push(subjectClassId);
+            }
+            updateFields.teachSclasses = existingClasses;
+        } else {
+            // Add class to array if not already present
+            if (!teacher.teachSclasses.includes(subjectClassId)) {
+                if (!updateFields.$addToSet) updateFields.$addToSet = {};
+                updateFields.$addToSet.teachSclasses = subjectClassId;
+            }
+        }
+
+        // Set attendance class if not set
+        if (!teacher.attendanceClass) {
+            updateFields.attendanceClass = teacher.teachSclass || subjectClassId;
+        }
+
+        // Update teacher with new assignments
         const updatedTeacher = await Teacher.findByIdAndUpdate(
             teacherId,
-            { teachSubject },
+            updateFields,
             { new: true }
+        ).populate("teachSubjects", "subName")
+         .populate("teachSclasses", "sclassName")
+         .populate("attendanceClass", "sclassName")
+         .populate("teachSubject", "subName")
+         .populate("teachSclass", "sclassName");
+
+        // Update the subject to reference this teacher
+        await Subject.findByIdAndUpdate(teachSubject, { teacher: updatedTeacher._id });
+
+        console.log('Updated teacher:', updatedTeacher);
+        res.send(updatedTeacher);
+    } catch (error) {
+        console.error('Error updating teacher subject:', error);
+        res.status(500).json(error);
+    }
+};
+
+const assignMultipleSubjects = async (req, res) => {
+    const { teacherId, subjectIds, attendanceClassId } = req.body;
+    try {
+        console.log('=== ASSIGN MULTIPLE SUBJECTS ===');
+        console.log('Teacher ID:', teacherId);
+        console.log('Subject IDs:', subjectIds);
+        console.log('Attendance Class ID:', attendanceClassId);
+
+        const teacher = await Teacher.findById(teacherId);
+        if (!teacher) {
+            return res.status(404).json({ message: "Teacher not found" });
+        }
+
+        // Get all subjects to determine their classes
+        const subjects = await Subject.find({ _id: { $in: subjectIds } }).populate('sclassName');
+        if (subjects.length === 0) {
+            return res.status(404).json({ message: "No subjects found" });
+        }
+
+        console.log('Found subjects:', subjects.map(s => ({ name: s.subName, class: s.sclassName.sclassName })));
+
+        // Get unique class IDs from subjects
+        const classIds = [...new Set(subjects.map(subject => subject.sclassName._id.toString()))];
+        console.log('Class IDs:', classIds);
+
+        // Use provided attendance class or default to first class
+        const finalAttendanceClass = attendanceClassId || classIds[0];
+        console.log('Final attendance class:', finalAttendanceClass);
+
+        // Direct update - replace all arrays
+        const updateFields = {
+            teachSubjects: subjectIds,
+            teachSclasses: classIds,
+            attendanceClass: finalAttendanceClass
+        };
+
+        console.log('Update fields:', updateFields);
+
+        // Update teacher with explicit field replacement
+        const updatedTeacher = await Teacher.findByIdAndUpdate(
+            teacherId,
+            updateFields,
+            { new: true, runValidators: true }
+        ).populate("teachSubjects", "subName")
+         .populate("teachSclasses", "sclassName")
+         .populate("attendanceClass", "sclassName");
+
+        // Update all subjects to reference this teacher
+        await Subject.updateMany(
+            { _id: { $in: subjectIds } },
+            { teacher: updatedTeacher._id }
         );
 
-        await Subject.findByIdAndUpdate(teachSubject, { teacher: updatedTeacher._id });
+        console.log('Updated teacher result:', {
+            name: updatedTeacher.name,
+            teachSubjects: updatedTeacher.teachSubjects,
+            teachSclasses: updatedTeacher.teachSclasses,
+            attendanceClass: updatedTeacher.attendanceClass
+        });
 
         res.send(updatedTeacher);
     } catch (error) {
+        console.error('Error assigning multiple subjects:', error);
         res.status(500).json(error);
+    }
+};
+
+const testTeacherAssignment = async (req, res) => {
+    try {
+        console.log('=== CREATING REAL MULTI-CLASS ASSIGNMENT ===');
+        
+        // Import the required models
+        const Sclass = require('../models/sclassSchema');
+        
+        // Find teacher1
+        const teacher = await Teacher.findOne({ name: 'teacher1' });
+        if (!teacher) {
+            return res.status(404).json({ message: "teacher1 not found" });
+        }
+        
+        // Find admin to use as school reference
+        const admin = await require('../models/adminSchema').findOne({});
+        if (!admin) {
+            return res.status(404).json({ message: "Admin not found" });
+        }
+        
+        // Find or create class 6
+        let class6 = await Sclass.findOne({ sclassName: '6', school: admin._id });
+        if (!class6) {
+            class6 = new Sclass({
+                sclassName: '6',
+                school: admin._id
+            });
+            await class6.save();
+            console.log('Created class 6');
+        }
+        
+        // Find or create class 7
+        let class7 = await Sclass.findOne({ sclassName: '7', school: admin._id });
+        if (!class7) {
+            class7 = new Sclass({
+                sclassName: '7',
+                school: admin._id
+            });
+            await class7.save();
+            console.log('Created class 7');
+        }
+        
+        // Create a subject for class 7 if it doesn't exist
+        let subjectForClass7 = await Subject.findOne({ sclassName: class7._id });
+        if (!subjectForClass7) {
+            subjectForClass7 = new Subject({
+                subName: 'Math',
+                subCode: 'MTH7',
+                sessions: 40,
+                sclassName: class7._id,
+                school: admin._id
+            });
+            await subjectForClass7.save();
+            console.log('Created Math subject for class 7');
+        }
+        
+        // Find all subjects
+        const subjects = await Subject.find({ school: admin._id }).populate('sclassName');
+        const subjectIds = subjects.map(s => s._id);
+        
+        console.log('Available classes:', [class6, class7].map(c => ({ id: c._id, name: c.sclassName })));
+        console.log('Available subjects:', subjects.map(s => ({ 
+            name: s.subName, 
+            class: s.sclassName.sclassName 
+        })));
+        
+        // Assign teacher to both classes and all subjects
+        const classIds = [class6._id, class7._id];
+        
+        const updateFields = {
+            teachSubjects: subjectIds,
+            teachSclasses: classIds,
+            attendanceClass: class6._id // Class 6 for attendance
+        };
+        
+        console.log('Assigning teacher to:', {
+            classes: ['6', '7'],
+            attendanceClass: '6',
+            subjectCount: subjectIds.length
+        });
+        
+        const updatedTeacher = await Teacher.findByIdAndUpdate(
+            teacher._id,
+            updateFields,
+            { new: true, runValidators: true }
+        ).populate("teachSubjects", "subName")
+         .populate("teachSclasses", "sclassName")
+         .populate("attendanceClass", "sclassName");
+
+        // Update all subjects to reference this teacher
+        await Subject.updateMany(
+            { _id: { $in: subjectIds } },
+            { teacher: updatedTeacher._id }
+        );
+        
+        console.log('SUCCESS! Teacher assigned to:');
+        console.log('- Classes:', updatedTeacher.teachSclasses.map(c => c.sclassName));
+        console.log('- Subjects:', updatedTeacher.teachSubjects.map(s => s.subName));
+        console.log('- Attendance Class:', updatedTeacher.attendanceClass.sclassName);
+        
+        res.json({
+            success: true,
+            message: 'teacher1 successfully assigned to classes 6 and 7 with multiple subjects!',
+            teacher: {
+                name: updatedTeacher.name,
+                teachSubjects: updatedTeacher.teachSubjects,
+                teachSclasses: updatedTeacher.teachSclasses,
+                attendanceClass: updatedTeacher.attendanceClass
+            }
+        });
+        
+    } catch (error) {
+        console.error('Assignment error:', error);
+        res.status(500).json({ error: error.message, stack: error.stack });
     }
 };
 
@@ -225,6 +470,8 @@ module.exports = {
     getTeachers,
     getTeacherDetail,
     updateTeacherSubject,
+    assignMultipleSubjects,
+    testTeacherAssignment,
     deleteTeacher,
     deleteTeachers,
     deleteTeachersByClass,

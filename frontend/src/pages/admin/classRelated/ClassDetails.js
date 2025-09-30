@@ -155,14 +155,6 @@ const ClassDetails = () => {
                 >
                     View
                 </BlueButton>
-                <PurpleButton
-                    variant="contained"
-                    onClick={() =>
-                        navigate("/Admin/students/student/attendance/" + row.id)
-                    }
-                >
-                    Attendance
-                </PurpleButton>
             </>
         );
     };

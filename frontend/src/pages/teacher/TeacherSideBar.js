@@ -13,7 +13,12 @@ import { useTranslation } from 'react-i18next';
 
 const TeacherSideBar = () => {
     const { currentUser } = useSelector((state) => state.user);
-    const sclassName = currentUser?.teachSclass;
+    
+    // Teaching classes (multiple)
+    const teachingClasses = currentUser?.teachSclasses || [currentUser?.teachSclass].filter(Boolean);
+    
+    // Attendance assigned class (single)
+    const attendanceClass = currentUser?.attendanceClass || currentUser?.teachSclass;
 
     const location = useLocation();
     const { t } = useTranslation();
@@ -32,14 +37,60 @@ const TeacherSideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary={t('menu_home')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/teacher/class">
-                    <ListItemIcon>
-                        <ClassOutlinedIcon
-                            color={location.pathname.startsWith("/teacher/class") ? "primary" : "inherit"}
-                        />
-                    </ListItemIcon>
-                    <ListItemText primary={t('menu_class_label', { name: sclassName.sclassName })} />
-                </ListItemButton>
+                
+                <Divider />
+                
+                {/* Attendance Class Section */}
+                {attendanceClass && (
+                    <>
+                        <ListSubheader component="div" inset>
+                            Attendance Class
+                        </ListSubheader>
+                        <ListItemButton 
+                            component={Link} 
+                            to={`/teacher/class/${attendanceClass._id}`}
+                            sx={{ pl: 4, bgcolor: 'action.hover' }}
+                        >
+                            <ListItemIcon>
+                                <ClassOutlinedIcon
+                                    color={location.pathname.includes(`/teacher/class/${attendanceClass._id}`) ? "primary" : "secondary"}
+                                />
+                            </ListItemIcon>
+                            <ListItemText 
+                                primary={attendanceClass.sclassName} 
+                                secondary="(Attendance)" 
+                            />
+                        </ListItemButton>
+                        <Divider />
+                    </>
+                )}
+                
+                {/* Teaching Classes Section */}
+                <ListSubheader component="div" inset>
+                    Teaching Classes
+                </ListSubheader>
+                
+                {teachingClasses.map((sclass, index) => {
+                    const isAttendanceClass = attendanceClass && sclass._id === attendanceClass._id;
+                    return (
+                        <ListItemButton 
+                            key={sclass._id || index} 
+                            component={Link} 
+                            to={`/teacher/class/${sclass._id}`}
+                            sx={{ pl: 4, opacity: isAttendanceClass ? 0.6 : 1 }}
+                        >
+                            <ListItemIcon>
+                                <ClassOutlinedIcon
+                                    color={location.pathname.includes(`/teacher/class/${sclass._id}`) ? "primary" : "inherit"}
+                                />
+                            </ListItemIcon>
+                            <ListItemText 
+                                primary={sclass.sclassName} 
+                                secondary={isAttendanceClass ? "(Teaching + Attendance)" : "(Teaching Only)"}
+                            />
+                        </ListItemButton>
+                    );
+                })}
                 <ListItemButton component={Link} to="/teacher/complain">
                     <ListItemIcon>
                         <AnnouncementOutlinedIcon

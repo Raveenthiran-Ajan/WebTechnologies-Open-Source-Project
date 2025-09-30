@@ -24,6 +24,21 @@ const teacherSchema = new mongoose.Schema({
         ref: 'admin',
         required: true,
     },
+    // Multiple subjects and classes for teaching
+    teachSubjects: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'subject',
+    }],
+    teachSclasses: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'sclass',
+    }],
+    // Single class for attendance responsibility
+    attendanceClass: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'sclass',
+    },
+    // Backward compatibility
     teachSubject: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'subject',
@@ -31,7 +46,6 @@ const teacherSchema = new mongoose.Schema({
     teachSclass: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'sclass',
-        required: true,
     },
     attendance: [{
         date: {

@@ -2,17 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { getClassStudents, getSubjectDetails } from '../../../redux/sclassRelated/sclassHandle';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Tab, Container, Typography, BottomNavigation, BottomNavigationAction, Paper } from '@mui/material';
-import { BlueButton, GreenButton, PurpleButton } from '../../../components/buttonStyles';
+import { Box, Tab, Container, Typography } from '@mui/material';
+import { BlueButton, GreenButton } from '../../../components/buttonStyles';
 import TableTemplate from '../../../components/TableTemplate';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 
-import InsertChartIcon from '@mui/icons-material/InsertChart';
-import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
-import TableChartIcon from '@mui/icons-material/TableChart';
-import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
+
 
 const ViewSubject = () => {
   const navigate = useNavigate()
@@ -37,10 +34,7 @@ const ViewSubject = () => {
     setValue(newValue);
   };
 
-  const [selectedSection, setSelectedSection] = useState('attendance');
-  const handleSectionChange = (event, newSection) => {
-    setSelectedSection(newSection);
-  };
+
 
   const studentColumns = [
     { id: 'rollNum', label: 'Roll No.', minWidth: 100 },
@@ -55,7 +49,7 @@ const ViewSubject = () => {
     };
   })
 
-  const StudentsAttendanceButtonHaver = ({ row }) => {
+  const StudentsViewButtonHaver = ({ row }) => {
     return (
       <>
         <BlueButton
@@ -64,31 +58,6 @@ const ViewSubject = () => {
         >
           View
         </BlueButton>
-        <PurpleButton
-          variant="contained"
-          onClick={() =>
-            navigate(`/Admin/subject/student/attendance/${row.id}/${subjectID}`)
-          }
-        >
-          Take Attendance
-        </PurpleButton>
-      </>
-    );
-  };
-
-  const StudentsMarksButtonHaver = ({ row }) => {
-    return (
-      <>
-        <BlueButton
-          variant="contained"
-          onClick={() => navigate("/Admin/students/student/" + row.id)}
-        >
-          View
-        </BlueButton>
-        <PurpleButton variant="contained"
-          onClick={() => navigate(`/Admin/subject/student/marks/${row.id}/${subjectID}`)}>
-          Provide Marks
-        </PurpleButton>
       </>
     );
   };
@@ -113,27 +82,7 @@ const ViewSubject = () => {
               Students List:
             </Typography>
 
-            {selectedSection === 'attendance' &&
-              <TableTemplate buttonHaver={StudentsAttendanceButtonHaver} columns={studentColumns} rows={studentRows} />
-            }
-            {selectedSection === 'marks' &&
-              <TableTemplate buttonHaver={StudentsMarksButtonHaver} columns={studentColumns} rows={studentRows} />
-            }
-
-            <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
-              <BottomNavigation value={selectedSection} onChange={handleSectionChange} showLabels>
-                <BottomNavigationAction
-                  label="Attendance"
-                  value="attendance"
-                  icon={selectedSection === 'attendance' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
-                />
-                <BottomNavigationAction
-                  label="Marks"
-                  value="marks"
-                  icon={selectedSection === 'marks' ? <InsertChartIcon /> : <InsertChartOutlinedIcon />}
-                />
-              </BottomNavigation>
-            </Paper>
+            <TableTemplate buttonHaver={StudentsViewButtonHaver} columns={studentColumns} rows={studentRows} />
 
           </>
         )}
@@ -165,14 +114,33 @@ const ViewSubject = () => {
           Class Name : {subjectDetails && subjectDetails.sclassName && subjectDetails.sclassName.sclassName}
         </Typography>
         {subjectDetails && subjectDetails.teacher ?
-          <Typography variant="h6" gutterBottom>
-            Teacher Name : {subjectDetails.teacher.name}
-          </Typography>
+          <Box>
+            <Typography variant="h6" gutterBottom>
+              Teacher Name : {subjectDetails.teacher.name}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+              <GreenButton variant="outlined" size="small"
+                onClick={() => navigate(`/Admin/subjects/select-teacher/${subjectDetails._id}`)}>
+                Change Teacher
+              </GreenButton>
+              <GreenButton variant="outlined" size="small"
+                onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
+                Add New Teacher
+              </GreenButton>
+            </Box>
+          </Box>
           :
-          <GreenButton variant="contained"
-            onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
-            Add Subject Teacher
-          </GreenButton>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+            <GreenButton variant="contained"
+              onClick={() => navigate(`/Admin/subjects/select-teacher/${subjectDetails._id}`)}>
+              Select Teacher
+            </GreenButton>
+            <Typography variant="body2" color="text.secondary">or</Typography>
+            <GreenButton variant="outlined"
+              onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
+              Add New Teacher
+            </GreenButton>
+          </Box>
         }
       </>
     );

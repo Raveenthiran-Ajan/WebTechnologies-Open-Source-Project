@@ -49,3 +49,23 @@ export const updateTeachSubject = (teacherId, teachSubject) => async (dispatch) 
         dispatch(getError(error));
     }
 }
+
+export const assignMultipleSubjects = (teacherId, subjectIds, attendanceClassId = null) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const requestData = { teacherId, subjectIds };
+        if (attendanceClassId) {
+            requestData.attendanceClassId = attendanceClassId;
+        }
+        
+        const result = await axios.put(`${REACT_APP_BASE_URL}/TeacherMultipleSubjects`, requestData, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        dispatch(postDone());
+        return result.data;
+    } catch (error) {
+        dispatch(getError(error));
+        throw error;
+    }
+}

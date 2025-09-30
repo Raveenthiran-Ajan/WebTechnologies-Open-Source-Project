@@ -24,7 +24,7 @@ const {
     changePassword: studentChangePassword
 } = require('../controllers/student_controller.js');
 const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects } = require('../controllers/subject-controller.js');
-const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, teacherAttendance, changePassword: teacherChangePassword } = require('../controllers/teacher-controller.js');
+const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, assignMultipleSubjects, testTeacherAssignment, teacherAttendance, changePassword: teacherChangePassword } = require('../controllers/teacher-controller.js');
 const {
   submitAssignment,
   getAssignmentsByStudent,
@@ -83,6 +83,8 @@ router.delete("/Teachers/:id", deleteTeachers)
 router.delete("/TeachersClass/:id", deleteTeachersByClass)
 router.delete("/Teacher/:id", deleteTeacher)
 router.put("/TeacherSubject", updateTeacherSubject)
+router.put("/TeacherMultipleSubjects", assignMultipleSubjects)
+router.post("/TestTeacherAssignment", testTeacherAssignment)
 router.post('/TeacherAttendance/:id', teacherAttendance)
 router.put("/Teacher/password/:id", teacherChangePassword)
 
