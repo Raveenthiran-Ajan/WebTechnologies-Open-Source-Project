@@ -3,116 +3,126 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
+import { Paper, Box, Typography, Button, IconButton, CircularProgress } from '@mui/material';
 import PostAddIcon from '@mui/icons-material/PostAdd';
+import Delete from '@mui/icons-material/Delete';
 import {
-    Paper, Box, IconButton,
-} from '@mui/material';
-import DeleteIcon from "@mui/icons-material/Delete";
-import TableTemplate from '../../../components/TableTemplate';
-import { BlueButton, GreenButton } from '../../../components/buttonStyles';
-import SpeedDialTemplate from '../../../components/SpeedDialTemplate';
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarColumnsButton,
+    GridToolbarFilterButton,
+    GridToolbarDensitySelector,
+    GridToolbarExport
+} from '@mui/x-data-grid';
 import Popup from '../../../components/Popup';
 
 const ShowSubjects = () => {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const { subjectsList, loading, error, response } = useSelector((state) => state.sclass);
-    const { currentUser } = useSelector(state => state.user)
+    const { currentUser } = useSelector(state => state.user);
+
+    const [showPopup, setShowPopup] = useState(false);
+    const [message, setMessage] = useState("");
 
     useEffect(() => {
         dispatch(getSubjectList(currentUser._id, "AllSubjects"));
     }, [currentUser._id, dispatch]);
 
-    if (error) {
-        console.log(error);
-    }
-
-    const [showPopup, setShowPopup] = useState(false);
-    const [message, setMessage] = useState("");
-
-    const deleteHandler = (deleteID, address) => {
-        // console.log(deleteID);
-        // console.log(address);
-        setMessage("Successfully deleted.");
-        // setShowPopup(true)
-
-        dispatch(deleteUser(deleteID, address))
+    const deleteHandler = (id, address) => {
+        dispatch(deleteUser(id, address))
             .then(() => {
                 dispatch(getSubjectList(currentUser._id, "AllSubjects"));
             })
     }
 
-    const subjectColumns = [
-        { id: 'subName', label: 'Sub Name', minWidth: 170 },
-        { id: 'sessions', label: 'Sessions', minWidth: 170 },
-        { id: 'sclassName', label: 'Class', minWidth: 170 },
-    ]
-
-    const subjectRows = Array.isArray(subjectsList) ? subjectsList.map((subject) => {
-        return {
-            subName: subject.subName,
-            sessions: subject.sessions,
-            sclassName: subject.sclassName ? subject.sclassName.sclassName : 'No Class',
-            sclassID: subject.sclassName ? subject.sclassName._id : null,
-            id: subject._id,
-        };
-    }) : [];
-
-    const SubjectsButtonHaver = ({ row }) => {
-        return (
-            <>
-                <IconButton onClick={() => deleteHandler(row.id, "Subject")}>
-                    <DeleteIcon color="error" />
-                </IconButton>
-                <BlueButton 
-                    variant="contained"
-                    disabled={!row.sclassID}
-                    onClick={() => row.sclassID && navigate(`/Admin/subjects/subject/${row.sclassID}/${row.id}`)}>
-                    View
-                </BlueButton>
-            </>
-        );
-    };
-
-    const actions = [
+    const columns = [
+        { field: 'subName', headerName: 'Subject Name', width: 200 },
+        { field: 'sessions', headerName: 'Sessions', width: 150 },
+        { field: 'sclassName', headerName: 'Class', width: 150 },
         {
-            icon: <PostAddIcon color="primary" />, name: 'Add New Subject',
-            action: () => navigate("/Admin/subjects/chooseclass")
+            field: 'actions',
+            headerName: 'Actions',
+            width: 150,
+            renderCell: (params) => {
+                return (
+                    <Box>
+                        <IconButton
+                            onClick={() => deleteHandler(params.row.id, "Subject")}
+                        >
+                            <Delete color="error" />
+                        </IconButton>
+                        <Button
+                            variant="contained" sx={{ ml: 1 }}
+                            disabled={!params.row.sclassID}
+                            onClick={() => params.row.sclassID && navigate(`/Admin/subjects/subject/${params.row.sclassID}/${params.row.id}`)}>
+                            View
+                        </Button>
+                    </Box>
+                );
+            },
         },
-        {
-            icon: <DeleteIcon color="error" />, name: 'Delete All Subjects',
-            action: () => deleteHandler(currentUser._id, "Subjects")
-        }
     ];
 
+    const rows = Array.isArray(subjectsList) ? subjectsList.map((subject) => ({
+        id: subject._id,
+        subName: subject.subName,
+        sessions: subject.sessions,
+        sclassName: subject.sclassName ? subject.sclassName.sclassName : 'No Class',
+        sclassID: subject.sclassName ? subject.sclassName._id : null,
+    })) : [];
+
+    function CustomToolbar() {
+        return (
+            <GridToolbarContainer>
+                <GridToolbarColumnsButton />
+                <GridToolbarFilterButton />
+                <GridToolbarDensitySelector />
+                <GridToolbarExport />
+                <Box sx={{ flexGrow: 1 }} />
+                <Button
+                    startIcon={<PostAddIcon />}
+                    onClick={() => navigate('/Admin/subjects/chooseclass')}
+                >
+                    Add Subject
+                </Button>
+            </GridToolbarContainer>
+        );
+    }
+
+    if (loading) {
+        return <CircularProgress />;
+    }
+
     return (
-        <>
+        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+            <Typography variant="h6" gutterBottom component="div" sx={{ p: 2 }}>
+                All Subjects
+            </Typography>
             {loading ?
-                <div>Loading...</div>
+                <CircularProgress />
                 :
-                <>
-                    {response ?
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                            <GreenButton variant="contained"
-                                onClick={() => navigate("/Admin/subjects/chooseclass")}>
-                                Add Subjects
-                            </GreenButton>
-                        </Box>
-                        :
-                        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                        {Array.isArray(subjectsList) && subjectsList.length > 0 ?
-                            <TableTemplate buttonHaver={SubjectsButtonHaver} columns={subjectColumns} rows={subjectRows} />
-                            :
-                            <p>{typeof subjectsList === 'object' && subjectsList.message ? subjectsList.message : 'No subjects found.'}</p>
-                        }
-                            <SpeedDialTemplate actions={actions} />
-                        </Paper>
-                    }
-                </>
+                (Array.isArray(subjectsList) && subjectsList.length > 0 ?
+                <Box sx={{ height: 400, width: '100%' }}>
+                    <DataGrid rows={rows || []} columns={columns} components={{ Toolbar: CustomToolbar }} />
+                </Box>
+                :
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+                    <Typography variant="h5" gutterBottom>
+                        No subjects found
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        startIcon={<PostAddIcon />}
+                        onClick={() => navigate('/Admin/subjects/chooseclass')}
+                    >
+                        Add a Subject
+                    </Button>
+                </Box>
+                )
             }
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-
-        </>
+        </Paper>
     );
 };
 

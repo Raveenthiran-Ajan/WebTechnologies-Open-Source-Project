@@ -18,7 +18,6 @@ import {
     Chip,
     Grid
 } from '@mui/material';
-import { PurpleButton, GreenButton } from '../../../components/buttonStyles';
 import Popup from '../../../components/Popup';
 
 const SelectTeacherForSubject = () => {
@@ -188,23 +187,26 @@ const SelectTeacherForSubject = () => {
                                     {loader ? (
                                         <CircularProgress size={24} />
                                     ) : (
-                                        <PurpleButton
+                                        <Button
                                             variant="contained"
+                                            color="primary"
                                             onClick={handleAssignTeacher}
                                             disabled={!selectedTeacher}
+                                            sx={{ mr: 2 }}
                                         >
                                             Assign Selected Teacher
-                                        </PurpleButton>
+                                        </Button>
                                     )}
                                 </>
                             )}
                             
-                            <GreenButton
+                            <Button
                                 variant="contained"
+                                color="success"
                                 onClick={handleAddNewTeacher}
                             >
                                 Add New Teacher
-                            </GreenButton>
+                            </Button>
                         </Box>
                     </Grid>
                 </Grid>

@@ -18,7 +18,6 @@ import {
     Divider,
     CircularProgress
 } from '@mui/material';
-import { PurpleButton, GreenButton } from '../../../components/buttonStyles';
 import Popup from '../../../components/Popup';
 
 const EditTeacherAssignments = () => {
@@ -296,12 +295,13 @@ const EditTeacherAssignments = () => {
                             {loader ? (
                                 <CircularProgress size={24} />
                             ) : (
-                                <PurpleButton
+                                <Button
                                     variant="contained"
+                                    color="primary"
                                     onClick={handleSaveAssignments}
                                 >
                                     Save Assignments
-                                </PurpleButton>
+                                </Button>
                             )}
                         </Box>
                     </Grid>

@@ -5,7 +5,7 @@ import { getSubjectDetails } from '../../../redux/sclassRelated/sclassHandle';
 import Popup from '../../../components/Popup';
 import { registerUser } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, TextField, Button, Container, Box, Typography, Grid, Chip } from '@mui/material';
 
 const AddTeacher = () => {
   const params = useParams()
@@ -60,46 +60,70 @@ const AddTeacher = () => {
   }, [status, navigate, error, response, dispatch]);
 
   return (
-    <div>
-      <div className="register">
-        <form className="registerForm" onSubmit={submitHandler}>
-          <span className="registerTitle">Add Teacher</span>
-          <br />
-          <label>
-            Subject : {subjectDetails && subjectDetails.subName}
-          </label>
-          <label>
-            Class : {subjectDetails && subjectDetails.sclassName && subjectDetails.sclassName.sclassName}
-          </label>
-          <label>Name</label>
-          <input className="registerInput" type="text" placeholder="Enter teacher's name..."
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            autoComplete="name" required />
-
-          <label>Email</label>
-          <input className="registerInput" type="email" placeholder="Enter teacher's email..."
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email" required />
-
-          <label>Password</label>
-          <input className="registerInput" type="password" placeholder="Enter teacher's password..."
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="new-password" required />
-
-          <button className="registerButton" type="submit" disabled={loader}>
-            {loader ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              'Register'
-            )}
-          </button>
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Box sx={{ p: 3, backgroundColor: 'white', borderRadius: 2, boxShadow: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Add New Teacher
+        </Typography>
+        <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+          <Chip 
+            label={`Subject: ${subjectDetails?.subName || 'Loading...'}`} 
+            color="primary" 
+            variant="outlined" 
+          />
+          <Chip 
+            label={`Class: ${subjectDetails?.sclassName?.sclassName || 'Loading...'}`} 
+            color="secondary" 
+            variant="outlined" 
+          />
+        </Box>
+        <form onSubmit={submitHandler}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Teacher's Name"
+                variant="outlined"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                autoComplete="name"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Teacher's Email"
+                type="email"
+                variant="outlined"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Password"
+                type="password"
+                variant="outlined"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="new-password"
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button variant="contained" color="primary" type="submit" disabled={loader}>
+                {loader ? <CircularProgress size={24} color="inherit" /> : 'Add Teacher'}
+              </Button>
+            </Grid>
+          </Grid>
         </form>
-      </div>
+      </Box>
       <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-    </div>
+    </Container>
   )
 }
 

@@ -18,9 +18,9 @@ import {
     Chip,
     OutlinedInput,
     CircularProgress,
-    Grid
+    Grid,
+    Button
 } from '@mui/material';
-import { PurpleButton } from '../../../components/buttonStyles';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -271,14 +271,15 @@ const AddTeacherMultiple = () => {
                                 {loader ? (
                                     <CircularProgress />
                                 ) : (
-                                    <PurpleButton
+                                    <Button
                                         fullWidth
                                         size="large"
                                         type="submit"
                                         variant="contained"
+                                        color="primary"
                                     >
                                         Add Teacher
-                                    </PurpleButton>
+                                    </Button>
                                 )}
                             </Box>
                         </Grid>

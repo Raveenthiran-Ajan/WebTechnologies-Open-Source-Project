@@ -1,114 +1,127 @@
-import { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 import { getAllStudents } from '../../../redux/studentRelated/studentHandle';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
-import {
-    Paper, Box, IconButton
-} from '@mui/material';
-import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import { BlackButton, BlueButton, GreenButton } from '../../../components/buttonStyles';
-import TableTemplate from '../../../components/TableTemplate';
+import { Paper, Box, Typography, Button, IconButton, CircularProgress } from '@mui/material';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
-import SpeedDialTemplate from '../../../components/SpeedDialTemplate';
-
-import * as React from 'react';
+import Delete from '@mui/icons-material/Delete';
+import {
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarColumnsButton,
+    GridToolbarFilterButton,
+    GridToolbarDensitySelector,
+    GridToolbarExport
+} from '@mui/x-data-grid';
 import Popup from '../../../components/Popup';
 
 const ShowStudents = () => {
-
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const { studentsList, loading, error, response } = useSelector((state) => state.student);
-    const { currentUser } = useSelector(state => state.user)
+    const { currentUser } = useSelector(state => state.user);
+
+    const [showPopup, setShowPopup] = useState(false);
+    const [message, setMessage] = useState("");
 
     useEffect(() => {
         dispatch(getAllStudents(currentUser._id));
     }, [currentUser._id, dispatch]);
 
-    if (error) {
-        console.log(error);
-    }
-
-    const [showPopup, setShowPopup] = React.useState(false);
-    const [message, setMessage] = React.useState("");
-
-    const deleteHandler = (deleteID, address) => {
-        // console.log(deleteID);
-        // console.log(address);
-        setMessage("Successfully deleted.");
-        // setShowPopup(true)
-
-        dispatch(deleteUser(deleteID, address))
+    const deleteHandler = (id, address) => {
+        dispatch(deleteUser(id, address))
             .then(() => {
                 dispatch(getAllStudents(currentUser._id));
             })
     }
 
-    const studentColumns = [
-        { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
-        { id: 'sclassName', label: 'Class', minWidth: 170 },
-    ]
-
-    const studentRows = studentsList && studentsList.length > 0 && studentsList.map((student) => {
-        return {
-            name: student.name,
-            rollNum: student.rollNum,
-            sclassName: student.sclassName ? student.sclassName.sclassName : 'No Class',
-            id: student._id,
-        };
-    })
-
-    const StudentButtonHaver = ({ row }) => {
-        return (
-            <>
-                <IconButton onClick={() => deleteHandler(row.id, "Student")}>
-                    <PersonRemoveIcon color="error" />
-                </IconButton>
-                <BlueButton variant="contained"
-                    onClick={() => navigate("/Admin/students/student/" + row.id)}>
-                    View
-                </BlueButton>
-            </>
-        );
-    };
-
-    const actions = [
+    const columns = [
+        { field: 'name', headerName: 'Student Name', width: 200 },
+        { field: 'rollNum', headerName: 'Roll Number', width: 150 },
+        { field: 'sclassName', headerName: 'Class', width: 150 },
         {
-            icon: <PersonAddAlt1Icon color="primary" />, name: 'Add New Student',
-            action: () => navigate("/Admin/addstudents")
-        },
-        {
-            icon: <PersonRemoveIcon color="error" />, name: 'Delete All Students',
-            action: () => deleteHandler(currentUser._id, "Students")
+            field: 'actions',
+            headerName: 'Actions',
+            width: 150,
+            renderCell: (params) => {
+                return (
+                    <Box>
+                        <IconButton
+                            variant="outlined"
+                            onClick={() => deleteHandler(params.row.id, "Student")}
+                        >
+                            <Delete color="error" />
+                        </IconButton>
+                        <Button
+                            variant="contained" sx={{ ml: 1 }}
+                            onClick={() => navigate("/Admin/students/student/" + params.row.id)}>
+                            View
+                        </Button>
+                    </Box>
+                );
+            },
         },
     ];
 
+    const rows = studentsList && studentsList.map((student) => ({
+        id: student._id,
+        name: student.name,
+        rollNum: student.rollNum,
+        sclassName: student.sclassName ? student.sclassName.sclassName : 'No Class',
+    }));
+
+    function CustomToolbar() {
+        return (
+            <GridToolbarContainer>
+                <GridToolbarColumnsButton />
+                <GridToolbarFilterButton />
+                <GridToolbarDensitySelector />
+                <GridToolbarExport />
+                <Box sx={{ flexGrow: 1 }} />
+                <Button
+                    startIcon={<PersonAddAlt1Icon />}
+                    onClick={() => navigate('/Admin/addstudents')}
+                >
+                    Add Student
+                </Button>
+            </GridToolbarContainer>
+        );
+    }
+
+    if (loading) {
+        return <CircularProgress />;
+    }
+
     return (
-        <>
+        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+            <Typography variant="h6" gutterBottom component="div" sx={{ p: 2 }}>
+                All Students
+            </Typography>
             {loading ?
-                <div>Loading...</div>
+                <CircularProgress />
                 :
-                <>
-                    {response ?
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                            <GreenButton variant="contained" onClick={() => navigate("/Admin/addstudents")}>
-                                Add Students
-                            </GreenButton>
-                        </Box>
-                        :
-                        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                            {Array.isArray(studentsList) && studentsList.length > 0 &&
-                                <TableTemplate buttonHaver={StudentButtonHaver} columns={studentColumns} rows={studentRows} />
-                            }
-                            <SpeedDialTemplate actions={actions} />
-                        </Paper>
-                    }
-                </>
+                (Array.isArray(studentsList) && studentsList.length > 0 ?
+                <Box sx={{ height: 400, width: '100%' }}>
+                    <DataGrid rows={rows || []} columns={columns} components={{ Toolbar: CustomToolbar }} />
+                </Box>
+                :
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+                    <Typography variant="h5" gutterBottom>
+                        No students found
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        startIcon={<PersonAddAlt1Icon />}
+                        onClick={() => navigate('/Admin/addstudents')}
+                    >
+                        Add a Student
+                    </Button>
+                </Box>
+                )
             }
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-        </>
+        </Paper>
     );
 };
 

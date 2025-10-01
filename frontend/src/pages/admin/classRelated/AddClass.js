@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button, CircularProgress, Stack, TextField } from "@mui/material";
+import { CircularProgress, TextField, Button, Container, Box, Typography, Grid } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
-import { BlueButton } from "../../../components/buttonStyles";
 import Popup from "../../../components/Popup";
 import Classroom from "../../../assets/classroom.png";
-import styled from "styled-components";
 
 const AddClass = () => {
     const [sclassName, setSclassName] = useState("");
@@ -54,67 +52,44 @@ const AddClass = () => {
         }
     }, [status, navigate, error, response, dispatch, tempDetails]);
     return (
-        <>
-            <StyledContainer>
-                <StyledBox>
-                    <Stack sx={{
-                        alignItems: 'center',
-                        mb: 3
-                    }}>
-                        <img
-                            src={Classroom}
-                            alt="classroom"
-                            style={{ width: '80%' }}
-                        />
-                    </Stack>
-                    <form onSubmit={submitHandler}>
-                        <Stack spacing={3}>
+        <Container maxWidth="md" sx={{ mt: 4 }}>
+            <Box sx={{ p: 3, backgroundColor: 'white', borderRadius: 2, boxShadow: 3 }}>
+                <Typography variant="h4" gutterBottom>
+                    Add New Class
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                    <img
+                        src={Classroom}
+                        alt="classroom"
+                        style={{ width: '200px', height: 'auto' }}
+                    />
+                </Box>
+                <form onSubmit={submitHandler}>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12}>
                             <TextField
-                                label="Create a class"
+                                fullWidth
+                                label="Class Name"
                                 variant="outlined"
                                 value={sclassName}
-                                onChange={(event) => {
-                                    setSclassName(event.target.value);
-                                }}
+                                onChange={(event) => setSclassName(event.target.value)}
                                 required
                             />
-                            <BlueButton
-                                fullWidth
-                                size="large"
-                                sx={{ mt: 3 }}
-                                variant="contained"
-                                type="submit"
-                                disabled={loader}
-                            >
-                                {loader ? <CircularProgress size={24} color="inherit" /> : "Create"}
-                            </BlueButton>
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Button variant="contained" color="primary" type="submit" disabled={loader} sx={{ mr: 2 }}>
+                                {loader ? <CircularProgress size={24} color="inherit" /> : 'Create Class'}
+                            </Button>
                             <Button variant="outlined" onClick={() => navigate(-1)}>
                                 Go Back
                             </Button>
-                        </Stack>
-                    </form>
-                </StyledBox>
-            </StyledContainer>
+                        </Grid>
+                    </Grid>
+                </form>
+            </Box>
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-        </>
+        </Container>
     )
 }
 
 export default AddClass
-
-const StyledContainer = styled(Box)`
-  flex: 1 1 auto;
-  align-items: center;
-  display: flex;
-  justify-content: center;
-`;
-
-const StyledBox = styled(Box)`
-  max-width: 550px;
-  padding: 50px 3rem 50px;
-  margin-top: 1rem;
-  background-color: white;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  border: 1px solid #ccc;
-  border-radius: 4px;
-`;

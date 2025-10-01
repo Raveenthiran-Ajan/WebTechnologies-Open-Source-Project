@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Paper, Box, Chip, Button, Alert
+  Paper, Box, Chip, Button, Alert, Typography, CircularProgress
 } from '@mui/material';
 import { getAllComplains, updateComplaint } from '../../../redux/complainRelated/complainHandle';
-import TableTemplate from '../../../components/TableTemplate';
+import {
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarColumnsButton,
+    GridToolbarFilterButton,
+    GridToolbarDensitySelector,
+    GridToolbarExport
+} from '@mui/x-data-grid';
 
 const SeeComplains = () => {
   const dispatch = useDispatch();
@@ -73,57 +80,78 @@ const SeeComplains = () => {
   };
 
   const complainColumns = [
-    { id: 'user', label: 'User', minWidth: 170 },
-    { id: 'complaint', label: 'Complaint', minWidth: 200 },
-    { id: 'date', label: 'Date', minWidth: 120 },
-    { id: 'status', label: 'Status', minWidth: 120 },
+    { field: 'user', headerName: 'User Type', width: 150 },
+    { field: 'complaint', headerName: 'Complaint', width: 300 },
+    { field: 'date', headerName: 'Date', width: 150 },
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 120,
+      renderCell: (params) => (
+        <Chip 
+          label={params.value} 
+          color={params.value === 'Actioned' ? 'success' : 'warning'}
+          size="small"
+        />
+      ),
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 180,
+      renderCell: (params) => {
+        const status = params.row.status;
+        const complainId = params.row.id;
+        
+        return (
+          <Button
+            size="small"
+            variant="outlined"
+            color={status === 'Pending' ? 'success' : 'warning'}
+            onClick={() => handleStatusUpdate(complainId, status)}
+            disabled={updatingComplaint === complainId}
+          >
+            {updatingComplaint === complainId 
+              ? 'Updating...' 
+              : (status === 'Pending' ? 'Mark Actioned' : 'Mark Pending')
+            }
+          </Button>
+        );
+      },
+    },
   ];
 
-  const complainRows = complainsList && complainsList.length > 0 && complainsList.map((complain) => {
+  const complainRows = complainsList && complainsList.length > 0 ? complainsList.map((complain) => {
     const date = new Date(complain.date);
     const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
     
-    // Capitalize first letter of userType for display
     const userTypeDisplay = complain.userType 
       ? complain.userType.charAt(0).toUpperCase() + complain.userType.slice(1)
       : "User";
     
     return {
+      id: complain._id,
       user: userTypeDisplay,
       complaint: complain.complaint,
       date: dateString,
       status: complain.status || 'Pending',
-      id: complain._id,
-      complainData: complain, // Store full complaint data for actions
     };
-  });
+  }) : [];
 
-  const ComplainButtonHaver = ({ row }) => {
-    const status = row.status;
-    const complainId = row.id;
-    
+  function CustomToolbar() {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Chip 
-          label={status} 
-          color={status === 'Actioned' ? 'success' : 'warning'}
-          size="small"
-        />
-        <Button
-          size="small"
-          variant="outlined"
-          color={status === 'Pending' ? 'success' : 'warning'}
-          onClick={() => handleStatusUpdate(complainId, status)}
-          disabled={updatingComplaint === complainId}
-        >
-          {updatingComplaint === complainId 
-            ? 'Updating...' 
-            : (status === 'Pending' ? 'Mark Actioned' : 'Mark Pending')
-          }
-        </Button>
-      </Box>
+      <GridToolbarContainer>
+        <GridToolbarColumnsButton />
+        <GridToolbarFilterButton />
+        <GridToolbarDensitySelector />
+        <GridToolbarExport />
+      </GridToolbarContainer>
     );
-  };
+  }
+
+  if (loading) {
+    return <CircularProgress />;
+  }
 
   return (
     <>
@@ -137,23 +165,36 @@ const SeeComplains = () => {
         </Alert>
       )}
       
-      {loading ?
-        <div>Loading...</div>
-        :
-        <>
-          {response ?
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-              No Complains Right Now
-            </Box>
-            :
-            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-              {Array.isArray(complainsList) && complainsList.length > 0 &&
-                <TableTemplate buttonHaver={ComplainButtonHaver} columns={complainColumns} rows={complainRows} />
-              }
-            </Paper>
-          }
-        </>
-      }
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        <Typography variant="h6" gutterBottom component="div" sx={{ p: 2 }}>
+          All Complaints
+        </Typography>
+        {response ?
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
+            <Typography variant="h6" gutterBottom>
+              No complaints found
+            </Typography>
+          </Box>
+          :
+          (Array.isArray(complainsList) && complainsList.length > 0 ?
+          <Box sx={{ height: 400, width: '100%' }}>
+            <DataGrid 
+              rows={complainRows || []} 
+              columns={complainColumns} 
+              components={{ Toolbar: CustomToolbar }}
+              pageSize={5}
+              rowsPerPageOptions={[5, 10, 25]}
+            />
+          </Box>
+          :
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
+            <Typography variant="h6" gutterBottom>
+              No complaints found
+            </Typography>
+          </Box>
+          )
+        }
+      </Paper>
     </>
   );
 };

@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Table, TableBody, TableContainer, TableHead, Typography, Paper } from '@mui/material'
+import { Box, Typography, Container, Button, CircularProgress, Paper, Table, TableBody, TableContainer, TableHead } from '@mui/material'
+import {
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarColumnsButton,
+    GridToolbarFilterButton,
+    GridToolbarDensitySelector,
+    GridToolbarExport
+} from '@mui/x-data-grid';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getTeacherFreeClassSubjects } from '../../../redux/sclassRelated/sclassHandle';
 import { updateTeachSubject } from '../../../redux/teacherRelated/teacherHandle';
-import { GreenButton, PurpleButton } from '../../../components/buttonStyles';
 import { StyledTableCell, StyledTableRow } from '../../../components/styles';
 
 const ChooseSubject = ({ situation }) => {
@@ -38,10 +45,11 @@ const ChooseSubject = ({ situation }) => {
         return <div>
             <h1>Sorry all subjects have teachers assigned already</h1>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                <PurpleButton variant="contained"
+                <Button variant="contained"
+                    color="primary"
                     onClick={() => navigate("/Admin/addsubject/" + classID)}>
                     Add Subjects
-                </PurpleButton>
+                </Button>
             </Box>
         </div>;
     } else if (error) {
@@ -80,19 +88,22 @@ const ChooseSubject = ({ situation }) => {
                                     <StyledTableCell align="center">{subject.subCode}</StyledTableCell>
                                     <StyledTableCell align="center">
                                         {situation === "Norm" ?
-                                            <GreenButton variant="contained"
+                                            <Button variant="contained"
+                                                color="success"
                                                 onClick={() => navigate("/Admin/teachers/addteacher/" + subject._id)}>
                                                 Choose
-                                            </GreenButton>
+                                            </Button>
                                             :
-                                            <GreenButton variant="contained" disabled={loader}
+                                            <Button variant="contained" 
+                                                color="success"
+                                                disabled={loader}
                                                 onClick={() => updateSubjectHandler(teacherID, subject._id)}>
                                                 {loader ? (
-                                                    <div className="load"></div>
+                                                    <CircularProgress size={16} />
                                                 ) : (
                                                     'Choose Sub'
                                                 )}
-                                            </GreenButton>}
+                                            </Button>}
                                     </StyledTableCell>
                                 </StyledTableRow>
                             ))}

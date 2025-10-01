@@ -4,18 +4,23 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getClassDetails, getClassStudents, getClassTeachers, getSubjectList } from "../../../redux/sclassRelated/sclassHandle";
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import {
-    Box, Container, Typography, Tab, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper
+    Box, Container, Typography, Tab, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, CircularProgress
 } from '@mui/material';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-import { BlueButton, GreenButton, PurpleButton } from "../../../components/buttonStyles";
-import TableTemplate from "../../../components/TableTemplate";
+import {
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarColumnsButton,
+    GridToolbarFilterButton,
+    GridToolbarDensitySelector,
+    GridToolbarExport
+} from '@mui/x-data-grid';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
-import SpeedDialTemplate from "../../../components/SpeedDialTemplate";
 import Popup from "../../../components/Popup";
-import DeleteIcon from "@mui/icons-material/Delete";
+import Delete from "@mui/icons-material/Delete";
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import axios from 'axios';
 import { API_BASE_URL } from '../../../config';
@@ -63,208 +68,251 @@ const ClassDetails = () => {
     }
 
     const subjectColumns = [
-        { id: 'name', label: 'Subject Name', minWidth: 170 },
-        { id: 'code', label: 'Subject Code', minWidth: 100 },
-    ]
-
-    const subjectRows = subjectsList && subjectsList.length > 0 && subjectsList.map((subject) => {
-        return {
-            name: subject.subName,
-            code: subject.subCode,
-            id: subject._id,
-        };
-    })
-
-    const SubjectsButtonHaver = ({ row }) => {
-        return (
-            <>
-                <IconButton onClick={() => deleteHandler(row.id, "Subject")}>
-                    <DeleteIcon color="error" />
-                </IconButton>
-                <BlueButton
-                    variant="contained"
-                    onClick={() => {
-                        navigate(`/Admin/class/subject/${classID}/${row.id}`)
-                    }}
-                >
-                    View
-                </BlueButton >
-            </>
-        );
-    };
-
-    const subjectActions = [
+        { field: 'name', headerName: 'Subject Name', width: 200 },
+        { field: 'code', headerName: 'Subject Code', width: 150 },
         {
-            icon: <PostAddIcon color="primary" />, name: 'Add New Subject',
-            action: () => navigate("/Admin/addsubject/" + classID)
+            field: 'actions',
+            headerName: 'Actions',
+            width: 150,
+            renderCell: (params) => {
+                return (
+                    <Box>
+                        <IconButton onClick={() => deleteHandler(params.row.id, "Subject")}>
+                            <Delete color="error" />
+                        </IconButton>
+                        <Button
+                            variant="contained" sx={{ ml: 1 }}
+                            onClick={() => navigate(`/Admin/class/subject/${classID}/${params.row.id}`)}
+                        >
+                            View
+                        </Button>
+                    </Box>
+                );
+            },
         },
-        {
-            icon: <DeleteIcon color="error" />, name: 'Delete All Subjects',
-            action: () => deleteHandler(classID, "SubjectsClass")
-        }
     ];
+
+    const subjectRows = subjectsList && subjectsList.length > 0 ? subjectsList.map((subject) => ({
+        id: subject._id,
+        name: subject.subName,
+        code: subject.subCode,
+    })) : [];
+
+    function SubjectsToolbar() {
+        return (
+            <GridToolbarContainer>
+                <GridToolbarColumnsButton />
+                <GridToolbarFilterButton />
+                <GridToolbarDensitySelector />
+                <GridToolbarExport />
+                <Box sx={{ flexGrow: 1 }} />
+                <Button
+                    startIcon={<PostAddIcon />}
+                    onClick={() => navigate("/Admin/addsubject/" + classID)}
+                >
+                    Add Subject
+                </Button>
+            </GridToolbarContainer>
+        );
+    }
 
     const ClassSubjectsSection = () => {
         return (
-            <>
-                {response ?
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                        <GreenButton
+            <Box sx={{ mt: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                    Subjects List
+                </Typography>
+                {response ? (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
+                        <Typography variant="h6" gutterBottom>
+                            No subjects found
+                        </Typography>
+                        <Button
                             variant="contained"
+                            startIcon={<PostAddIcon />}
                             onClick={() => navigate("/Admin/addsubject/" + classID)}
                         >
                             Add Subjects
-                        </GreenButton>
+                        </Button>
                     </Box>
-                    :
-                    <>
-                        <Typography variant="h5" gutterBottom>
-                            Subjects List:
-                        </Typography>
-
-                        <TableTemplate buttonHaver={SubjectsButtonHaver} columns={subjectColumns} rows={subjectRows} />
-                        <SpeedDialTemplate actions={subjectActions} />
-                    </>
-                }
-            </>
+                ) : (
+                    <Box sx={{ height: 400, width: '100%' }}>
+                        <DataGrid 
+                            rows={subjectRows || []} 
+                            columns={subjectColumns} 
+                            components={{ Toolbar: SubjectsToolbar }}
+                            pageSize={5}
+                            rowsPerPageOptions={[5, 10, 25]}
+                        />
+                    </Box>
+                )}
+            </Box>
         )
     }
 
     const studentColumns = [
-        { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
-    ]
-
-    const studentRows = sclassStudents.map((student) => {
-        return {
-            name: student.name,
-            rollNum: student.rollNum,
-            id: student._id,
-        };
-    })
-
-    const StudentsButtonHaver = ({ row }) => {
-        return (
-            <>
-                <IconButton onClick={() => deleteHandler(row.id, "Student")}>
-                    <PersonRemoveIcon color="error" />
-                </IconButton>
-                <BlueButton
-                    variant="contained"
-                    onClick={() => navigate("/Admin/students/student/" + row.id)}
-                >
-                    View
-                </BlueButton>
-            </>
-        );
-    };
-
-    const studentActions = [
+        { field: 'name', headerName: 'Student Name', width: 200 },
+        { field: 'rollNum', headerName: 'Roll Number', width: 150 },
         {
-            icon: <PersonAddAlt1Icon color="primary" />, name: 'Add New Student',
-            action: () => navigate("/Admin/class/addstudents/" + classID)
-        },
-        {
-            icon: <PersonRemoveIcon color="error" />, name: 'Delete All Students',
-            action: () => deleteHandler(classID, "StudentsClass")
+            field: 'actions',
+            headerName: 'Actions',
+            width: 150,
+            renderCell: (params) => {
+                return (
+                    <Box>
+                        <IconButton onClick={() => deleteHandler(params.row.id, "Student")}>
+                            <PersonRemoveIcon color="error" />
+                        </IconButton>
+                        <Button
+                            variant="contained" sx={{ ml: 1 }}
+                            onClick={() => navigate("/Admin/students/student/" + params.row.id)}
+                        >
+                            View
+                        </Button>
+                    </Box>
+                );
+            },
         },
     ];
 
+    const studentRows = sclassStudents.map((student) => ({
+        id: student._id,
+        name: student.name,
+        rollNum: student.rollNum,
+    }));
+
+    function StudentsToolbar() {
+        return (
+            <GridToolbarContainer>
+                <GridToolbarColumnsButton />
+                <GridToolbarFilterButton />
+                <GridToolbarDensitySelector />
+                <GridToolbarExport />
+                <Box sx={{ flexGrow: 1 }} />
+                <Button
+                    startIcon={<PersonAddAlt1Icon />}
+                    onClick={() => navigate("/Admin/class/addstudents/" + classID)}
+                >
+                    Add Student
+                </Button>
+            </GridToolbarContainer>
+        );
+    }
+
     const ClassStudentsSection = () => {
         return (
-            <>
+            <Box sx={{ mt: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                    Students List
+                </Typography>
                 {getresponse ? (
-                    <>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                            <GreenButton
-                                variant="contained"
-                                onClick={() => navigate("/Admin/class/addstudents/" + classID)}
-                            >
-                                Add Students
-                            </GreenButton>
-                        </Box>
-                    </>
-                ) : (
-                    <>
-                        <Typography variant="h5" gutterBottom>
-                            Students List:
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
+                        <Typography variant="h6" gutterBottom>
+                            No students found
                         </Typography>
-
-                        <TableTemplate buttonHaver={StudentsButtonHaver} columns={studentColumns} rows={studentRows} />
-                        <SpeedDialTemplate actions={studentActions} />
-                    </>
+                        <Button
+                            variant="contained"
+                            startIcon={<PersonAddAlt1Icon />}
+                            onClick={() => navigate("/Admin/class/addstudents/" + classID)}
+                        >
+                            Add Students
+                        </Button>
+                    </Box>
+                ) : (
+                    <Box sx={{ height: 400, width: '100%' }}>
+                        <DataGrid 
+                            rows={studentRows || []} 
+                            columns={studentColumns} 
+                            components={{ Toolbar: StudentsToolbar }}
+                            pageSize={5}
+                            rowsPerPageOptions={[5, 10, 25]}
+                        />
+                    </Box>
                 )}
-            </>
+            </Box>
         )
     }
 
     const teacherColumns = [
-        { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'subject', label: 'Subject', minWidth: 100 },
-    ]
-
-    const teacherRows = sclassTeachers && sclassTeachers.length > 0 && sclassTeachers.map((teacher) => {
-        return {
-            name: teacher.name,
-            subject: teacher.teachSubject?.subName || 'N/A',
-            id: teacher._id,
-        };
-    })
-
-    const TeachersButtonHaver = ({ row }) => {
-        return (
-            <>
-                <IconButton onClick={() => deleteHandler(row.id, "Teacher")}>
-                    <DeleteIcon color="error" />
-                </IconButton>
-                <BlueButton
-                    variant="contained"
-                    onClick={() => {
-                        navigate(`/Admin/teachers/teacher/${row.id}`)
-                    }}
-                >
-                    View
-                </BlueButton >
-            </>
-        );
-    };
-
-    const teacherActions = [
+        { field: 'name', headerName: 'Teacher Name', width: 200 },
+        { field: 'subject', headerName: 'Subject', width: 150 },
         {
-            icon: <PersonAddAlt1Icon color="primary" />, name: 'Add New Teacher',
-            action: () => navigate("/Admin/teachers/add?classId=" + classID)
-        },
-        {
-            icon: <PersonRemoveIcon color="error" />, name: 'Delete All Teachers',
-            action: () => deleteHandler(classID, "TeachersClass")
+            field: 'actions',
+            headerName: 'Actions',
+            width: 150,
+            renderCell: (params) => {
+                return (
+                    <Box>
+                        <IconButton onClick={() => deleteHandler(params.row.id, "Teacher")}>
+                            <Delete color="error" />
+                        </IconButton>
+                        <Button
+                            variant="contained" sx={{ ml: 1 }}
+                            onClick={() => navigate(`/Admin/teachers/teacher/${params.row.id}`)}
+                        >
+                            View
+                        </Button>
+                    </Box>
+                );
+            },
         },
     ];
 
+    const teacherRows = sclassTeachers && sclassTeachers.length > 0 ? sclassTeachers.map((teacher) => ({
+        id: teacher._id,
+        name: teacher.name,
+        subject: teacher.teachSubject?.subName || 'N/A',
+    })) : [];
+
+    function TeachersToolbar() {
+        return (
+            <GridToolbarContainer>
+                <GridToolbarColumnsButton />
+                <GridToolbarFilterButton />
+                <GridToolbarDensitySelector />
+                <GridToolbarExport />
+                <Box sx={{ flexGrow: 1 }} />
+                <Button
+                    startIcon={<PersonAddAlt1Icon />}
+                    onClick={() => navigate("/Admin/teachers/add?classId=" + classID)}
+                >
+                    Add Teacher
+                </Button>
+            </GridToolbarContainer>
+        );
+    }
+
     const ClassTeachersSection = () => {
         return (
-            <>
+            <Box sx={{ mt: 2 }}>
+                <Typography variant="h6" gutterBottom>
+                    Teachers List
+                </Typography>
                 {getTeachersResponse ? (
-                    <>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                            <GreenButton
-                                variant="contained"
-                                onClick={() => navigate("/Admin/teachers/add?classId=" + classID)}
-                            >
-                                Add Teachers
-                            </GreenButton>
-                        </Box>
-                    </>
-                ) : (
-                    <>
-                        <Typography variant="h5" gutterBottom>
-                            Teachers List:
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
+                        <Typography variant="h6" gutterBottom>
+                            No teachers found
                         </Typography>
-
-                        <TableTemplate buttonHaver={TeachersButtonHaver} columns={teacherColumns} rows={teacherRows} />
-                        <SpeedDialTemplate actions={teacherActions} />
-                    </>
+                        <Button
+                            variant="contained"
+                            startIcon={<PersonAddAlt1Icon />}
+                            onClick={() => navigate("/Admin/teachers/add?classId=" + classID)}
+                        >
+                            Add Teachers
+                        </Button>
+                    </Box>
+                ) : (
+                    <Box sx={{ height: 400, width: '100%' }}>
+                        <DataGrid 
+                            rows={teacherRows || []} 
+                            columns={teacherColumns} 
+                            components={{ Toolbar: TeachersToolbar }}
+                            pageSize={5}
+                            rowsPerPageOptions={[5, 10, 25]}
+                        />
+                    </Box>
                 )}
-            </>
+            </Box>
         )
     }
 
@@ -287,20 +335,24 @@ const ClassDetails = () => {
                     Number of Students: {numberOfStudents}
                 </Typography>
                 {getresponse &&
-                    <GreenButton
+                    <Button
                         variant="contained"
+                        color="success"
                         onClick={() => navigate("/Admin/class/addstudents/" + classID)}
+                        sx={{ mr: 2, mb: 2 }}
                     >
                         Add Students
-                    </GreenButton>
+                    </Button>
                 }
                 {response &&
-                    <GreenButton
+                    <Button
                         variant="contained"
+                        color="success"
                         onClick={() => navigate("/Admin/addsubject/" + classID)}
+                        sx={{ mr: 2, mb: 2 }}
                     >
                         Add Subjects
-                    </GreenButton>
+                    </Button>
                 }
             </>
         );

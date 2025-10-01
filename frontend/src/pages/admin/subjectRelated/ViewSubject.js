@@ -2,12 +2,19 @@ import React, { useEffect, useState } from 'react'
 import { getClassStudents, getSubjectDetails } from '../../../redux/sclassRelated/sclassHandle';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Tab, Container, Typography } from '@mui/material';
-import { BlueButton, GreenButton } from '../../../components/buttonStyles';
-import TableTemplate from '../../../components/TableTemplate';
+import { Box, Tab, Container, Typography, Button, CircularProgress } from '@mui/material';
+import {
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarColumnsButton,
+    GridToolbarFilterButton,
+    GridToolbarDensitySelector,
+    GridToolbarExport
+} from '@mui/x-data-grid';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 
 
 
@@ -37,56 +44,78 @@ const ViewSubject = () => {
 
 
   const studentColumns = [
-    { id: 'rollNum', label: 'Roll No.', minWidth: 100 },
-    { id: 'name', label: 'Name', minWidth: 170 },
-  ]
-
-  const studentRows = sclassStudents.map((student) => {
-    return {
-      rollNum: student.rollNum,
-      name: student.name,
-      id: student._id,
-    };
-  })
-
-  const StudentsViewButtonHaver = ({ row }) => {
-    return (
-      <>
-        <BlueButton
+    { field: 'rollNum', headerName: 'Roll No.', width: 150 },
+    { field: 'name', headerName: 'Student Name', width: 200 },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 120,
+      renderCell: (params) => (
+        <Button
           variant="contained"
-          onClick={() => navigate("/Admin/students/student/" + row.id)}
+          onClick={() => navigate("/Admin/students/student/" + params.row.id)}
         >
           View
-        </BlueButton>
-      </>
+        </Button>
+      ),
+    },
+  ];
+
+  const studentRows = sclassStudents.map((student) => ({
+    id: student._id,
+    rollNum: student.rollNum,
+    name: student.name,
+  }));
+
+  function StudentsToolbar() {
+    return (
+      <GridToolbarContainer>
+        <GridToolbarColumnsButton />
+        <GridToolbarFilterButton />
+        <GridToolbarDensitySelector />
+        <GridToolbarExport />
+        <Box sx={{ flexGrow: 1 }} />
+        <Button
+          startIcon={<PersonAddAlt1Icon />}
+          onClick={() => navigate("/Admin/class/addstudents/" + classID)}
+        >
+          Add Students
+        </Button>
+      </GridToolbarContainer>
     );
-  };
+  }
 
   const SubjectStudentsSection = () => {
     return (
-      <>
+      <Box sx={{ mt: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          Students List
+        </Typography>
         {getresponse ? (
-          <>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-              <GreenButton
-                variant="contained"
-                onClick={() => navigate("/Admin/class/addstudents/" + classID)}
-              >
-                Add Students
-              </GreenButton>
-            </Box>
-          </>
-        ) : (
-          <>
-            <Typography variant="h5" gutterBottom>
-              Students List:
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
+            <Typography variant="h6" gutterBottom>
+              No students found
             </Typography>
-
-            <TableTemplate buttonHaver={StudentsViewButtonHaver} columns={studentColumns} rows={studentRows} />
-
-          </>
+            <Button
+              variant="contained"
+              startIcon={<PersonAddAlt1Icon />}
+              onClick={() => navigate("/Admin/class/addstudents/" + classID)}
+            >
+              Add Students
+            </Button>
+          </Box>
+        ) : (
+          <Box sx={{ height: 400, width: '100%' }}>
+            <DataGrid 
+              rows={studentRows || []} 
+              columns={studentColumns} 
+              components={{ Toolbar: StudentsToolbar }}
+              pageSize={5}
+              rowsPerPageOptions={[5, 10, 25]}
+            />
+          </Box>
         )}
-      </>
+      </Box>
     )
   }
 
@@ -119,27 +148,27 @@ const ViewSubject = () => {
               Teacher Name : {subjectDetails.teacher.name}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-              <GreenButton variant="outlined" size="small"
+              <Button variant="outlined" size="small"
                 onClick={() => navigate(`/Admin/subjects/select-teacher/${subjectDetails._id}`)}>
                 Change Teacher
-              </GreenButton>
-              <GreenButton variant="outlined" size="small"
+              </Button>
+              <Button variant="outlined" size="small"
                 onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
                 Add New Teacher
-              </GreenButton>
+              </Button>
             </Box>
           </Box>
           :
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-            <GreenButton variant="contained"
+            <Button variant="contained"
               onClick={() => navigate(`/Admin/subjects/select-teacher/${subjectDetails._id}`)}>
               Select Teacher
-            </GreenButton>
+            </Button>
             <Typography variant="body2" color="text.secondary">or</Typography>
-            <GreenButton variant="outlined"
+            <Button variant="outlined"
               onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
               Add New Teacher
-            </GreenButton>
+            </Button>
           </Box>
         }
       </>
@@ -149,7 +178,7 @@ const ViewSubject = () => {
   return (
     <>
       {subloading ?
-        < div > Loading...</div >
+        <CircularProgress />
         :
         <>
           <Box sx={{ width: '100%', typography: 'body1', }} >

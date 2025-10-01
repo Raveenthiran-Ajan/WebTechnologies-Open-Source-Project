@@ -9,9 +9,8 @@ import {
     Box, InputLabel,
     MenuItem, Select,
     Typography, Stack,
-    TextField, CircularProgress, FormControl
+    TextField, CircularProgress, FormControl, Button
 } from '@mui/material';
-import { PurpleButton } from '../../../components/buttonStyles';
 import Popup from '../../../components/Popup';
 
 const StudentAttendance = ({ situation }) => {
@@ -182,16 +181,17 @@ const StudentAttendance = ({ situation }) => {
                                     </FormControl>
                                 </Stack>
 
-                                <PurpleButton
+                                <Button
                                     fullWidth
                                     size="large"
                                     sx={{ mt: 3 }}
                                     variant="contained"
+                                    color="primary"
                                     type="submit"
                                     disabled={loader}
                                 >
                                     {loader ? <CircularProgress size={24} color="inherit" /> : "Submit"}
-                                </PurpleButton>
+                                </Button>
                             </form>
                         </Box>
                     </Box>

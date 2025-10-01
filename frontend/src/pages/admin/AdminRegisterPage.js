@@ -2,11 +2,10 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Grid, Box, Typography, Paper, Checkbox, FormControlLabel, TextField, CssBaseline, IconButton, InputAdornment, CircularProgress} from '@mui/material';
+import { Grid, Box, Typography, Paper, Checkbox, FormControlLabel, TextField, CssBaseline, IconButton, InputAdornment, CircularProgress, Button} from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import bgpic from "../../assets/designlogin.jpg"
-import { LightPurpleButton } from '../../components/buttonStyles';
 import { registerUser } from '../../redux/userRelated/userHandle';
 import styled from 'styled-components';
 import Popup from '../../components/Popup';
@@ -167,14 +166,15 @@ const AdminRegisterPage = () => {
                                     label="Remember me"
                                 />
                             </Grid>
-                            <LightPurpleButton
+                            <Button
                                 type="submit"
                                 fullWidth
                                 variant="contained"
+                                color="primary"
                                 sx={{ mt: 3, mb: 2 }}
                             >
                                 {loader ? <CircularProgress size={24} color="inherit"/> : "Register"}
-                            </LightPurpleButton>
+                            </Button>
                             <Grid container>
                                 <Grid>
                                     Already have an account?

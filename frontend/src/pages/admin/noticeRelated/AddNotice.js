@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, TextField, Button, Container, Box, Typography, Grid } from '@mui/material';
 import Popup from '../../../components/Popup';
 
 const AddNotice = () => {
@@ -42,39 +42,59 @@ const AddNotice = () => {
   }, [status, navigate, error, response, dispatch]);
 
   return (
-    <>
-      <div className="register">
-        <form className="registerForm" onSubmit={submitHandler}>
-          <span className="registerTitle">Add Notice</span>
-          <label>Title</label>
-          <input className="registerInput" type="text" placeholder="Enter notice title..."
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            required />
-
-          <label>Details</label>
-          <input className="registerInput" type="text" placeholder="Enter notice details..."
-            value={details}
-            onChange={(event) => setDetails(event.target.value)}
-            required />
-
-          <label>Date</label>
-          <input className="registerInput" type="date" placeholder="Enter notice date..."
-            value={date}
-            onChange={(event) => setDate(event.target.value)}
-            required />
-
-          <button className="registerButton" type="submit" disabled={loader}>
-            {loader ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              'Add'
-            )}
-          </button>
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Box sx={{ p: 3, backgroundColor: 'white', borderRadius: 2, boxShadow: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Add New Notice
+        </Typography>
+        <form onSubmit={submitHandler}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Notice Title"
+                variant="outlined"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Notice Details"
+                variant="outlined"
+                multiline
+                rows={4}
+                value={details}
+                onChange={(event) => setDetails(event.target.value)}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Date"
+                type="date"
+                variant="outlined"
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+                required
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button variant="contained" color="primary" type="submit" disabled={loader}>
+                {loader ? <CircularProgress size={24} color="inherit" /> : 'Add Notice'}
+              </Button>
+            </Grid>
+          </Grid>
         </form>
-      </div>
+      </Box>
       <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-    </>
+    </Container>
   );
 };
 

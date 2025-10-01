@@ -6,12 +6,11 @@ import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
 import { updateStudentFields } from '../../../redux/studentRelated/studentHandle';
 
 import Popup from '../../../components/Popup';
-import { BlueButton } from '../../../components/buttonStyles';
 import {
     Box, InputLabel,
     MenuItem, Select,
     Typography, Stack,
-    TextField, CircularProgress, FormControl
+    TextField, CircularProgress, FormControl, Button
 } from '@mui/material';
 
 const StudentExamMarks = ({ situation }) => {
@@ -158,16 +157,17 @@ const StudentExamMarks = ({ situation }) => {
                                         />
                                     </FormControl>
                                 </Stack>
-                                <BlueButton
+                                <Button
                                     fullWidth
                                     size="large"
                                     sx={{ mt: 3 }}
                                     variant="contained"
+                                    color="primary"
                                     type="submit"
                                     disabled={loader}
                                 >
                                     {loader ? <CircularProgress size={24} color="inherit" /> : "Submit"}
-                                </BlueButton>
+                                </Button>
                             </form>
                         </Box>
                     </Box>
