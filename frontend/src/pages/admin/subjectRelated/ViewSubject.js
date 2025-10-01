@@ -46,6 +46,7 @@ const ViewSubject = () => {
   const studentColumns = [
     { field: 'rollNum', headerName: 'Roll No.', width: 150 },
     { field: 'name', headerName: 'Student Name', width: 200 },
+    { field: 'email', headerName: 'Email', width: 180 },
     {
       field: 'actions',
       headerName: 'Actions',
@@ -53,6 +54,7 @@ const ViewSubject = () => {
       renderCell: (params) => (
         <Button
           variant="contained"
+          size="small"
           onClick={() => navigate("/Admin/students/student/" + params.row.id)}
         >
           View
@@ -65,6 +67,7 @@ const ViewSubject = () => {
     id: student._id,
     rollNum: student.rollNum,
     name: student.name,
+    email: student.email || 'N/A',
   }));
 
   function StudentsToolbar() {
@@ -98,22 +101,33 @@ const ViewSubject = () => {
             </Typography>
             <Button
               variant="contained"
-              startIcon={<PersonAddAlt1Icon />}
+              color="primary"
               onClick={() => navigate("/Admin/class/addstudents/" + classID)}
             >
               Add Students
             </Button>
           </Box>
         ) : (
-          <Box sx={{ height: 400, width: '100%' }}>
-            <DataGrid 
-              rows={studentRows || []} 
-              columns={studentColumns} 
-              components={{ Toolbar: StudentsToolbar }}
-              pageSize={5}
-              rowsPerPageOptions={[5, 10, 25]}
-            />
-          </Box>
+          <>
+            <Box sx={{ height: 400, width: '100%' }}>
+              <DataGrid 
+                rows={studentRows || []} 
+                columns={studentColumns} 
+                components={{ Toolbar: StudentsToolbar }}
+                pageSize={5}
+                rowsPerPageOptions={[5, 10, 25]}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => navigate("/Admin/class/addstudents/" + classID)}
+              >
+                Add More Students
+              </Button>
+            </Box>
+          </>
         )}
       </Box>
     )
@@ -123,57 +137,117 @@ const ViewSubject = () => {
     const numberOfStudents = sclassStudents.length;
 
     return (
-      <>
-        <Typography variant="h4" align="center" gutterBottom>
+      <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+        <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
           Subject Details
         </Typography>
-        <Typography variant="h6" gutterBottom>
-          Subject Name : {subjectDetails && subjectDetails.subName}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Subject Code : {subjectDetails && subjectDetails.subCode}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Subject Sessions : {subjectDetails && subjectDetails.sessions}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Number of Students: {numberOfStudents}
-        </Typography>
-        <Typography variant="h6" gutterBottom>
-          Class Name : {subjectDetails && subjectDetails.sclassName && subjectDetails.sclassName.sclassName}
-        </Typography>
-        {subjectDetails && subjectDetails.teacher ?
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Teacher Name : {subjectDetails.teacher.name}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-              <Button variant="outlined" size="small"
-                onClick={() => navigate(`/Admin/subjects/select-teacher/${subjectDetails._id}`)}>
-                Change Teacher
-              </Button>
-              <Button variant="outlined" size="small"
-                onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
-                Add New Teacher
-              </Button>
+        
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" gutterBottom color="text.secondary">
+            Subject Information
+          </Typography>
+          
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3, mt: 2 }}>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Subject Name
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                {subjectDetails?.subName}
+              </Typography>
             </Box>
-          </Box>
-          :
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Button variant="contained"
-              onClick={() => navigate(`/Admin/subjects/select-teacher/${subjectDetails._id}`)}>
-              Select Teacher
-            </Button>
-            <Typography variant="body2" color="text.secondary">or</Typography>
-            <Button variant="outlined"
-              onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
-              Add New Teacher
-            </Button>
-          </Box>
-        }
-      </>
-    );
-  }
+            
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Subject Code
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                {subjectDetails?.subCode}
+              </Typography>
+            </Box>
+            
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Sessions
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                {subjectDetails?.sessions}
+              </Typography>
+            </Box>
+            
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Number of Students
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                {numberOfStudents}
+              </Typography>
+            </Box>
+            
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Class Name
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                {subjectDetails?.sclassName?.sclassName}
+              </Typography>
+            </Box>
+            
+                            <Box>
+                              <Typography variant="subtitle2" color="text.secondary">
+                                Teacher Name
+                              </Typography>
+                              <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                {subjectDetails?.teacher?.name || 'Not Assigned'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          
+                          {/* Actions Section */}
+                          <Box sx={{ mt: 4 }}>
+                            <Typography variant="h6" gutterBottom color="text.secondary">
+                              Actions
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 2 }}>
+                              {subjectDetails && subjectDetails.teacher ? (
+                                <>
+                                  <Button variant="outlined" 
+                                    onClick={() => navigate(`/Admin/subjects/select-teacher/${subjectDetails._id}`)}>
+                                    Change Teacher
+                                  </Button>
+                                  <Button variant="outlined" 
+                                    onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
+                                    Add New Teacher
+                                  </Button>
+                                </>
+                              ) : (
+                                <>
+                                  <Button variant="contained" color="primary"
+                                    onClick={() => navigate(`/Admin/subjects/select-teacher/${subjectDetails._id}`)}>
+                                    Select Teacher
+                                  </Button>
+                                  <Button variant="outlined"
+                                    onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
+                                    Add New Teacher
+                                  </Button>
+                                </>
+                              )}
+                              <Button 
+                                variant="contained" 
+                                color="secondary"
+                                onClick={() => navigate(`/Admin/subjects/edit/${subjectDetails?._id}`)}
+                              >
+                                Edit Subject
+                              </Button>
+                              <Button variant="outlined" onClick={() => navigate(-1)}>
+                                Go Back
+                              </Button>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
+                    );
+                  }
 
   return (
     <>

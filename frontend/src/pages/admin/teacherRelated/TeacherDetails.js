@@ -42,115 +42,146 @@ const TeacherDetails = () => {
             {loading ? (
                 <div>Loading...</div>
             ) : (
-                <Container maxWidth="md" sx={{ mt: 2 }}>
-                    <Paper elevation={3} sx={{ p: 3 }}>
-                        <Typography variant="h4" align="center" gutterBottom>
+                <Container maxWidth="md">
+                    <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                        <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
                             Teacher Details
                         </Typography>
                         
-                        <Grid container spacing={3}>
-                            <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom>
-                                    <strong>Name:</strong> {teacherDetails?.name}
-                                </Typography>
-                                <Typography variant="h6" gutterBottom>
-                                    <strong>Email:</strong> {teacherDetails?.email}
-                                </Typography>
-                            </Grid>
+                        <Box sx={{ mt: 3 }}>
+                            <Typography variant="h6" gutterBottom color="text.secondary">
+                                Personal Information
+                            </Typography>
                             
-                            <Grid item xs={12}>
-                                <Divider sx={{ my: 2 }} />
-                            </Grid>
+                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3, mt: 2 }}>
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        Name
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                        {teacherDetails?.name}
+                                    </Typography>
+                                </Box>
+                                
+                                <Box>
+                                    <Typography variant="subtitle2" color="text.secondary">
+                                        Email
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                        {teacherDetails?.email}
+                                    </Typography>
+                                </Box>
+                            </Box>
                             
-                            {/* Teaching Classes */}
-                            <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom>
-                                    <strong>Teaching Classes:</strong>
+                            {/* Teaching Information */}
+                            <Box sx={{ mt: 4 }}>
+                                <Typography variant="h6" gutterBottom color="text.secondary">
+                                    Teaching Information
                                 </Typography>
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                                    {teachingClasses && teachingClasses.length > 0 ? (
-                                        teachingClasses.map((sclass, index) => (
+                                
+                                <Box sx={{ mt: 2 }}>
+                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                        Teaching Classes
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+                                        {teachingClasses && teachingClasses.length > 0 ? (
+                                            teachingClasses.map((sclass, index) => (
+                                                <Chip 
+                                                    key={sclass._id || index} 
+                                                    label={sclass.sclassName} 
+                                                    color="primary" 
+                                                    variant="outlined" 
+                                                />
+                                            ))
+                                        ) : teacherDetails?.teachSclass ? (
                                             <Chip 
-                                                key={sclass._id || index} 
-                                                label={sclass.sclassName} 
+                                                label={teacherDetails.teachSclass.sclassName} 
                                                 color="primary" 
                                                 variant="outlined" 
                                             />
-                                        ))
-                                    ) : teacherDetails?.teachSclass ? (
-                                        <Chip 
-                                            label={teacherDetails.teachSclass.sclassName} 
-                                            color="primary" 
-                                            variant="outlined" 
-                                        />
-                                    ) : (
-                                        <Typography color="text.secondary">No classes assigned</Typography>
-                                    )}
-                                </Box>
-                            </Grid>
-                            
-                            {/* Teaching Subjects */}
-                            <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom>
-                                    <strong>Teaching Subjects:</strong>
-                                </Typography>
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                                    {teachingSubjects && teachingSubjects.length > 0 ? (
-                                        teachingSubjects.map((subject, index) => (
+                                        ) : (
+                                            <Typography color="text.secondary">No classes assigned</Typography>
+                                        )}
+                                    </Box>
+                                    
+                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                        Teaching Subjects
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+                                        {teachingSubjects && teachingSubjects.length > 0 ? (
+                                            teachingSubjects.map((subject, index) => (
+                                                <Chip 
+                                                    key={subject._id || index} 
+                                                    label={`${subject.subName} (${subject.sessions} sessions)`} 
+                                                    color="secondary" 
+                                                    variant="outlined" 
+                                                />
+                                            ))
+                                        ) : teacherDetails?.teachSubject ? (
                                             <Chip 
-                                                key={subject._id || index} 
-                                                label={`${subject.subName} (${subject.sessions} sessions)`} 
+                                                label={`${teacherDetails.teachSubject.subName} (${teacherDetails.teachSubject.sessions} sessions)`} 
                                                 color="secondary" 
                                                 variant="outlined" 
                                             />
-                                        ))
-                                    ) : teacherDetails?.teachSubject ? (
-                                        <Chip 
-                                            label={`${teacherDetails.teachSubject.subName} (${teacherDetails.teachSubject.sessions} sessions)`} 
-                                            color="secondary" 
-                                            variant="outlined" 
-                                        />
-                                    ) : (
-                                        <Typography color="text.secondary">No subjects assigned</Typography>
-                                    )}
+                                        ) : (
+                                            <Typography color="text.secondary">No subjects assigned</Typography>
+                                        )}
+                                    </Box>
+                                    
+                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                        Attendance Responsibility
+                                    </Typography>
+                                    <Box>
+                                        {attendanceClass ? (
+                                            <Chip 
+                                                label={attendanceClass.sclassName} 
+                                                color="success" 
+                                                variant="filled"
+                                            />
+                                        ) : (
+                                            <Typography color="text.secondary">No attendance class assigned</Typography>
+                                        )}
+                                    </Box>
                                 </Box>
-                            </Grid>
+                            </Box>
                             
-                            {/* Attendance Class */}
-                            <Grid item xs={12}>
-                                <Typography variant="h6" gutterBottom>
-                                    <strong>Attendance Responsibility:</strong>
+                            {/* Actions Section */}
+                            <Box sx={{ mt: 4 }}>
+                                <Typography variant="h6" gutterBottom color="text.secondary">
+                                    Actions
                                 </Typography>
-                                <Box sx={{ mb: 2 }}>
-                                    {attendanceClass ? (
-                                        <Chip 
-                                            label={attendanceClass.sclassName} 
-                                            color="success" 
-                                            variant="filled"
-                                            sx={{ fontSize: '1.1em', p: 1 }}
-                                        />
-                                    ) : (
-                                        <Typography color="text.secondary">No attendance class assigned</Typography>
-                                    )}
-                                </Box>
-                            </Grid>
-                            
-                            <Grid item xs={12}>
-                                <Divider sx={{ my: 2 }} />
-                                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 2 }}>
                                     {hasMultipleAssignments ? (
                                         <Button variant="contained" color="primary" onClick={handleEditAssignments}>
                                             Edit Assignments
                                         </Button>
                                     ) : !isSubjectNamePresent ? (
-                                        <Button variant="contained" onClick={handleAddSubject}>
+                                        <Button variant="contained" color="primary" onClick={handleAddSubject}>
                                             Add Subject
                                         </Button>
                                     ) : null}
+                                    
+                                    <Button 
+                                        variant="contained" 
+                                        color="secondary"
+                                        onClick={() => navigate(`/Admin/teachers/teacher/timetable/${teacherDetails?._id}`)}
+                                    >
+                                        View Timetable
+                                    </Button>
+                                    <Button 
+                                        variant="outlined" 
+                                        color="warning"
+                                        onClick={() => navigate(`/Admin/teachers/edit/${teacherDetails?._id}`)}
+                                    >
+                                        Edit Teacher
+                                    </Button>
+                                    <Button variant="outlined" onClick={() => navigate(-1)}>
+                                        Go Back
+                                    </Button>
                                 </Box>
-                            </Grid>
-                        </Grid>
-                    </Paper>
+                            </Box>
+                        </Box>
+                    </Box>
                 </Container>
             )}
         </>

@@ -20,52 +20,180 @@ const SideBar = () => {
     return (
         <>
             <React.Fragment>
-                <ListItemButton component={Link} to="/">
+                <ListItemButton 
+                    component={Link} 
+                    to="/"
+                    selected={(location.pathname === "/" || location.pathname === "/Admin/dashboard")}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
                     <ListItemIcon>
-                        <HomeIcon color={(location.pathname === "/" || location.pathname === "/Admin/dashboard") ? 'primary' : 'inherit'} />
+                        <HomeIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_home')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/classes">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Admin/classes"
+                    selected={location.pathname.startsWith('/Admin/classes')}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
                     <ListItemIcon>
-                        <ClassOutlinedIcon color={location.pathname.startsWith('/Admin/classes') ? 'primary' : 'inherit'} />
+                        <ClassOutlinedIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_classes')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/subjects">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Admin/subjects"
+                    selected={location.pathname.startsWith("/Admin/subjects")}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
                     <ListItemIcon>
-                        <AssignmentIcon color={location.pathname.startsWith("/Admin/subjects") ? 'primary' : 'inherit'} />
+                        <AssignmentIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_subjects')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/teachers">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Admin/teachers"
+                    selected={location.pathname.startsWith("/Admin/teachers")}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
                     <ListItemIcon>
-                        <SupervisorAccountOutlinedIcon color={location.pathname.startsWith("/Admin/teachers") ? 'primary' : 'inherit'} />
+                        <SupervisorAccountOutlinedIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_teachers')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/students">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Admin/students"
+                    selected={location.pathname.startsWith("/Admin/students")}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
                     <ListItemIcon>
-                        <PersonOutlineIcon color={location.pathname.startsWith("/Admin/students") ? 'primary' : 'inherit'} />
+                        <PersonOutlineIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_students')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/notices">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Admin/notices"
+                    selected={location.pathname.startsWith("/Admin/notices")}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
                     <ListItemIcon>
-                        <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Admin/notices") ? 'primary' : 'inherit'} />
+                        <AnnouncementOutlinedIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_notices')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/complains">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Admin/complains"
+                    selected={location.pathname.startsWith("/Admin/complains")}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
                     <ListItemIcon>
-                        <ReportIcon color={location.pathname.startsWith("/Admin/complains") ? 'primary' : 'inherit'} />
+                        <ReportIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_complains')} />
                 </ListItemButton>
                 {/* Parent menu item */}
-                <ListItemButton component={Link} to="/Admin/parents">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Admin/parents"
+                    selected={location.pathname.startsWith("/Admin/parents") || location.pathname.startsWith("/Admin/addparent")}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
                     <ListItemIcon>
-                        <FamilyRestroomIcon color={location.pathname.startsWith("/Admin/parents") || location.pathname.startsWith("/Admin/addparent") ? 'primary' : 'inherit'} />
+                        <FamilyRestroomIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_parents')} />
                 </ListItemButton>
@@ -75,15 +203,47 @@ const SideBar = () => {
                 <ListSubheader component="div" inset>
                     {t('menu_user')}
                 </ListSubheader>
-                <ListItemButton component={Link} to="/Admin/profile">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Admin/profile"
+                    selected={location.pathname.startsWith("/Admin/profile")}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
                     <ListItemIcon>
-                        <AccountCircleOutlinedIcon color={location.pathname.startsWith("/Admin/profile") ? 'primary' : 'inherit'} />
+                        <AccountCircleOutlinedIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_profile')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/logout">
+                <ListItemButton 
+                    component={Link} 
+                    to="/logout"
+                    selected={location.pathname.startsWith("/logout")}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
                     <ListItemIcon>
-                        <ExitToAppIcon color={location.pathname.startsWith("/logout") ? 'primary' : 'inherit'} />
+                        <ExitToAppIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_logout')} />
                 </ListItemButton>

@@ -70,10 +70,11 @@ const ClassDetails = () => {
     const subjectColumns = [
         { field: 'name', headerName: 'Subject Name', width: 200 },
         { field: 'code', headerName: 'Subject Code', width: 150 },
+        { field: 'sessions', headerName: 'Sessions', width: 120 },
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 150,
+            width: 180,
             renderCell: (params) => {
                 return (
                     <Box>
@@ -82,6 +83,7 @@ const ClassDetails = () => {
                         </IconButton>
                         <Button
                             variant="contained" sx={{ ml: 1 }}
+                            size="small"
                             onClick={() => navigate(`/Admin/class/subject/${classID}/${params.row.id}`)}
                         >
                             View
@@ -96,6 +98,7 @@ const ClassDetails = () => {
         id: subject._id,
         name: subject.subName,
         code: subject.subCode,
+        sessions: subject.sessions || 'N/A',
     })) : [];
 
     function SubjectsToolbar() {
@@ -151,12 +154,13 @@ const ClassDetails = () => {
     }
 
     const studentColumns = [
-        { field: 'name', headerName: 'Student Name', width: 200 },
-        { field: 'rollNum', headerName: 'Roll Number', width: 150 },
+        { field: 'name', headerName: 'Student Name', width: 180 },
+        { field: 'rollNum', headerName: 'Roll Number', width: 120 },
+        { field: 'email', headerName: 'Email', width: 180 },
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 150,
+            width: 180,
             renderCell: (params) => {
                 return (
                     <Box>
@@ -165,6 +169,7 @@ const ClassDetails = () => {
                         </IconButton>
                         <Button
                             variant="contained" sx={{ ml: 1 }}
+                            size="small"
                             onClick={() => navigate("/Admin/students/student/" + params.row.id)}
                         >
                             View
@@ -179,6 +184,7 @@ const ClassDetails = () => {
         id: student._id,
         name: student.name,
         rollNum: student.rollNum,
+        email: student.email || 'N/A',
     }));
 
     function StudentsToolbar() {
@@ -234,12 +240,13 @@ const ClassDetails = () => {
     }
 
     const teacherColumns = [
-        { field: 'name', headerName: 'Teacher Name', width: 200 },
+        { field: 'name', headerName: 'Teacher Name', width: 180 },
         { field: 'subject', headerName: 'Subject', width: 150 },
+        { field: 'email', headerName: 'Email', width: 180 },
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 150,
+            width: 180,
             renderCell: (params) => {
                 return (
                     <Box>
@@ -248,6 +255,7 @@ const ClassDetails = () => {
                         </IconButton>
                         <Button
                             variant="contained" sx={{ ml: 1 }}
+                            size="small"
                             onClick={() => navigate(`/Admin/teachers/teacher/${params.row.id}`)}
                         >
                             View
@@ -262,6 +270,7 @@ const ClassDetails = () => {
         id: teacher._id,
         name: teacher.name,
         subject: teacher.teachSubject?.subName || 'N/A',
+        email: teacher.email || 'N/A',
     })) : [];
 
     function TeachersToolbar() {
@@ -318,43 +327,97 @@ const ClassDetails = () => {
 
     const ClassDetailsSection = () => {
         const numberOfSubjects = subjectsList.length;
-        const numberOfStudents = sclassStudents.length;
+        const numberOfStudents = sclassDetails?.students?.length || sclassStudents.length;
 
         return (
-            <>
-                <Typography variant="h4" align="center" gutterBottom>
-                    Class Details
-                </Typography>
-                <Typography variant="h5" gutterBottom>
-                    This is Class {sclassDetails && sclassDetails.sclassName}
-                </Typography>
-                <Typography variant="h6" gutterBottom>
-                    Number of Subjects: {numberOfSubjects}
-                </Typography>
-                <Typography variant="h6" gutterBottom>
-                    Number of Students: {numberOfStudents}
-                </Typography>
-                {getresponse &&
-                    <Button
-                        variant="contained"
-                        color="success"
-                        onClick={() => navigate("/Admin/class/addstudents/" + classID)}
-                        sx={{ mr: 2, mb: 2 }}
-                    >
-                        Add Students
-                    </Button>
-                }
-                {response &&
-                    <Button
-                        variant="contained"
-                        color="success"
-                        onClick={() => navigate("/Admin/addsubject/" + classID)}
-                        sx={{ mr: 2, mb: 2 }}
-                    >
-                        Add Subjects
-                    </Button>
-                }
-            </>
+            <Container maxWidth="md">
+                <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                    <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+                        Class Details
+                    </Typography>
+                    
+                    <Box sx={{ mt: 3 }}>
+                        <Typography variant="h6" gutterBottom color="text.secondary">
+                            Class Information
+                        </Typography>
+                        
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3, mt: 2 }}>
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Class Name
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {sclassDetails?.sclassName}
+                                </Typography>
+                            </Box>
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    School Name
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {sclassDetails?.school?.schoolName || 'N/A'}
+                                </Typography>
+                            </Box>
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Number of Subjects
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {numberOfSubjects}
+                                </Typography>
+                            </Box>
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Number of Students
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {numberOfStudents}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        
+                        {/* Actions Section */}
+                        <Box sx={{ mt: 4 }}>
+                            <Typography variant="h6" gutterBottom color="text.secondary">
+                                Actions
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 2 }}>
+                                {getresponse &&
+                                    <Button
+                                        variant="contained"
+                                        color="success"
+                                        onClick={() => navigate("/Admin/class/addstudents/" + classID)}
+                                    >
+                                        Add Students
+                                    </Button>
+                                }
+                                {response &&
+                                    <Button
+                                        variant="contained"
+                                        color="success"
+                                        onClick={() => navigate("/Admin/addsubject/" + classID)}
+                                    >
+                                        Add Subjects
+                                    </Button>
+                                }
+                                <Button 
+                                    variant="contained" 
+                                    color="primary"
+                                    onClick={() => navigate(`/Admin/class/timetable/${classID}`)}
+                                >
+                                    View Timetable
+                                </Button>
+                                <Button variant="outlined" onClick={() => navigate(-1)}>
+                                    Go Back
+                                </Button>
+                            </Box>
+                        </Box>
+                    </Box>
+                </Box>
+            </Container>
         );
     }
 

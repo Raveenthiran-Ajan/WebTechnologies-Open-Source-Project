@@ -314,58 +314,110 @@ const ViewStudent = () => {
 
     const StudentDetailsSection = () => {
         return (
-            <div>
-                Name: {userDetails.name}
-                <br />
-                Roll Number: {userDetails.rollNum}
-                <br />
-                Class: {sclassName.sclassName}
-                <br />
-                School: {studentSchool.schoolName}
-                {
-                    subjectAttendance && Array.isArray(subjectAttendance) && subjectAttendance.length > 0 && (
-                        <CustomPieChart data={chartData} />
-                    )
-                }
-                <Button variant="contained" sx={styles.styledButton} onClick={deleteHandler}>
-                    Delete
-                </Button>
-                <br />
-                {/* <Button variant="contained" sx={styles.styledButton} className="show-tab" onClick={() => { setShowTab(!showTab) }}>
-                    {
-                        showTab
-                            ? <KeyboardArrowUp />
-                            : <KeyboardArrowDown />
-                    }
-                    Edit Student
-                </Button>
-                <Collapse in={showTab} timeout="auto" unmountOnExit>
-                    <div className="register">
-                        <form className="registerForm" onSubmit={submitHandler}>
-                            <span className="registerTitle">Edit Details</span>
-                            <label>Name</label>
-                            <input className="registerInput" type="text" placeholder="Enter user's name..."
-                                value={name}
-                                onChange={(event) => setName(event.target.value)}
-                                autoComplete="name" required />
-
-                            <label>Roll Number</label>
-                            <input className="registerInput" type="number" placeholder="Enter user's Roll Number..."
-                                value={rollNum}
-                                onChange={(event) => setRollNum(event.target.value)}
-                                required />
-
-                            <label>Password</label>
-                            <input className="registerInput" type="password" placeholder="Enter user's password..."
-                                value={password}
-                                onChange={(event) => setPassword(event.target.value)}
-                                autoComplete="new-password" />
-
-                            <button className="registerButton" type="submit" >Update</button>
-                        </form>
-                    </div>
-                </Collapse> */}
-            </div>
+            <Container maxWidth="md">
+                <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                    <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+                        Student Details
+                    </Typography>
+                    
+                    <Box sx={{ mt: 3 }}>
+                        <Typography variant="h6" gutterBottom color="text.secondary">
+                            Personal Information
+                        </Typography>
+                        
+                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3, mt: 2 }}>
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Name
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {userDetails?.name}
+                                </Typography>
+                            </Box>
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Email
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {userDetails?.email}
+                                </Typography>
+                            </Box>
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Roll Number
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {userDetails?.rollNum}
+                                </Typography>
+                            </Box>
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Class
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {sclassName?.sclassName}
+                                </Typography>
+                            </Box>
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    School
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {studentSchool?.schoolName}
+                                </Typography>
+                            </Box>
+                        </Box>
+                        
+                        {subjectAttendance && Array.isArray(subjectAttendance) && subjectAttendance.length > 0 && (
+                            <Box sx={{ mt: 4 }}>
+                                <Typography variant="h6" gutterBottom color="text.secondary">
+                                    Attendance Overview
+                                </Typography>
+                                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                                    <CustomPieChart data={chartData} />
+                                </Box>
+                            </Box>
+                        )}
+                        
+                        {/* Actions Section */}
+                        <Box sx={{ mt: 4 }}>
+                            <Typography variant="h6" gutterBottom color="text.secondary">
+                                Actions
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
+                                <Button 
+                                    variant="contained" 
+                                    color="primary"
+                                    onClick={() => navigate(`/Admin/students/student/attendance/${studentID}`)}
+                                >
+                                    Take Attendance
+                                </Button>
+                                <Button 
+                                    variant="contained" 
+                                    color="secondary"
+                                    onClick={() => navigate(`/Admin/students/student/marks/${studentID}`)}
+                                >
+                                    Add Marks
+                                </Button>
+                                <Button 
+                                    variant="outlined" 
+                                    color="error"
+                                    onClick={deleteHandler}
+                                >
+                                    Delete Student
+                                </Button>
+                                <Button variant="outlined" onClick={() => navigate(-1)}>
+                                    Go Back
+                                </Button>
+                            </Box>
+                        </Box>
+                    </Box>
+                </Box>
+            </Container>
         )
     }
 

@@ -49,82 +49,124 @@ const ViewParent = () => {
     }
 
     return (
-        <Container>
-            <Paper sx={{ p: 2, mb: 3 }}>
-                <Typography variant="h5" gutterBottom>Parent Details</Typography>
-                <Typography><strong>Name:</strong> {parentDetails?.name}</Typography>
-                <Typography><strong>Email:</strong> {parentDetails?.email}</Typography>
-            </Paper>
-
-            <Paper sx={{ p: 2, mb: 3 }}>
-                <Typography variant="h6" gutterBottom>Linked Children</Typography>
-                <TableContainer>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Child Name</TableCell>
-                                <TableCell>Roll No.</TableCell>
-                                <TableCell>Class</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {parentDetails?.children?.map((child, index) => (
-                                <TableRow key={index}>
-                                    <TableCell>{child.name}</TableCell>
-                                    <TableCell>{child.rollNum}</TableCell>
-                                    <TableCell>{child.sclassName.sclassName}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Paper>
-
-            <Paper sx={{ p: 2 }}>
-                <Typography variant="h6" gutterBottom>Add Another Child</Typography>
-                <form onSubmit={handleAddChild}>
-                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                        <TextField
-                            label="Child's Roll Number"
-                            variant="outlined"
-                            fullWidth
-                            value={rollNum}
-                            onChange={(e) => setRollNum(e.target.value)}
-                            required
-                        />
-                        <TextField
-                            select
-                            label="Class"
-                            variant="outlined"
-                            fullWidth
-                            value={sclassName}
-                            onChange={(e) => setSclassName(e.target.value)}
-                            required
-                            SelectProps={{
-                                native: true,
-                            }}
-                        >
-                            <option value=""></option>
-                            {sclassesList?.map((classItem) => (
-                                <option key={classItem._id} value={classItem._id}>
-                                    {classItem.sclassName}
-                                </option>
-                            ))}
-                        </TextField>
+        <Container maxWidth="md">
+            <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+                    Parent Details
+                </Typography>
+                
+                <Box sx={{ mt: 3 }}>
+                    <Typography variant="h6" gutterBottom color="text.secondary">
+                        Personal Information
+                    </Typography>
+                    
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3, mt: 2 }}>
+                        <Box>
+                            <Typography variant="subtitle2" color="text.secondary">
+                                Name
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                {parentDetails?.name}
+                            </Typography>
+                        </Box>
+                        
+                        <Box>
+                            <Typography variant="subtitle2" color="text.secondary">
+                                Email
+                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                {parentDetails?.email}
+                            </Typography>
+                        </Box>
                     </Box>
-                    <Button type="submit" variant="contained" color="primary">
-                        Add Child
-                    </Button>
-                </form>
-            </Paper>
-
-            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-
-            <Box sx={{ mt: 3 }}>
-                <Button variant="outlined" onClick={() => navigate(-1)}>
-                    Go Back
-                </Button>
+                    
+                    {parentDetails?.children && parentDetails.children.length > 0 && (
+                        <Box sx={{ mt: 4 }}>
+                            <Typography variant="h6" gutterBottom color="text.secondary">
+                                Linked Children
+                            </Typography>
+                            <TableContainer component={Paper} sx={{ mt: 2 }}>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell><strong>Child Name</strong></TableCell>
+                                            <TableCell><strong>Roll No.</strong></TableCell>
+                                            <TableCell><strong>Class</strong></TableCell>
+                                            <TableCell><strong>Actions</strong></TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {parentDetails.children.map((child, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell>{child.name}</TableCell>
+                                                <TableCell>{child.rollNum}</TableCell>
+                                                <TableCell>{child.sclassName?.sclassName}</TableCell>
+                                                <TableCell>
+                                                    <Button 
+                                                        variant="contained" 
+                                                        size="small" 
+                                                        onClick={() => navigate(`/Admin/students/student/${child._id}`)}
+                                                    >
+                                                        View
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Box>
+                    )}
+                    
+                    {/* Add Another Child Section */}
+                    <Box sx={{ mt: 4 }}>
+                        <Typography variant="h6" gutterBottom color="text.secondary">
+                            Add Another Child
+                        </Typography>
+                        <Box component="form" onSubmit={handleAddChild} sx={{ mt: 2 }}>
+                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 3 }}>
+                                <TextField
+                                    label="Child's Roll Number"
+                                    variant="outlined"
+                                    fullWidth
+                                    value={rollNum}
+                                    onChange={(e) => setRollNum(e.target.value)}
+                                    required
+                                />
+                                <TextField
+                                    select
+                                    label="Class"
+                                    variant="outlined"
+                                    fullWidth
+                                    value={sclassName}
+                                    onChange={(e) => setSclassName(e.target.value)}
+                                    required
+                                    SelectProps={{
+                                        native: true,
+                                    }}
+                                >
+                                    <option value=""></option>
+                                    {sclassesList?.map((classItem) => (
+                                        <option key={classItem._id} value={classItem._id}>
+                                            {classItem.sclassName}
+                                        </option>
+                                    ))}
+                                </TextField>
+                            </Box>
+                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+                                <Button type="submit" variant="contained" color="primary">
+                                    Add Child
+                                </Button>
+                                <Button variant="outlined" onClick={() => navigate(-1)}>
+                                    Go Back
+                                </Button>
+                            </Box>
+                        </Box>
+                    </Box>
+                </Box>
             </Box>
+            
+            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </Container>
     );
 };
