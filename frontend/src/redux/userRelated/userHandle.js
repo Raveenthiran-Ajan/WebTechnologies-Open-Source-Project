@@ -73,13 +73,20 @@ export const deleteUser = (id, address) => async (dispatch) => {
 
     try {
         const result = await axios.delete(`${API_BASE_URL}/${address}/${id}`);
-        if (result.data.message) {
+        if (result.data.message && result.data.message.includes('successfully')) {
+            dispatch(getDeleteSuccess());
+            return Promise.resolve(result.data);
+        } else if (result.data.message) {
             dispatch(getFailed(result.data.message));
+            return Promise.reject(new Error(result.data.message));
         } else {
             dispatch(getDeleteSuccess());
+            return Promise.resolve(result.data);
         }
     } catch (error) {
-        dispatch(getError(error.response ? error.response.data.message : error.message));
+        const errorMessage = error.response ? error.response.data.message : error.message;
+        dispatch(getError(errorMessage));
+        return Promise.reject(new Error(errorMessage));
     }
 }
 

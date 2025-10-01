@@ -3,9 +3,16 @@ import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom'
 import { getClassStudents } from "../../redux/sclassRelated/sclassHandle";
-import { Paper, Box, Typography } from '@mui/material';
-import { BlackButton, BlueButton, PurpleButton } from "../../components/buttonStyles";
-import TableTemplate from "../../components/TableTemplate";
+import { Paper, Box, Typography, Container, Button, Grid, Chip } from '@mui/material';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { 
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarColumnsButton,
+    GridToolbarFilterButton,
+    GridToolbarDensitySelector,
+    GridToolbarExport
+} from '@mui/x-data-grid';
 
 
 const TeacherClassDetails = () => {
@@ -20,8 +27,12 @@ const TeacherClassDetails = () => {
     const subjectID = currentUser.teachSubject?._id
     
     // Check if this class is the attendance-assigned class
-    const attendanceClass = currentUser?.attendanceClass || currentUser?.teachSclass;
-    const canTakeAttendance = attendanceClass && (attendanceClass._id === classID || attendanceClass._id === classId);
+    const attendanceClass = currentUser?.attendanceClass;
+    const canTakeAttendance = attendanceClass && 
+        (attendanceClass._id === classID || attendanceClass._id === classId ||
+         attendanceClass === classID || attendanceClass === classId);
+    
+
 
     useEffect(() => {
         dispatch(getClassStudents(classID));
@@ -31,79 +42,191 @@ const TeacherClassDetails = () => {
         console.log(error)
     }
 
-    const studentColumns = [
-        { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
-    ]
+    const dataGridColumns = [
+        { 
+            field: 'rollNum', 
+            headerName: 'Roll Number', 
+            width: 130,
+            headerAlign: 'center',
+            align: 'center'
+        },
+        { 
+            field: 'name', 
+            headerName: 'Student Name', 
+            width: 200,
+            flex: 1
+        },
+        { 
+            field: 'email', 
+            headerName: 'Email', 
+            width: 250,
+            flex: 1
+        },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 150,
+            headerAlign: 'center',
+            align: 'center',
+            sortable: false,
+            renderCell: (params) => (
+                <Button
+                    variant="contained"
+                    size="small"
+                    onClick={() => navigate(`/teacher/students/student/${params.row.id}`)}
+                    sx={{ textTransform: 'none' }}
+                >
+                    VIEW
+                </Button>
+            ),
+        },
+    ];
 
     const studentRows = sclassStudents.map((student) => {
         return {
-            name: student.name,
             rollNum: student.rollNum,
+            name: student.name,
+            email: student.email || 'N/A',
             id: student._id,
         };
-    })
+    });
 
-    const StudentsButtonHaver = ({ row }) => {
+    const CustomToolbar = () => {
         return (
-            <>
-                <BlueButton
-                    variant="contained"
-                    onClick={() =>
-                        navigate("/teacher/class/attendance/" + classID)
-                    }
-                >
-                    View
-                </BlueButton>
-            </>
+            <GridToolbarContainer>
+                <GridToolbarColumnsButton />
+                <GridToolbarFilterButton />
+                <GridToolbarDensitySelector />
+                <GridToolbarExport />
+            </GridToolbarContainer>
         );
     };
 
+
+
     return (
-        <>
+        <Container maxWidth="lg">
             {loading ? (
-                <div>Loading...</div>
+                <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, textAlign: 'center' }}>
+                    <Typography>Loading...</Typography>
+                </Box>
             ) : (
                 <>
-                    <Typography variant="h4" align="center" gutterBottom>
-                        Class Details
-                    </Typography>
+                    {/* Class Header */}
+                    <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                        <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+                            Class Details
+                        </Typography>
+                        
+                        <Grid container spacing={2} sx={{ mt: 2 }}>
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="h6" color="text.secondary">Class Information</Typography>
+                                <Typography variant="body1">Class ID: {classID}</Typography>
+                                <Typography variant="body1">Subject: {currentUser.teachSubject?.subName}</Typography>
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="h6" color="text.secondary">Teacher Information</Typography>
+                                <Typography variant="body1">Name: {currentUser.name}</Typography>
+                                <Typography variant="body1">Email: {currentUser.email}</Typography>
+                            </Grid>
+                        </Grid>
+                    </Box>
+
+                    {/* Attendance Access */}
+                    <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                        <Typography variant="h6" gutterBottom color="text.secondary">
+                            Class Actions
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', alignItems: 'center' }}>
+                            {canTakeAttendance ? (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={() => navigate(`/teacher/class/${classID}/attendance`)}
+                                >
+                                    Mark Class Attendance
+                                </Button>
+                            ) : (
+                                <Chip 
+                                    label="Teaching Only - No Attendance Access" 
+                                    color="warning"
+                                    variant="outlined"
+                                />
+                            )}
+                        </Box>
+                    </Box>
+
+                    {/* Students List */}
                     {getresponse ? (
-                        <>
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                        <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, textAlign: 'center' }}>
+                            <Typography variant="h6" color="text.secondary">
                                 No Students Found
-                            </Box>
-                        </>
+                            </Typography>
+                        </Box>
                     ) : (
-                        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, p: 2 }}>
-                                <Typography variant="h5">
-                                    Students List:
+                        <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                                <Typography variant="h5" component="h2" gutterBottom>
+                                    All Students
                                 </Typography>
-                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                                    {canTakeAttendance ? (
-                                        <PurpleButton
-                                            variant="contained"
-                                            onClick={() => navigate(`/teacher/class/${classID}/attendance`)}
-                                        >
-                                            Mark Class Attendance
-                                        </PurpleButton>
-                                    ) : (
-                                        <Typography variant="body2" color="text.secondary">
-                                            (Teaching Only - No Attendance Access)
-                                        </Typography>
-                                    )}
-                                </Box>
+                                {canTakeAttendance && (
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        startIcon={<AccessTimeIcon />}
+                                        onClick={() => navigate(`/teacher/class/${classID}/attendance`)}
+                                        sx={{ textTransform: 'none' }}
+                                    >
+                                        Mark Attendance
+                                    </Button>
+                                )}
                             </Box>
 
-                            {Array.isArray(sclassStudents) && sclassStudents.length > 0 &&
-                                <TableTemplate buttonHaver={StudentsButtonHaver} columns={studentColumns} rows={studentRows} />
-                            }
-                        </Paper>
+                            <Box sx={{ height: 400, width: '100%' }}>
+                                <DataGrid
+                                    rows={studentRows}
+                                    columns={dataGridColumns}
+                                    initialState={{
+                                        pagination: {
+                                            paginationModel: {
+                                                pageSize: 10,
+                                            },
+                                        },
+                                    }}
+                                    pageSizeOptions={[5, 10, 25]}
+                                    checkboxSelection={false}
+                                    disableRowSelectionOnClick
+                                    slots={{
+                                        toolbar: CustomToolbar,
+                                    }}
+                                    sx={{
+                                        '& .MuiDataGrid-root': {
+                                            border: 'none',
+                                        },
+                                        '& .MuiDataGrid-cell': {
+                                            borderBottom: '1px solid #f0f0f0',
+                                        },
+                                        '& .MuiDataGrid-columnHeaders': {
+                                            backgroundColor: '#f5f5f5',
+                                            borderBottom: '1px solid #e0e0e0',
+                                        },
+                                        '& .MuiDataGrid-virtualScroller': {
+                                            backgroundColor: '#fafafa',
+                                        },
+                                        '& .MuiDataGrid-overlay': {
+                                            backgroundColor: '#ffffff',
+                                        },
+                                    }}
+                                    localeText={{
+                                        noRowsLabel: 'No students enrolled in this class yet.',
+                                    }}
+                                />
+                            </Box>
+                        </Box>
                     )}
                 </>
             )}
-        </>
+        </Container>
     );
 };
 

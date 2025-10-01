@@ -38,6 +38,7 @@ const ShowSubjects = () => {
 
     const columns = [
         { field: 'subName', headerName: 'Subject Name', width: 200 },
+        { field: 'subCode', headerName: 'Subject Code', width: 150 },
         { field: 'sessions', headerName: 'Sessions', width: 150 },
         { field: 'sclassName', headerName: 'Class', width: 150 },
         {
@@ -67,6 +68,7 @@ const ShowSubjects = () => {
     const rows = Array.isArray(subjectsList) ? subjectsList.map((subject) => ({
         id: subject._id,
         subName: subject.subName,
+        subCode: subject.subCode,
         sessions: subject.sessions,
         sclassName: subject.sclassName ? subject.sclassName.sclassName : 'No Class',
         sclassID: subject.sclassName ? subject.sclassName._id : null,

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom'
 import { getClassDetails, getClassStudents, getClassTeachers, getSubjectList } from "../../../redux/sclassRelated/sclassHandle";
+import { resetSubjects } from '../../../redux/sclassRelated/sclassSlice';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import {
     Box, Container, Typography, Tab, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, CircularProgress
@@ -54,17 +55,43 @@ const ClassDetails = () => {
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
 
-    const deleteHandler = (deleteID, address) => {
-        console.log(deleteID);
-        console.log(address);
-        setMessage("Sorry the delete function has been disabled for now.")
-        setShowPopup(true)
-        // dispatch(deleteUser(deleteID, address))
-        //     .then(() => {
-        //         dispatch(getClassStudents(classID));
-        //         dispatch(resetSubjects())
-        //         dispatch(getSubjectList(classID, "ClassSubjects"))
-        //     })
+    const deleteHandler = async (deleteID, address) => {
+        let confirmMessage = '';
+        let successMessage = '';
+        
+        if (address === 'Subject') {
+            confirmMessage = 'Are you sure you want to delete this subject? This will remove all associated data including assignments, grades, and attendance records. This action cannot be undone.';
+            successMessage = '📚 Subject has been successfully removed from the class';
+        } else if (address === 'Student') {
+            confirmMessage = 'Are you sure you want to remove this student from the class? This will remove their attendance, grades, and assignments for this class. This action cannot be undone.';
+            successMessage = '👨‍🎓 Student has been successfully removed from the class';
+        }
+        
+        const confirmDelete = window.confirm(confirmMessage);
+        
+        if (confirmDelete) {
+            try {
+                console.log('Deleting', address, 'with ID:', deleteID);
+                await dispatch(deleteUser(deleteID, address));
+                console.log(address, 'deleted successfully, refreshing data...');
+                
+                // Refresh appropriate data based on what was deleted
+                if (address === 'Subject') {
+                    dispatch(resetSubjects());
+                    dispatch(getSubjectList(classID, "ClassSubjects"));
+                } else if (address === 'Student') {
+                    dispatch(getClassStudents(classID));
+                }
+                
+                setMessage(successMessage);
+                setShowPopup(true);
+                
+            } catch (error) {
+                console.error('Delete error:', error);
+                setMessage('❌ Unable to delete ' + address.toLowerCase() + ': ' + (error.message || 'Please try again or contact support'));
+                setShowPopup(true);
+            }
+        }
     }
 
     const subjectColumns = [

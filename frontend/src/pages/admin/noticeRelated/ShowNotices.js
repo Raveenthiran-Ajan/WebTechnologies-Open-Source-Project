@@ -4,8 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Paper, Box, Typography, Button, IconButton, CircularProgress } from '@mui/material';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import Delete from '@mui/icons-material/Delete';
-import { getAllNotices } from '../../../redux/noticeRelated/noticeHandle';
-import { deleteUser } from '../../../redux/userRelated/userHandle';
+import { getAllNotices, deleteNotice } from '../../../redux/noticeRelated/noticeHandle';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -25,11 +24,8 @@ const ShowNotices = () => {
         dispatch(getAllNotices(currentUser._id, "Notice"));
     }, [currentUser._id, dispatch]);
 
-    const deleteHandler = (id, address) => {
-        dispatch(deleteUser(id, address))
-            .then(() => {
-                dispatch(getAllNotices(currentUser._id, "Notice"));
-            })
+    const deleteHandler = (id) => {
+        dispatch(deleteNotice(id, currentUser._id));
     }
 
     const columns = [
@@ -43,7 +39,7 @@ const ShowNotices = () => {
             renderCell: (params) => {
                 return (
                     <IconButton
-                        onClick={() => deleteHandler(params.row.id, "Notice")}
+                        onClick={() => deleteHandler(params.row.id)}
                     >
                         <Delete color="error" />
                     </IconButton>
@@ -95,7 +91,22 @@ const ShowNotices = () => {
                 :
                 (Array.isArray(noticesList) && noticesList.length > 0 ?
                 <Box sx={{ height: 400, width: '100%' }}>
-                    <DataGrid rows={rows || []} columns={columns} components={{ Toolbar: CustomToolbar }} />
+                    <DataGrid 
+                        rows={rows || []} 
+                        columns={columns} 
+                        slots={{ 
+                            toolbar: CustomToolbar 
+                        }}
+                        initialState={{
+                            pagination: {
+                                paginationModel: {
+                                    pageSize: 10,
+                                },
+                            },
+                        }}
+                        pageSizeOptions={[5, 10, 25]}
+                        disableRowSelectionOnClick
+                    />
                 </Box>
                 :
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>

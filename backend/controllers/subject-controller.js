@@ -48,13 +48,36 @@ const allSubjects = async (req, res) => {
 
 const classSubjects = async (req, res) => {
     try {
-        let subjects = await Subject.find({ sclassName: req.params.id })
+        let subjects = await Subject.find({ sclassName: req.params.id }).populate('teacher', 'name');
+        console.log(`\n=== DEBUG: classSubjects for class ${req.params.id} ===`);
+        console.log(`Found ${subjects.length} subjects`);
+        
         if (subjects.length > 0) {
-            res.send(subjects)
+            // Add hasTeacher field for frontend convenience
+            const subjectsWithStatus = subjects.map((subject, index) => {
+                const subjectObj = subject.toObject();
+                // More robust teacher checking
+                const hasTeacher = subject.teacher != null && subject.teacher !== undefined;
+                
+                console.log(`Subject ${index + 1}: ${subject.subName}`);
+                console.log(`  - Teacher field:`, subject.teacher);
+                console.log(`  - HasTeacher:`, hasTeacher);
+                console.log(`  - Teacher populated:`, subject.teacher ? subject.teacher.name : 'None');
+                
+                return {
+                    ...subjectObj,
+                    hasTeacher: hasTeacher
+                };
+            });
+
+            console.log(`Sending ${subjectsWithStatus.length} subjects with status`);
+            res.send(subjectsWithStatus);
         } else {
+            console.log('No subjects found');
             res.send({ message: "No subjects found" });
         }
     } catch (err) {
+        console.error('Error in classSubjects:', err);
         res.status(500).json(err);
     }
 };

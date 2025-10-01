@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom'
 import { getAllTeachers } from '../../../redux/teacherRelated/teacherHandle';
-import { Paper, Box, Typography, Button, IconButton, CircularProgress, Chip } from '@mui/material';
+import { Paper, Box, Typography, Button, IconButton, CircularProgress, Chip, Container } from '@mui/material';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
+import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
 import Delete from '@mui/icons-material/Delete';
 import {
     DataGrid,
@@ -42,11 +43,17 @@ const ShowTeachers = () => {
         {
             field: 'teachSubjects',
             headerName: 'Teaching Subjects',
-            width: 250,
+            width: 300,
             renderCell: (params) => {
                 const subjects = params.row.teachSubjects;
                 return (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: 240 }}>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexWrap: 'wrap', 
+                        gap: 0.5, 
+                        width: '100%',
+                        py: 1 
+                    }}>
                         {subjects && subjects.length > 0 ? (
                             subjects.map((subject, index) => (
                                 <Chip 
@@ -54,7 +61,8 @@ const ShowTeachers = () => {
                                     label={subject.subName} 
                                     size="small" 
                                     color="secondary" 
-                                    variant="outlined" 
+                                    variant="outlined"
+                                    sx={{ fontSize: '0.75rem' }}
                                 />
                             ))
                         ) : params.row.teachSubject ? (
@@ -62,7 +70,8 @@ const ShowTeachers = () => {
                                 label={params.row.teachSubject} 
                                 size="small" 
                                 color="secondary" 
-                                variant="outlined" 
+                                variant="outlined"
+                                sx={{ fontSize: '0.75rem' }}
                             />
                         ) : (
                             <Typography variant="body2" color="text.secondary">
@@ -80,7 +89,13 @@ const ShowTeachers = () => {
             renderCell: (params) => {
                 const classes = params.row.teachSclasses;
                 return (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: 190 }}>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexWrap: 'wrap', 
+                        gap: 0.5, 
+                        width: '100%',
+                        py: 1 
+                    }}>
                         {classes && classes.length > 0 ? (
                             classes.map((sclass, index) => (
                                 <Chip 
@@ -88,7 +103,8 @@ const ShowTeachers = () => {
                                     label={sclass.sclassName} 
                                     size="small" 
                                     color="primary" 
-                                    variant="outlined" 
+                                    variant="outlined"
+                                    sx={{ fontSize: '0.75rem' }}
                                 />
                             ))
                         ) : params.row.teachSclass !== 'No Class' ? (
@@ -96,7 +112,8 @@ const ShowTeachers = () => {
                                 label={params.row.teachSclass} 
                                 size="small" 
                                 color="primary" 
-                                variant="outlined" 
+                                variant="outlined"
+                                sx={{ fontSize: '0.75rem' }}
                             />
                         ) : (
                             <Typography variant="body2" color="text.secondary">
@@ -141,7 +158,7 @@ const ShowTeachers = () => {
                         </IconButton>
                         <Button
                             variant="contained" sx={{ ml: 1 }}
-                            onClick={() => navigate("/Admin/teachers/teacher/" + params.row.id)}>
+                            onClick={() => navigate(`/Admin/teachers/teacher/${params.row.id}`)}>
                             View
                         </Button>
                     </Box>
@@ -171,7 +188,7 @@ const ShowTeachers = () => {
             attendanceClass = teachingClasses[0];
         }
         
-        return {
+        const row = {
             id: teacher._id,
             name: teacher.name,
             teachSubjects: teachingSubjects,
@@ -180,6 +197,8 @@ const ShowTeachers = () => {
             teachSubject: teacher.teachSubject?.subName || null,
             teachSclass: teacher.teachSclass ? teacher.teachSclass.sclassName : 'No Class',
         };
+        
+        return row;
     });
 
     function CustomToolbar() {
@@ -230,11 +249,39 @@ const ShowTeachers = () => {
                 <CircularProgress />
                 :
                 (Array.isArray(teachersList) && teachersList.length > 0 ?
-                <Box sx={{ height: 500, width: '100%' }}>
-                    <DataGrid rows={rows || []} columns={columns} components={{ Toolbar: CustomToolbar }} />
+                <Box sx={{ height: 400, width: '100%' }}>
+                    <DataGrid 
+                        rows={rows || []} 
+                        columns={columns} 
+                        slots={{ 
+                            toolbar: CustomToolbar 
+                        }}
+                        initialState={{
+                            pagination: {
+                                paginationModel: {
+                                    pageSize: 10,
+                                },
+                            },
+                        }}
+                        pageSizeOptions={[5, 10, 25]}
+                        disableRowSelectionOnClick
+                        getRowHeight={() => 'auto'}
+                        sx={{
+                            '& .MuiDataGrid-cell': {
+                                display: 'flex',
+                                alignItems: 'center',
+                                lineHeight: 'unset !important',
+                                maxHeight: 'none !important',
+                            },
+                            '& .MuiDataGrid-row': {
+                                maxHeight: 'none !important',
+                            }
+                        }}
+                    />
                 </Box>
                 :
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+                    <SupervisorAccountOutlinedIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
                     <Typography variant="h5" gutterBottom>
                         No teachers found
                     </Typography>

@@ -93,10 +93,14 @@ const getStudentDetail = async (req, res) => {
 
 const deleteStudent = async (req, res) => {
     try {
-        const result = await Student.findByIdAndDelete(req.params.id)
-        res.send(result)
+        const result = await Student.findByIdAndDelete(req.params.id);
+        if (result) {
+            res.status(200).json({ message: 'Student deleted successfully', deletedStudent: result });
+        } else {
+            res.status(404).json({ message: 'Student not found' });
+        }
     } catch (error) {
-        res.status(500).json(err);
+        res.status(500).json({ message: error.message });
     }
 }
 

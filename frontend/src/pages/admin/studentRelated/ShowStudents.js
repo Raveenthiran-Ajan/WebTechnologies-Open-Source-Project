@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 import { getAllStudents } from '../../../redux/studentRelated/studentHandle';
+import { clearStudentsList } from '../../../redux/studentRelated/studentSlice';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import { Paper, Box, Typography, Button, IconButton, CircularProgress } from '@mui/material';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
@@ -21,19 +22,48 @@ const ShowStudents = () => {
     const dispatch = useDispatch();
     const { studentsList, loading, error, response } = useSelector((state) => state.student);
     const { currentUser } = useSelector(state => state.user);
+    const userState = useSelector(state => state.user);
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     useEffect(() => {
+        console.log('Fetching students list for admin:', currentUser._id, 'Refresh trigger:', refreshTrigger);
         dispatch(getAllStudents(currentUser._id));
-    }, [currentUser._id, dispatch]);
+    }, [currentUser._id, dispatch, refreshTrigger]);
 
-    const deleteHandler = (id, address) => {
-        dispatch(deleteUser(id, address))
-            .then(() => {
-                dispatch(getAllStudents(currentUser._id));
-            })
+    useEffect(() => {
+        if (error) {
+            setMessage(error);
+            setShowPopup(true);
+        }
+    }, [error]);
+
+    const deleteHandler = async (id, address) => {
+        const confirmDelete = window.confirm('Are you sure you want to delete this student? This action cannot be undone.');
+        
+        if (confirmDelete) {
+            try {
+                console.log('Deleting student with ID:', id, 'Address:', address);
+                await dispatch(deleteUser(id, address));
+                console.log('Student deleted successfully, clearing and refreshing list...');
+                
+                // Clear the current list and refresh
+                dispatch(clearStudentsList());
+                
+                setMessage('✅ Student has been successfully removed from the system');
+                setShowPopup(true);
+                
+                // Trigger a refresh of the student list
+                setRefreshTrigger(prev => prev + 1);
+                
+            } catch (error) {
+                console.error('Delete error:', error);
+                setMessage('❌ Unable to delete student: ' + (error.message || 'Please try again or contact support'));
+                setShowPopup(true);
+            }
+        }
     }
 
     const columns = [
@@ -71,6 +101,9 @@ const ShowStudents = () => {
         sclassName: student.sclassName ? student.sclassName.sclassName : 'No Class',
     }));
 
+    console.log('Current studentsList:', studentsList);
+    console.log('Mapped rows:', rows);
+
     function CustomToolbar() {
         return (
             <GridToolbarContainer>
@@ -103,7 +136,23 @@ const ShowStudents = () => {
                 :
                 (Array.isArray(studentsList) && studentsList.length > 0 ?
                 <Box sx={{ height: 400, width: '100%' }}>
-                    <DataGrid rows={rows || []} columns={columns} components={{ Toolbar: CustomToolbar }} />
+                    <DataGrid 
+                        key={`students-${refreshTrigger}`}
+                        rows={rows || []} 
+                        columns={columns} 
+                        slots={{ 
+                            toolbar: CustomToolbar 
+                        }}
+                        initialState={{
+                            pagination: {
+                                paginationModel: {
+                                    pageSize: 10,
+                                },
+                            },
+                        }}
+                        pageSizeOptions={[5, 10, 25]}
+                        disableRowSelectionOnClick
+                    />
                 </Box>
                 :
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>

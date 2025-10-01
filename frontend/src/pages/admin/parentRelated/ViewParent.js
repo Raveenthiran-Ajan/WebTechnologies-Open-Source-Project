@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getParentDetails, updateParent } from '../../../redux/parentRelated/parentHandle'; // This file was not in context, but I am assuming it's correct.
-import { getAllSclasses } from '../../../redux/sclassRelated/sclassHandle';
+import { getAllSclasses, getClassStudents } from '../../../redux/sclassRelated/sclassHandle';
 import {
     Box, Button, Container, Paper, TextField, Typography,
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow
@@ -14,11 +14,12 @@ const ViewParent = () => {
     const params = useParams();
     const dispatch = useDispatch();
     const { loading, parentDetails } = useSelector((state) => state.parent);
-    const { sclassesList } = useSelector((state) => state.sclass);
+    const { sclassesList, sclassStudents } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector(state => state.user);
 
     const [rollNum, setRollNum] = useState('');
     const [sclassName, setSclassName] = useState('');
+    const [filteredStudents, setFilteredStudents] = useState([]);
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
@@ -31,12 +32,45 @@ const ViewParent = () => {
         dispatch(getAllSclasses(adminID, "Sclass"));
     }, [dispatch, parentID, adminID]);
 
+    // Fetch students when class is selected
+    useEffect(() => {
+        if (sclassName) {
+            dispatch(getClassStudents(sclassName));
+        } else {
+            setFilteredStudents([]);
+        }
+        // Reset roll number when class changes
+        setRollNum('');
+    }, [sclassName, dispatch]);
+
+    // Update filtered students when sclassStudents changes
+    useEffect(() => {
+        if (sclassStudents && Array.isArray(sclassStudents)) {
+            setFilteredStudents(sclassStudents);
+        }
+    }, [sclassStudents]);
+
+    const handleClassChange = (e) => {
+        const selectedClassId = e.target.value;
+        setSclassName(selectedClassId);
+    };
+
     const handleAddChild = (e) => {
         e.preventDefault();
+        if (!rollNum || !sclassName) {
+            setMessage("Please select both class and student roll number.");
+            setShowPopup(true);
+            return;
+        }
         const fields = { rollNum, sclassName };
         dispatch(updateParent(fields, parentID, "AddChild"))
             .then(() => {
                 dispatch(getParentDetails(parentID));
+                // Reset form after successful addition
+                setRollNum('');
+                setSclassName('');
+                setMessage("Child added successfully!");
+                setShowPopup(true);
             })
             .catch((err) => {
                 setMessage("Failed to add child. Please check details.");
@@ -126,29 +160,47 @@ const ViewParent = () => {
                         <Box component="form" onSubmit={handleAddChild} sx={{ mt: 2 }}>
                             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mb: 3 }}>
                                 <TextField
+                                    select
+                                    label="Class"
+                                    variant="outlined"
+                                    fullWidth
+                                    value={sclassName}
+                                    onChange={handleClassChange}
+                                    required
+                                    InputLabelProps={{ shrink: true }}
+                                    SelectProps={{
+                                        native: true,
+                                    }}
+                                >
+                                    <option value="">Select Class First</option>
+                                    {sclassesList?.map((classItem) => (
+                                        <option key={classItem._id} value={classItem._id}>
+                                            {classItem.sclassName}
+                                        </option>
+                                    ))}
+                                </TextField>
+                                <TextField
+                                    select
                                     label="Child's Roll Number"
                                     variant="outlined"
                                     fullWidth
                                     value={rollNum}
                                     onChange={(e) => setRollNum(e.target.value)}
                                     required
-                                />
-                                <TextField
-                                    select
-                                    label="Class"
-                                    variant="outlined"
-                                    fullWidth
-                                    value={sclassName}
-                                    onChange={(e) => setSclassName(e.target.value)}
-                                    required
+                                    disabled={!sclassName || filteredStudents.length === 0}
+                                    InputLabelProps={{ shrink: true }}
                                     SelectProps={{
                                         native: true,
                                     }}
                                 >
-                                    <option value=""></option>
-                                    {sclassesList?.map((classItem) => (
-                                        <option key={classItem._id} value={classItem._id}>
-                                            {classItem.sclassName}
+                                    <option value="">
+                                        {!sclassName ? "Select Class First" : 
+                                         filteredStudents.length === 0 ? "No students available" : 
+                                         "Select Student"}
+                                    </option>
+                                    {filteredStudents?.map((student) => (
+                                        <option key={student._id} value={student.rollNum}>
+                                            {student.rollNum} - {student.name}
                                         </option>
                                     ))}
                                 </TextField>

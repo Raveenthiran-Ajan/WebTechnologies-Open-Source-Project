@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Button, Typography, Paper, CircularProgress } from '@mui/material'
+import { Box, Button, Typography, Container, CircularProgress } from '@mui/material'
 import { getAllSclasses } from '../../../redux/sclassRelated/sclassHandle';
 import { useNavigate } from 'react-router-dom';
+import ClassIcon from '@mui/icons-material/Class';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -68,46 +69,75 @@ const ChooseClass = ({ situation }) => {
     }
 
     if (loading) {
-        return <CircularProgress />;
+        return (
+            <Container maxWidth="lg" sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+                <CircularProgress size={60} />
+            </Container>
+        );
     }
 
     return (
-        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <Typography variant="h6" gutterBottom component="div" sx={{ p: 2 }}>
-                Choose a Class
-            </Typography>
-            {getresponse ?
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
-                    <Typography variant="h6" gutterBottom>
-                        No classes found
+        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            <Box sx={{ backgroundColor: 'white', borderRadius: 2, boxShadow: 3, overflow: 'hidden' }}>
+                <Box sx={{ p: 3, borderBottom: '1px solid #e0e0e0' }}>
+                    <Typography variant="h4" component="h1" color="primary.main" sx={{ fontWeight: 'bold' }}>
+                        Choose a Class
                     </Typography>
-                    <Button variant="contained" onClick={() => navigate("/Admin/addclass")}>
-                        Add Class
-                    </Button>
                 </Box>
-                :
-                (Array.isArray(sclassesList) && sclassesList.length > 0 ?
-                <Box sx={{ height: 400, width: '100%' }}>
-                    <DataGrid 
-                        rows={sclassRows || []} 
-                        columns={sclassColumns} 
-                        components={{ Toolbar: CustomToolbar }}
-                        pageSize={5}
-                        rowsPerPageOptions={[5, 10, 25]}
-                    />
-                </Box>
-                :
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
-                    <Typography variant="h6" gutterBottom>
-                        No classes found
-                    </Typography>
-                    <Button variant="contained" onClick={() => navigate("/Admin/addclass")}>
-                        Add Class
-                    </Button>
-                </Box>
-                )
-            }
-        </Paper>
+                
+                {getresponse || (Array.isArray(sclassesList) && sclassesList.length === 0) ? (
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        height: '40vh',
+                        p: 4
+                    }}>
+                        <ClassIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
+                        <Typography variant="h6" gutterBottom color="text.secondary">
+                            No classes found
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, textAlign: 'center' }}>
+                            Create your first class to start adding teachers
+                        </Typography>
+                        <Button 
+                            variant="contained" 
+                            onClick={() => navigate("/Admin/addclass")}
+                        >
+                            Add Class
+                        </Button>
+                    </Box>
+                ) : (
+                    <Box sx={{ height: 500, width: '100%' }}>
+                        <DataGrid 
+                            rows={sclassRows || []} 
+                            columns={sclassColumns} 
+                            slots={{ toolbar: CustomToolbar }}
+                            initialState={{
+                                pagination: {
+                                    paginationModel: {
+                                        pageSize: 10,
+                                    },
+                                },
+                            }}
+                            pageSizeOptions={[5, 10, 25]}
+                            disableRowSelectionOnClick
+                            sx={{
+                                border: 'none',
+                                '& .MuiDataGrid-cell': {
+                                    borderBottom: '1px solid #f0f0f0',
+                                },
+                                '& .MuiDataGrid-columnHeaders': {
+                                    backgroundColor: '#f8f9fa',
+                                    borderBottom: '2px solid #e0e0e0',
+                                },
+                            }}
+                        />
+                    </Box>
+                )}
+            </Box>
+        </Container>
     )
 }
 

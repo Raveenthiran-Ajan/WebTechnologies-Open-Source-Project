@@ -18,9 +18,17 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    TextField
+    TextField,
+    Container
 } from '@mui/material';
-import { PurpleButton, GreenButton } from '../../components/buttonStyles';
+import {
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarColumnsButton,
+    GridToolbarFilterButton,
+    GridToolbarDensitySelector,
+    GridToolbarExport
+} from '@mui/x-data-grid';
 import Popup from '../../components/Popup';
 
 const ClassAttendance = () => {
@@ -32,8 +40,11 @@ const ClassAttendance = () => {
     const { currentUser } = useSelector((state) => state.user);
     
     // Check if teacher has attendance permission for this class
-    const attendanceClass = currentUser?.attendanceClass || currentUser?.teachSclass;
-    const hasAttendancePermission = attendanceClass && (attendanceClass._id === classId);
+    const attendanceClass = currentUser?.attendanceClass;
+    const hasAttendancePermission = attendanceClass && 
+        (attendanceClass._id === classId || attendanceClass === classId);
+    
+
     
     const [attendanceData, setAttendanceData] = useState({});
     const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
@@ -110,20 +121,22 @@ const ClassAttendance = () => {
     
     if (!hasAttendancePermission) {
         return (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-                <Typography variant="h5" color="error" gutterBottom>
-                    Access Denied
-                </Typography>
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                    You don't have permission to take attendance for this class.
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    You can only take attendance for your assigned attendance class.
-                </Typography>
-                <Button variant="outlined" onClick={() => navigate(-1)}>
-                    Go Back
-                </Button>
-            </Box>
+            <Container maxWidth="md">
+                <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3, textAlign: 'center' }}>
+                    <Typography variant="h4" component="h1" color="error" gutterBottom>
+                        Access Denied
+                    </Typography>
+                    <Typography variant="body1" sx={{ mb: 2 }}>
+                        You don't have permission to take attendance for this class.
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                        You can only take attendance for your assigned attendance class.
+                    </Typography>
+                    <Button variant="outlined" onClick={() => navigate(-1)}>
+                        Go Back
+                    </Button>
+                </Box>
+            </Container>
         );
     }
     
@@ -131,94 +144,118 @@ const ClassAttendance = () => {
     const absentCount = Object.values(attendanceData).filter(status => status === 'Absent').length;
     
     return (
-        <Box sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-                Mark Class Attendance
-            </Typography>
-            
-            <Paper sx={{ p: 2, mb: 3 }}>
-                <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-                    <TextField
-                        label="Date"
-                        type="date"
-                        value={attendanceDate}
-                        onChange={(e) => setAttendanceDate(e.target.value)}
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                    />
-                    <Button variant="outlined" onClick={markAllPresent}>
-                        Mark All Present
-                    </Button>
-                    <Button variant="outlined" onClick={markAllAbsent}>
-                        Mark All Absent
-                    </Button>
-                </Box>
+        <Container maxWidth="lg">
+            <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+                    Mark Class Attendance
+                </Typography>
                 
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                    <Chip 
-                        label={`Present: ${presentCount}`} 
-                        color="success" 
-                        variant="outlined" 
-                    />
-                    <Chip 
-                        label={`Absent: ${absentCount}`} 
-                        color="error" 
-                        variant="outlined" 
-                    />
-                    <Chip 
-                        label={`Total: ${sclassStudents?.length || 0}`} 
-                        color="info" 
-                        variant="outlined" 
-                    />
+                <Box sx={{ mt: 3 }}>
+                    <Typography variant="h6" gutterBottom color="text.secondary">
+                        Attendance Settings
+                    </Typography>
+                    
+                    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 2, mb: 3 }}>
+                        <TextField
+                            label="Date"
+                            type="date"
+                            value={attendanceDate}
+                            onChange={(e) => setAttendanceDate(e.target.value)}
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            fullWidth
+                        />
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mb: 3 }}>
+                        <Button variant="contained" color="success" onClick={markAllPresent}>
+                            Mark All Present
+                        </Button>
+                        <Button variant="contained" color="error" onClick={markAllAbsent}>
+                            Mark All Absent
+                        </Button>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 3 }}>
+                        <Chip 
+                            label={`Present: ${presentCount}`} 
+                            color="success" 
+                            variant="filled" 
+                        />
+                        <Chip 
+                            label={`Absent: ${absentCount}`} 
+                            color="error" 
+                            variant="filled" 
+                        />
+                        <Chip 
+                            label={`Total: ${sclassStudents?.length || 0}`} 
+                            color="info" 
+                            variant="filled" 
+                        />
+                    </Box>
                 </Box>
-            </Paper>
+            </Box>
             
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Roll Number</TableCell>
-                            <TableCell>Student Name</TableCell>
-                            <TableCell>Attendance Status</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {sclassStudents && sclassStudents.map((student) => (
-                            <TableRow key={student._id}>
-                                <TableCell>{student.rollNum}</TableCell>
-                                <TableCell>{student.name}</TableCell>
-                                <TableCell>
-                                    <FormControl size="small" sx={{ minWidth: 120 }}>
-                                        <Select
-                                            value={attendanceData[student._id] || 'Present'}
-                                            onChange={(e) => handleAttendanceChange(student._id, e.target.value)}
-                                        >
-                                            <MenuItem value="Present">Present</MenuItem>
-                                            <MenuItem value="Absent">Absent</MenuItem>
-                                        </Select>
-                                    </FormControl>
-                                </TableCell>
+            <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                <Typography variant="h6" gutterBottom color="text.secondary">
+                    Student Attendance List
+                </Typography>
+                
+                <TableContainer component={Paper} sx={{ mt: 2 }}>
+                    <Table>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell><strong>Roll Number</strong></TableCell>
+                                <TableCell><strong>Student Name</strong></TableCell>
+                                <TableCell><strong>Email</strong></TableCell>
+                                <TableCell><strong>Attendance Status</strong></TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                        </TableHead>
+                        <TableBody>
+                            {sclassStudents && sclassStudents.map((student) => (
+                                <TableRow key={student._id}>
+                                    <TableCell>{student.rollNum}</TableCell>
+                                    <TableCell>{student.name}</TableCell>
+                                    <TableCell>{student.email || 'N/A'}</TableCell>
+                                    <TableCell>
+                                        <FormControl size="small" sx={{ minWidth: 120 }}>
+                                            <Select
+                                                value={attendanceData[student._id] || 'Present'}
+                                                onChange={(e) => handleAttendanceChange(student._id, e.target.value)}
+                                            >
+                                                <MenuItem value="Present">Present</MenuItem>
+                                                <MenuItem value="Absent">Absent</MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Box>
             
-            <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
-                <Button 
-                    variant="outlined" 
-                    onClick={() => navigate(-1)}
-                >
-                    Cancel
-                </Button>
-                <PurpleButton 
-                    variant="contained" 
-                    onClick={handleSubmitAttendance}
-                    disabled={!sclassStudents || sclassStudents.length === 0}
-                >
-                    Submit Attendance
-                </PurpleButton>
+            <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                <Typography variant="h6" gutterBottom color="text.secondary">
+                    Actions
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
+                    <Button 
+                        variant="outlined" 
+                        onClick={() => navigate(-1)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        variant="contained" 
+                        color="primary"
+                        onClick={handleSubmitAttendance}
+                        disabled={!sclassStudents || sclassStudents.length === 0}
+                    >
+                        Submit Attendance
+                    </Button>
+                </Box>
             </Box>
             
             <Popup 
@@ -226,7 +263,7 @@ const ClassAttendance = () => {
                 setShowPopup={setShowPopup} 
                 showPopup={showPopup} 
             />
-        </Box>
+        </Container>
     );
 };
 

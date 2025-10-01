@@ -28,18 +28,35 @@ const ShowClasses = () => {
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
     const [anchorEl, setAnchorEl] = useState({});
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const adminID = currentUser._id;
 
     useEffect(() => {
         dispatch(getAllSclasses(adminID, "Sclass"));
-    }, [adminID, dispatch]);
+    }, [adminID, dispatch, refreshTrigger]);
 
-    const deleteHandler = (id, address) => {
-        dispatch(deleteUser(id, address))
-            .then(() => {
-                dispatch(getAllSclasses(adminID, "Sclass"));
-            })
+    const deleteHandler = async (id, address) => {
+        const confirmDelete = window.confirm('Are you sure you want to delete this class? This will also delete all associated students, subjects, and data. This action cannot be undone.');
+        
+        if (confirmDelete) {
+            try {
+                console.log('Deleting class with ID:', id, 'Address:', address);
+                await dispatch(deleteUser(id, address));
+                console.log('Class deleted successfully, refreshing list...');
+                
+                setMessage('Class deleted successfully');
+                setShowPopup(true);
+                
+                // Trigger a refresh of the classes list
+                setRefreshTrigger(prev => prev + 1);
+                
+            } catch (error) {
+                console.error('Delete error:', error);
+                setMessage('Failed to delete class: ' + (error.message || 'Unknown error'));
+                setShowPopup(true);
+            }
+        }
     }
 
     const handleMenuOpen = (event, id) => {

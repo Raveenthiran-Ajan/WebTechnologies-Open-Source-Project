@@ -13,11 +13,32 @@ const TeacherDetails = () => {
     const teacherID = params.id;
 
     useEffect(() => {
-        dispatch(getTeacherDetails(teacherID));
+        console.log("TeacherDetails component mounted with ID:", teacherID);
+        if (teacherID) {
+            dispatch(getTeacherDetails(teacherID));
+        } else {
+            console.error("No teacher ID provided in params");
+        }
     }, [dispatch, teacherID]);
 
+    useEffect(() => {
+        console.log("Teacher details state updated:", { loading, teacherDetails, error });
+    }, [loading, teacherDetails, error]);
+
     if (error) {
-        console.log(error);
+        console.error("Error loading teacher details:", error);
+        return (
+            <Container maxWidth="md">
+                <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                    <Typography variant="h6" color="error" align="center">
+                        Error loading teacher details: {error.message || 'Unknown error'}
+                    </Typography>
+                    <Button onClick={() => navigate('/Admin/teachers')} sx={{ mt: 2 }}>
+                        Back to Teachers
+                    </Button>
+                </Box>
+            </Container>
+        );
     }
 
     // Support both new multi-assignment structure and old single assignment
@@ -40,7 +61,22 @@ const TeacherDetails = () => {
     return (
         <>
             {loading ? (
-                <div>Loading...</div>
+                <Container maxWidth="md">
+                    <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3, textAlign: 'center' }}>
+                        <Typography variant="h6">Loading teacher details...</Typography>
+                    </Box>
+                </Container>
+            ) : !teacherDetails ? (
+                <Container maxWidth="md">
+                    <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                        <Typography variant="h6" color="warning.main" align="center">
+                            No teacher details found
+                        </Typography>
+                        <Button onClick={() => navigate('/Admin/teachers')} sx={{ mt: 2 }}>
+                            Back to Teachers
+                        </Button>
+                    </Box>
+                </Container>
             ) : (
                 <Container maxWidth="md">
                     <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
@@ -167,13 +203,6 @@ const TeacherDetails = () => {
                                         onClick={() => navigate(`/Admin/teachers/teacher/timetable/${teacherDetails?._id}`)}
                                     >
                                         View Timetable
-                                    </Button>
-                                    <Button 
-                                        variant="outlined" 
-                                        color="warning"
-                                        onClick={() => navigate(`/Admin/teachers/edit/${teacherDetails?._id}`)}
-                                    >
-                                        Edit Teacher
                                     </Button>
                                     <Button variant="outlined" onClick={() => navigate(-1)}>
                                         Go Back

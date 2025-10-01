@@ -3,27 +3,32 @@ import { useDispatch, useSelector } from 'react-redux';
 import { 
     Container, 
     Typography, 
-    Card, 
-    CardContent, 
     Box, 
-    Avatar, 
     Chip, 
-    Grid,
     TextField,
     Button,
     Alert,
     CircularProgress,
-    Paper,
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
-    Fab
+    Fab,
+    Grid
 } from '@mui/material';
+import {
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarColumnsButton,
+    GridToolbarFilterButton,
+    GridToolbarDensitySelector,
+    GridToolbarExport
+} from '@mui/x-data-grid';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import AddIcon from '@mui/icons-material/Add';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import SchoolIcon from '@mui/icons-material/School';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { addStuff } from '../../redux/userRelated/userHandle';
 import { getAllComplains } from '../../redux/complainRelated/complainHandle';
 
@@ -95,47 +100,116 @@ const TeacherComplain = () => {
         return complainUserId === currentUser._id;
     }) : [];
 
-    return (
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-            {/* Header Section */}
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-                <Avatar 
-                    sx={{ 
-                        width: 80, 
-                        height: 80, 
-                        mx: 'auto', 
-                        mb: 2,
-                        bgcolor: 'success.main',
-                        fontSize: '2rem',
-                        fontWeight: 'bold',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
-                    }}
-                >
-                    <SchoolIcon sx={{ fontSize: 40 }} />
-                </Avatar>
-                <Typography 
-                    variant="h3" 
-                    gutterBottom 
-                    sx={{ 
-                        fontWeight: 'bold',
-                        background: 'linear-gradient(45deg, #43a047 0%, #66bb6a 100%)',
-                        backgroundClip: 'text',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                    }}
-                >
-                    My Complaints
-                </Typography>
-                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
-                    <Chip 
-                        icon={<ReportProblemIcon />}
-                        label={`${userComplaints.length} Total Complaints`} 
-                        color="success" 
-                        size="large"
-                    />
-                </Box>
-            </Box>
+    const CustomToolbar = () => {
+        return (
+            <GridToolbarContainer>
+                <GridToolbarColumnsButton />
+                <GridToolbarFilterButton />
+                <GridToolbarDensitySelector />
+                <GridToolbarExport />
+            </GridToolbarContainer>
+        );
+    };
 
+    const columns = [
+        {
+            field: 'id',
+            headerName: 'Complaint #',
+            width: 120,
+            headerAlign: 'center',
+            align: 'center',
+            renderCell: (params) => (
+                <Chip
+                    label={`#${params.value}`}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                />
+            ),
+        },
+        {
+            field: 'date',
+            headerName: 'Date Submitted',
+            width: 150,
+            renderCell: (params) => (
+                new Date(params.value).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                })
+            ),
+        },
+        {
+            field: 'complaint',
+            headerName: 'Complaint Description',
+            width: 300,
+            flex: 1,
+            renderCell: (params) => (
+                <Box sx={{ py: 1 }}>
+                    <Typography variant="body2" sx={{ 
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                    }}>
+                        {params.value}
+                    </Typography>
+                </Box>
+            ),
+        },
+        {
+            field: 'status',
+            headerName: 'Status',
+            width: 130,
+            headerAlign: 'center',
+            align: 'center',
+            renderCell: (params) => (
+                <Chip
+                    label={params.value || 'Pending'}
+                    size="small"
+                    color={params.value === 'Actioned' ? 'success' : 'warning'}
+                    variant="filled"
+                />
+            ),
+        },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 150,
+            headerAlign: 'center',
+            align: 'center',
+            sortable: false,
+            renderCell: (params) => (
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<VisibilityIcon />}
+                        onClick={() => {
+                            // Handle view complaint details
+                            console.log('View complaint:', params.row);
+                        }}
+                        sx={{ textTransform: 'none' }}
+                    >
+                        View
+                    </Button>
+                </Box>
+            ),
+        },
+    ];
+
+    const rows = userComplaints.map((complain, index) => ({
+        id: index + 1,
+        date: complain.date,
+        complaint: complain.complaint,
+        status: complain.status,
+        originalId: complain._id,
+        actionedDate: complain.actionedDate
+    }));
+
+    return (
+        <Container maxWidth="lg">
             {/* Alert Messages */}
             {message && (
                 <Alert 
@@ -147,110 +221,90 @@ const TeacherComplain = () => {
                 </Alert>
             )}
 
-            {/* Complaints List */}
-            {complainLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                    <CircularProgress />
-                </Box>
-            ) : userComplaints.length === 0 ? (
-                <Paper sx={{ p: 4, textAlign: 'center' }}>
-                    <ReportProblemIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                    <Typography variant="h6" sx={{ mb: 2 }}>No complaints submitted yet.</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        Click the + button to submit your first complaint.
+            <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                    <Typography variant="h4" component="h1" color="primary">
+                        My Complaints
                     </Typography>
-                </Paper>
-            ) : (
-                <Grid container spacing={3}>
-                    {userComplaints.map((complain, index) => (
-                        <Grid item xs={12} key={complain._id || index}>
-                            <Card sx={{ 
-                                borderRadius: 3,
-                                '&:hover': { 
-                                    transform: 'translateY(-2px)',
-                                    boxShadow: '0 8px 32px rgba(0,0,0,0.12)'
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<AddIcon />}
+                        onClick={() => setOpenDialog(true)}
+                        sx={{ textTransform: 'none' }}
+                    >
+                        Add Complaint
+                    </Button>
+                </Box>
+
+                {complainLoading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                        <CircularProgress />
+                    </Box>
+                ) : (
+                    <Box sx={{ height: 400, width: '100%' }}>
+                        <DataGrid
+                            rows={rows}
+                            columns={columns}
+                            initialState={{
+                                pagination: {
+                                    paginationModel: {
+                                        pageSize: 10,
+                                    },
                                 },
-                                transition: 'all 0.3s ease-in-out'
-                            }}>
-                                <Box sx={{
-                                    background: 'linear-gradient(135deg, #43a047 0%, #66bb6a 100%)',
-                                    color: 'white',
-                                    p: 3
-                                }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                        <ReportProblemIcon sx={{ fontSize: 30 }} />
-                                        <Box sx={{ flexGrow: 1 }}>
-                                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                                Complaint #{index + 1}
-                                            </Typography>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                                                <CalendarTodayIcon sx={{ fontSize: 16 }} />
-                                                <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                                    Submitted on {new Date(complain.date).toLocaleDateString('en-US', {
-                                                        year: 'numeric',
-                                                        month: 'long',
-                                                        day: 'numeric'
-                                                    })}
-                                                </Typography>
-                                            </Box>
-                                        </Box>
-                                        <Chip 
-                                            label={complain.status || "Pending"} 
-                                            size="small" 
-                                            sx={{ 
-                                                bgcolor: complain.status === 'Actioned' 
-                                                    ? 'rgba(76, 175, 80, 0.8)' 
-                                                    : 'rgba(255,255,255,0.25)', 
-                                                color: 'white',
-                                                fontWeight: 'bold',
-                                                border: '1px solid rgba(255,255,255,0.3)'
-                                            }}
-                                        />
-                                    </Box>
-                                </Box>
-                                <CardContent sx={{ p: 3 }}>
-                                    <Typography variant="body1" sx={{ lineHeight: 1.6, mb: 2 }}>
-                                        {complain.complaint}
-                                    </Typography>
-                                    {complain.status === 'Actioned' && complain.actionedDate && (
-                                        <Box sx={{ 
-                                            mt: 2, 
-                                            p: 2, 
-                                            bgcolor: 'success.light', 
-                                            borderRadius: 1,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 1
-                                        }}>
-                                            <Typography variant="body2" color="success.main" sx={{ fontWeight: 'bold' }}>
-                                                ✓ Action taken on {new Date(complain.actionedDate).toLocaleDateString('en-US', {
-                                                    year: 'numeric',
-                                                    month: 'long',
-                                                    day: 'numeric'
-                                                })}
-                                            </Typography>
-                                        </Box>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
-            )}
+                            }}
+                            pageSizeOptions={[5, 10, 25]}
+                            checkboxSelection={false}
+                            disableRowSelectionOnClick
+                            slots={{
+                                toolbar: CustomToolbar,
+                            }}
+                            sx={{
+                                '& .MuiDataGrid-root': {
+                                    border: 'none',
+                                },
+                                '& .MuiDataGrid-cell': {
+                                    borderBottom: '1px solid #f0f0f0',
+                                },
+                                '& .MuiDataGrid-columnHeaders': {
+                                    backgroundColor: '#f5f5f5',
+                                    borderBottom: '1px solid #e0e0e0',
+                                },
+                                '& .MuiDataGrid-virtualScroller': {
+                                    backgroundColor: '#fafafa',
+                                },
+                                '& .MuiDataGrid-overlay': {
+                                    backgroundColor: '#ffffff',
+                                },
+                            }}
+                            localeText={{
+                                noRowsLabel: 'No complaints submitted yet.',
+                            }}
+                        />
+                    </Box>
+                )}
+
+                {/* Summary Information */}
+                <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+                    <Typography variant="body2" color="text.secondary" align="center">
+                        Total Complaints: {userComplaints.length} | 
+                        Pending: {userComplaints.filter(c => c.status !== 'Actioned').length} | 
+                        Resolved: {userComplaints.filter(c => c.status === 'Actioned').length}
+                    </Typography>
+                </Box>
+            </Box>
 
             {/* Floating Action Button */}
             <Fab 
-                color="success" 
+                color="primary" 
                 aria-label="add complaint"
                 onClick={() => setOpenDialog(true)}
                 sx={{ 
                     position: 'fixed', 
                     bottom: 24, 
                     right: 24,
-                    background: 'linear-gradient(45deg, #43a047 0%, #66bb6a 100%)',
                     '&:hover': {
-                        transform: 'scale(1.1)',
-                        background: 'linear-gradient(45deg, #388e3c 0%, #4caf50 100%)'
+                        transform: 'scale(1.1)'
                     },
                     transition: 'all 0.3s ease-in-out'
                 }}
@@ -270,7 +324,7 @@ const TeacherComplain = () => {
             >
                 <DialogTitle sx={{ 
                     textAlign: 'center',
-                    background: 'linear-gradient(135deg, #43a047 0%, #66bb6a 100%)',
+                    bgcolor: 'primary.main',
                     color: 'white',
                     fontWeight: 'bold'
                 }}>
@@ -316,13 +370,8 @@ const TeacherComplain = () => {
                         <Button 
                             type="submit"
                             variant="contained"
+                            color="primary"
                             disabled={submitLoading}
-                            sx={{
-                                background: 'linear-gradient(45deg, #43a047 0%, #66bb6a 100%)',
-                                '&:hover': {
-                                    background: 'linear-gradient(45deg, #388e3c 0%, #4caf50 100%)'
-                                }
-                            }}
                         >
                             {submitLoading ? <CircularProgress size={24} color="inherit" /> : 'Submit Complaint'}
                         </Button>

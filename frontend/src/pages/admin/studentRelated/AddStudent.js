@@ -19,7 +19,6 @@ const AddStudent = ({ situation }) => {
     const [name, setName] = useState('');
     const [rollNum, setRollNum] = useState('');
     const [password, setPassword] = useState('')
-    const [className, setClassName] = useState('')
     const [sclassName, setSclassName] = useState('')
 
     const adminID = currentUser._id
@@ -41,20 +40,10 @@ const AddStudent = ({ situation }) => {
     }, [adminID, dispatch]);
 
     const changeHandler = (event) => {
-        if (event.target.value === 'Select Class') {
-            setClassName('Select Class');
+        if (event.target.value === '' || event.target.value === 'Select Class') {
             setSclassName('');
         } else {
-            const selectedClass = sclassesList.find(
-                (classItem) => classItem._id === event.target.value
-            );
-            if (selectedClass) {
-                setClassName(selectedClass.sclassName);
-                setSclassName(selectedClass._id);
-            } else {
-                setClassName('');
-                setSclassName('');
-            }
+            setSclassName(event.target.value);
         }
     }
 
@@ -106,6 +95,8 @@ const AddStudent = ({ situation }) => {
                                 onChange={(event) => setName(event.target.value)}
                                 autoComplete="name"
                                 required
+                                InputLabelProps={{ shrink: true }}
+                                placeholder="Enter student's full name"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -114,15 +105,16 @@ const AddStudent = ({ situation }) => {
                                 fullWidth
                                 label="Select Class"
                                 variant="outlined"
-                                value={className}
+                                value={sclassName}
                                 onChange={changeHandler}
                                 required
+                                InputLabelProps={{ shrink: true }}
                                 SelectProps={{
                                     native: true,
                                 }}
                             >
-                                <option value="Select Class">Select Class</option>
-                                {sclassesList.map((sclass) => (
+                                <option value="">Select Class</option>
+                                {sclassesList && sclassesList.map((sclass) => (
                                     <option key={sclass._id} value={sclass._id}>
                                         {sclass.sclassName}
                                     </option>
@@ -138,6 +130,8 @@ const AddStudent = ({ situation }) => {
                                 value={rollNum}
                                 onChange={(event) => setRollNum(event.target.value)}
                                 required
+                                InputLabelProps={{ shrink: true }}
+                                placeholder="Enter roll number"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -150,6 +144,8 @@ const AddStudent = ({ situation }) => {
                                 onChange={(event) => setPassword(event.target.value)}
                                 autoComplete="new-password"
                                 required
+                                InputLabelProps={{ shrink: true }}
+                                placeholder="Enter password"
                             />
                         </Grid>
                         <Grid item xs={12}>

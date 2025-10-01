@@ -87,6 +87,9 @@ const sclassSlice = createSlice({
             state.subjectsList = [];
             state.sclassesList = [];
         },
+        clearSubjects: (state) => {
+            state.subjectsList = [];
+        },
     },
 });
 
@@ -102,6 +105,7 @@ export const {
     getFailedTwo,
     getTeachersFailed,
     resetSubjects,
+    clearSubjects,
     getSubDetailsSuccess,
     getSubDetailsRequest
 } = sclassSlice.actions;
