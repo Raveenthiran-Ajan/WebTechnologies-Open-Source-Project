@@ -64,7 +64,7 @@ export const addParent = (fields, address) => async (dispatch) => {
 export const getAllParents = (id) => async (dispatch) => {
     dispatch(getRequest());
     try {
-        const result = await axios.get(`${process.env.REACT_APP_BASE_URL}/Parents/${id}`);
+        const result = await axios.get(`${REACT_APP_BASE_URL}/Parents/${id}`);
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
