@@ -15,6 +15,7 @@ const {
     deleteStudent,
     updateStudent,
     studentAttendance,
+    termAttendance,
     deleteStudentsByClass,
     updateExamResult,
     clearAllStudentsAttendanceBySubject,
@@ -68,6 +69,7 @@ router.delete("/Student/:id", deleteStudent)
 router.put("/Student/:id", updateStudent)
 router.put('/UpdateExamResult/:id', updateExamResult)
 router.put('/StudentAttendance/:id', studentAttendance)
+router.put('/TermAttendance/:id', termAttendance)
 router.put('/RemoveAllStudentsSubAtten/:id', clearAllStudentsAttendanceBySubject);
 router.put('/RemoveAllStudentsAtten/:id', clearAllStudentsAttendance);
 router.put('/RemoveStudentSubAtten/:id', removeStudentAttendanceBySubject);

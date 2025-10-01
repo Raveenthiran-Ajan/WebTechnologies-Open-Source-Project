@@ -29,6 +29,12 @@ const StudentSideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary={t('menu_subjects')} />
                 </ListItemButton>
+                <ListItemButton component={Link} to="/Student/simple-attendance">
+                    <ListItemIcon>
+                        <ClassOutlinedIcon color={location.pathname.startsWith("/Student/simple-attendance") ? 'primary' : 'inherit'} />
+                    </ListItemIcon>
+                    <ListItemText primary="Simple Attendance Report" />
+                </ListItemButton>
                 <ListItemButton component={Link} to="/Student/attendance">
                     <ListItemIcon>
                         <ClassOutlinedIcon color={location.pathname.startsWith("/Student/attendance") ? 'primary' : 'inherit'} />

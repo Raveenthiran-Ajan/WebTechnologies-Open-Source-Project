@@ -111,7 +111,7 @@ const SideBar = () => {
                 <ListItemButton 
                     component={Link} 
                     to="/Admin/students"
-                    selected={location.pathname.startsWith("/Admin/students")}
+                    selected={location.pathname.startsWith("/Admin/students") && !location.pathname.startsWith("/Admin/attendance-report")}
                     sx={{
                         '&.Mui-selected': {
                             backgroundColor: 'primary.main',
@@ -129,6 +129,50 @@ const SideBar = () => {
                         <PersonOutlineIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_students')} />
+                </ListItemButton>
+                <ListItemButton 
+                    component={Link} 
+                    to="/Admin/attendance-report"
+                    selected={location.pathname.startsWith("/Admin/attendance-report")}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
+                    <ListItemIcon>
+                        <ReportIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Attendance Reports" />
+                </ListItemButton>
+                <ListItemButton 
+                    component={Link} 
+                    to="/Admin/attendance-debug"
+                    selected={location.pathname.startsWith("/Admin/attendance-debug")}
+                    sx={{
+                        '&.Mui-selected': {
+                            backgroundColor: 'primary.main',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: 'primary.dark',
+                            },
+                            '& .MuiListItemIcon-root': {
+                                color: 'white',
+                            },
+                        },
+                    }}
+                >
+                    <ListItemIcon>
+                        <ReportIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Database Viewer" />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 

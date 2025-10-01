@@ -53,7 +53,17 @@ const studentSchema = new mongoose.Schema({
         subName: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'subject',
-            required: true
+            required: false // Not required for term attendance
+        },
+        // New fields for term-based attendance
+        term: {
+            type: String,
+            enum: ['TERM_1', 'TERM_2', 'TERM_3'],
+            required: false
+        },
+        isTermAttendance: {
+            type: Boolean,
+            default: false
         }
     }],
     resetPasswordToken: String,

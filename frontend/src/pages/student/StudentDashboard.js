@@ -16,6 +16,8 @@ import StudentHomePage from './StudentHomePage';
 import StudentProfile from './StudentProfile';
 import StudentSubjects from './StudentSubjects';
 import ViewStdAttendance from './ViewStdAttendance';
+import TermAttendanceReport from './TermAttendanceReport';
+import SimpleAttendanceReport from './SimpleAttendanceReport';
 import StudentComplain from './StudentComplain';
 import StudentTimetable from './StudentTimetable';
 import Logout from '../Logout'
@@ -80,6 +82,8 @@ const StudentDashboard = () => {
 
                         <Route path="/Student/subjects" element={<StudentSubjects />} />
                         <Route path="/Student/attendance" element={<ViewStdAttendance />} />
+                        <Route path="/Student/term-attendance" element={<TermAttendanceReport />} />
+                        <Route path="/Student/simple-attendance" element={<SimpleAttendanceReport />} />
                         <Route path="/Student/complain" element={<StudentComplain />} />
                         <Route path="/Student/timetable" element={<StudentTimetable />} />
                         <Route path="/Student/grades" element={<StudentGrades />} />

@@ -142,9 +142,10 @@ const TeacherClassDetails = () => {
                                 <Button
                                     variant="contained"
                                     color="primary"
-                                    onClick={() => navigate(`/teacher/class/${classID}/attendance`)}
+                                    onClick={() => navigate(`/teacher/class/${classID}/simple-attendance`)}
+                                    size="large"
                                 >
-                                    Mark Class Attendance
+                                    Take Daily Attendance
                                 </Button>
                             ) : (
                                 <Chip 
@@ -174,10 +175,10 @@ const TeacherClassDetails = () => {
                                         variant="contained"
                                         color="primary"
                                         startIcon={<AccessTimeIcon />}
-                                        onClick={() => navigate(`/teacher/class/${classID}/attendance`)}
+                                        onClick={() => navigate(`/teacher/class/${classID}/simple-attendance`)}
                                         sx={{ textTransform: 'none' }}
                                     >
-                                        Mark Attendance
+                                        Take Attendance
                                     </Button>
                                 )}
                             </Box>

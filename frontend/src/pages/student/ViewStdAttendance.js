@@ -6,11 +6,14 @@ import { getUserDetails } from '../../redux/userRelated/userHandle';
 import { calculateOverallAttendancePercentage, calculateSubjectAttendancePercentage, groupAttendanceBySubject } from '../../components/attendanceCalculator';
 
 import CustomBarChart from '../../components/CustomBarChart'
+import MonthlyAttendanceReport from '../../components/MonthlyAttendanceReport';
 
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import { StyledTableCell, StyledTableRow } from '../../components/styles';
 
 const ViewStdAttendance = () => {
@@ -159,6 +162,12 @@ const ViewStdAttendance = () => {
                         <>
                             {selectedSection === 'table' && renderTableSection()}
                             {selectedSection === 'chart' && renderChartSection()}
+                            {selectedSection === 'report' && (
+                                <MonthlyAttendanceReport 
+                                    attendanceData={subjectAttendance} 
+                                    userRole="student"
+                                />
+                            )}
 
                             <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
                                 <BottomNavigation value={selectedSection} onChange={handleSectionChange} showLabels>
@@ -171,6 +180,11 @@ const ViewStdAttendance = () => {
                                         label="Chart"
                                         value="chart"
                                         icon={selectedSection === 'chart' ? <InsertChartIcon /> : <InsertChartOutlinedIcon />}
+                                    />
+                                    <BottomNavigationAction
+                                        label="Monthly Report"
+                                        value="report"
+                                        icon={selectedSection === 'report' ? <AssessmentIcon /> : <AssessmentOutlinedIcon />}
                                     />
                                 </BottomNavigation>
                             </Paper>

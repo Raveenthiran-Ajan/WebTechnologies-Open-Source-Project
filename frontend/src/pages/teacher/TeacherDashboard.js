@@ -23,7 +23,7 @@ import TeacherComplain from './TeacherComplain';
 import TeacherHomePage from './TeacherHomePage';
 import TeacherProfile from './TeacherProfile';
 import TeacherViewStudent from './TeacherViewStudent';
-import ClassAttendance from './ClassAttendance';
+import SimpleTermAttendance from './SimpleTermAttendance';
 import TeacherUploadAssignment from './TeacherUploadAssignment';
 
 const TeacherDashboard = () => {
@@ -83,7 +83,8 @@ const TeacherDashboard = () => {
                     <Route path="/teacher/complain" element={<TeacherComplain />} />
                     <Route path="/teacher/class" element={<TeacherClassDetails />} />
                     <Route path="/teacher/class/:classId" element={<TeacherClassDetails />} />
-                    <Route path="/teacher/class/:classId/attendance" element={<ClassAttendance />} />
+                    <Route path="/teacher/class/:classId/attendance" element={<SimpleTermAttendance />} />
+                    <Route path="/teacher/class/:classId/simple-attendance" element={<SimpleTermAttendance />} />
                     <Route path="/teacher/class/attendance/:classId" element={<TeacherViewStudent />} />
                     <Route path="/teacher/class/student/:id" element={<TeacherViewStudent />} />
                     <Route path="/teacher/upload-assignment" element={<TeacherUploadAssignment />} />

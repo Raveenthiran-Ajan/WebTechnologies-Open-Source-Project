@@ -175,40 +175,133 @@ const updateExamResult = async (req, res) => {
 };
 
 const studentAttendance = async (req, res) => {
-    const { subName, status, date } = req.body;
+    const { subName, status, date, isDailyAttendance } = req.body;
+
+    console.log(`\n=== ATTENDANCE DEBUG ===`);
+    console.log(`Student ID: ${req.params.id}`);
+    console.log(`Subject ID: ${subName}`);
+    console.log(`Status: ${status}`);
+    console.log(`Date: ${date}`);
+    console.log(`Is Daily Attendance: ${isDailyAttendance}`);
 
     try {
         const student = await Student.findById(req.params.id);
 
         if (!student) {
+            console.log('Student not found');
             return res.send({ message: 'Student not found' });
         }
 
-        const subject = await Subject.findById(subName);
+        let subject = null;
+        if (subName) {
+            subject = await Subject.findById(subName);
+            console.log('Subject found:', subject ? subject.subName : 'Not found');
+        } else {
+            console.log('Daily attendance - no subject required');
+        }
 
-        const existingAttendance = student.attendance.find(
-            (a) =>
-                a.date.toDateString() === new Date(date).toDateString() &&
-                a.subName.toString() === subName
-        );
+        // For daily attendance, check by date only. For subject attendance, check by date and subject
+        const existingAttendance = student.attendance.find((a) => {
+            const sameDate = a.date.toDateString() === new Date(date).toDateString();
+            if (isDailyAttendance || !subName) {
+                // For daily attendance, only check date (one attendance per day)
+                return sameDate && (!a.subName || a.subName === null);
+            } else {
+                // For subject-specific attendance, check both date and subject
+                return sameDate && a.subName && a.subName.toString() === subName;
+            }
+        });
+
+        console.log('Existing attendance for this date/subject:', existingAttendance ? 'Found' : 'Not found');
 
         if (existingAttendance) {
+            console.log('Updating existing attendance status from', existingAttendance.status, 'to', status);
             existingAttendance.status = status;
         } else {
-            const attendedSessions = student.attendance.filter(
-                (a) => a.subName.toString() === subName
-            ).length;
+            if (isDailyAttendance || !subName) {
+                // For daily attendance, no session limit checking needed
+                console.log('Adding new daily attendance record');
+                student.attendance.push({ 
+                    date, 
+                    status, 
+                    subName: null, // Explicitly set to null for daily attendance
+                    isDailyAttendance: true 
+                });
+            } else {
+                // For subject-specific attendance, check session limits
+                const attendedSessions = student.attendance.filter(
+                    (a) => a.subName && a.subName.toString() === subName
+                ).length;
 
-            if (attendedSessions >= subject.sessions) {
-                return res.send({ message: 'Maximum attendance limit reached' });
+                console.log('Current attended sessions for this subject:', attendedSessions);
+                console.log('Subject total sessions:', subject ? subject.sessions : 'Unknown');
+
+                if (subject && attendedSessions >= subject.sessions) {
+                    console.log('Maximum attendance limit reached');
+                    return res.send({ message: 'Maximum attendance limit reached' });
+                }
+
+                console.log('Adding new subject attendance record');
+                student.attendance.push({ date, status, subName });
             }
-
-            student.attendance.push({ date, status, subName });
         }
 
         const result = await student.save();
+        console.log(`Attendance saved successfully for student ${student.name}`);
+        console.log('=== END ATTENDANCE DEBUG ===\n');
         return res.send(result);
     } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
+const termAttendance = async (req, res) => {
+    const { status, date, term, isTermAttendance } = req.body;
+
+    console.log(`\n=== TERM ATTENDANCE DEBUG ===`);
+    console.log(`Student ID: ${req.params.id}`);
+    console.log(`Status: ${status}`);
+    console.log(`Date: ${date}`);
+    console.log(`Term: ${term}`);
+
+    try {
+        const student = await Student.findById(req.params.id);
+
+        if (!student) {
+            console.log('Student not found');
+            return res.send({ message: 'Student not found' });
+        }
+
+        // Check for existing term attendance on this date
+        const existingAttendance = student.attendance.find(
+            (a) =>
+                a.date.toDateString() === new Date(date).toDateString() &&
+                a.term === term &&
+                a.isTermAttendance === true
+        );
+
+        console.log('Existing term attendance for this date:', existingAttendance ? 'Found' : 'Not found');
+
+        if (existingAttendance) {
+            console.log('Updating existing term attendance status from', existingAttendance.status, 'to', status);
+            existingAttendance.status = status;
+        } else {
+            console.log('Adding new term attendance record');
+            student.attendance.push({ 
+                date, 
+                status, 
+                term,
+                isTermAttendance: true,
+                // No subName for term attendance - it's class-wide, not subject-specific
+            });
+        }
+
+        const result = await student.save();
+        console.log(`Term attendance saved successfully for student ${student.name}`);
+        console.log('=== END TERM ATTENDANCE DEBUG ===\n');
+        return res.send(result);
+    } catch (error) {
+        console.error('Error in term attendance:', error);
         res.status(500).json(error);
     }
 };
@@ -310,6 +403,7 @@ module.exports = {
     deleteStudent,
     updateStudent,
     studentAttendance,
+    termAttendance,
     deleteStudentsByClass,
     updateExamResult,
     clearAllStudentsAttendanceBySubject,

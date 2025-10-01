@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getClassStudents } from '../../redux/sclassRelated/sclassHandle';
-import axios from 'axios';
 import {
     Box, 
     Typography, 
@@ -20,19 +19,16 @@ import {
     Select,
     MenuItem,
     TextField,
-    Container
+    Container,
+    Card,
+    CardContent,
+    Grid
 } from '@mui/material';
-import {
-    DataGrid,
-    GridToolbarContainer,
-    GridToolbarColumnsButton,
-    GridToolbarFilterButton,
-    GridToolbarDensitySelector,
-    GridToolbarExport
-} from '@mui/x-data-grid';
 import Popup from '../../components/Popup';
+import { getCurrentTerm, getTermName, getAllTerms, isDateInTerm } from '../../utils/termUtils';
+import axios from 'axios';
 
-const ClassAttendance = () => {
+const TermAttendance = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { classId } = useParams();
@@ -40,38 +36,22 @@ const ClassAttendance = () => {
     const { sclassStudents, loading, error } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
     
-    // Check if teacher has attendance permission for this class
-    const attendanceClass = currentUser?.attendanceClass;
-    const hasAttendancePermission = attendanceClass && 
-        (attendanceClass._id === classId || attendanceClass === classId);
-    
-
+    // Check if teacher is class teacher for this class
+    const isClassTeacher = currentUser?.attendanceClass && 
+        (currentUser.attendanceClass._id === classId || currentUser.attendanceClass === classId);
     
     const [attendanceData, setAttendanceData] = useState({});
     const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
-    const [selectedSubject, setSelectedSubject] = useState('');
+    const [selectedTerm, setSelectedTerm] = useState(getCurrentTerm());
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
+    const [termStats, setTermStats] = useState(null);
     
     useEffect(() => {
         if (classId) {
             dispatch(getClassStudents(classId));
         }
     }, [dispatch, classId]);
-
-    useEffect(() => {
-        // Set default subject when teacher data is available
-        if (currentUser) {
-            const teacherSubjects = currentUser.teachSubjects || [];
-            const teacherSubject = currentUser.teachSubject;
-            
-            if (teacherSubjects.length > 0) {
-                setSelectedSubject(teacherSubjects[0]._id || teacherSubjects[0]);
-            } else if (teacherSubject) {
-                setSelectedSubject(teacherSubject._id || teacherSubject);
-            }
-        }
-    }, [currentUser]);
     
     useEffect(() => {
         // Initialize attendance data for all students as present by default
@@ -83,6 +63,35 @@ const ClassAttendance = () => {
             setAttendanceData(initialData);
         }
     }, [sclassStudents]);
+
+    useEffect(() => {
+        // Update term when date changes
+        const newTerm = getCurrentTerm(new Date(attendanceDate));
+        if (newTerm !== selectedTerm) {
+            setSelectedTerm(newTerm);
+        }
+    }, [attendanceDate]);
+
+    useEffect(() => {
+        // Fetch term statistics
+        if (classId && selectedTerm) {
+            fetchTermStats();
+        }
+    }, [classId, selectedTerm]);
+
+    const fetchTermStats = async () => {
+        try {
+            // This would fetch term-specific statistics
+            // For now, we'll calculate basic stats
+            setTermStats({
+                totalDays: 0,
+                attendedDays: 0,
+                term: getTermName(selectedTerm)
+            });
+        } catch (error) {
+            console.error('Error fetching term stats:', error);
+        }
+    };
     
     const handleAttendanceChange = (studentId, status) => {
         setAttendanceData(prev => ({
@@ -109,28 +118,30 @@ const ClassAttendance = () => {
     
     const handleSubmitAttendance = async () => {
         try {
-            if (!selectedSubject) {
-                setMessage("Error: Please select a subject to take attendance for");
+            // Validate date is in selected term
+            if (!isDateInTerm(new Date(attendanceDate), selectedTerm)) {
+                setMessage(`Error: Selected date is not in ${getTermName(selectedTerm)}`);
                 setShowPopup(true);
                 return;
             }
 
-            setMessage("Submitting attendance...");
+            setMessage("Submitting term attendance...");
             setShowPopup(true);
 
-            // Submit attendance for each student
-            console.log('Submitting attendance for subject:', selectedSubject);
-            console.log('Selected subject details:', currentUser?.teachSubjects?.find(s => s._id === selectedSubject));
+            // Submit term-based attendance for each student
+            console.log('Submitting term attendance for:', selectedTerm);
+            console.log('Date:', attendanceDate);
             
             const attendancePromises = Object.entries(attendanceData).map(([studentId, status]) => {
                 const attendancePayload = {
-                    subName: selectedSubject,
                     status: status,
-                    date: attendanceDate
+                    date: attendanceDate,
+                    term: selectedTerm,
+                    isTermAttendance: true // Flag to distinguish from subject attendance
                 };
                 console.log(`Submitting for student ${studentId}:`, attendancePayload);
                 
-                return axios.put(`http://localhost:5000/StudentAttendance/${studentId}`, attendancePayload);
+                return axios.put(`http://localhost:5000/TermAttendance/${studentId}`, attendancePayload);
             });
 
             await Promise.all(attendancePromises);
@@ -138,14 +149,14 @@ const ClassAttendance = () => {
             const presentCount = Object.values(attendanceData).filter(status => status === 'Present').length;
             const absentCount = Object.values(attendanceData).filter(status => status === 'Absent').length;
             
-            setMessage(`Attendance submitted successfully! Present: ${presentCount}, Absent: ${absentCount}`);
+            setMessage(`Term attendance submitted successfully! Present: ${presentCount}, Absent: ${absentCount} for ${getTermName(selectedTerm)}`);
             
             // Navigate back after a delay
             setTimeout(() => {
                 navigate(-1);
             }, 2000);
         } catch (error) {
-            console.error('Error submitting attendance:', error);
+            console.error('Error submitting term attendance:', error);
             setMessage(`Error submitting attendance: ${error.response?.data?.message || error.message}`);
             setShowPopup(true);
         }
@@ -159,7 +170,7 @@ const ClassAttendance = () => {
         return <div>Error loading students: {error}</div>;
     }
     
-    if (!hasAttendancePermission) {
+    if (!isClassTeacher) {
         return (
             <Container maxWidth="md">
                 <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3, textAlign: 'center' }}>
@@ -167,10 +178,10 @@ const ClassAttendance = () => {
                         Access Denied
                     </Typography>
                     <Typography variant="body1" sx={{ mb: 2 }}>
-                        You don't have permission to take attendance for this class.
+                        Only class teachers can take term attendance.
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                        You can only take attendance for your assigned attendance class.
+                        You can only take attendance for your assigned class.
                     </Typography>
                     <Button variant="outlined" onClick={() => navigate(-1)}>
                         Go Back
@@ -185,21 +196,56 @@ const ClassAttendance = () => {
     
     return (
         <Container maxWidth="lg">
+            {/* Header */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-                    Mark Class Attendance
+                    Daily Term Attendance
                 </Typography>
-                {selectedSubject && (
-                    <Box sx={{ textAlign: 'center', mb: 2 }}>
-                        <Chip 
-                            label={`Subject: ${currentUser?.teachSubjects?.find(s => s._id === selectedSubject)?.subName || 
-                                             currentUser?.teachSubject?.subName || 'Selected Subject'}`}
-                            color="primary"
-                            variant="filled"
-                            size="large"
-                        />
-                    </Box>
-                )}
+                
+                <Box sx={{ textAlign: 'center', mb: 2 }}>
+                    <Chip 
+                        label={`Current Term: ${getTermName(selectedTerm)}`}
+                        color="primary"
+                        variant="filled"
+                        size="large"
+                    />
+                </Box>
+
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                    <Grid item xs={12} md={6}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6" color="primary">
+                                    Academic System
+                                </Typography>
+                                <Typography variant="body2">
+                                    • 1 Year = 3 Terms
+                                </Typography>
+                                <Typography variant="body2">
+                                    • 1 Term = 4 Months
+                                </Typography>
+                                <Typography variant="body2">
+                                    • Daily attendance by Class Teacher
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <Card>
+                            <CardContent>
+                                <Typography variant="h6" color="primary">
+                                    Term Schedule
+                                </Typography>
+                                <Typography variant="body2">
+                                    Term 1: Jan-Apr • Term 2: May-Aug • Term 3: Sep-Dec
+                                </Typography>
+                                <Typography variant="body2" sx={{ mt: 1 }}>
+                                    Current: <strong>{getTermName(selectedTerm)}</strong>
+                                </Typography>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+                </Grid>
                 
                 <Box sx={{ mt: 3 }}>
                     <Typography variant="h6" gutterBottom color="text.secondary">
@@ -218,25 +264,17 @@ const ClassAttendance = () => {
                             fullWidth
                         />
                         <FormControl fullWidth>
-                            <InputLabel>Subject</InputLabel>
+                            <InputLabel>Term</InputLabel>
                             <Select
-                                value={selectedSubject}
-                                label="Subject"
-                                onChange={(e) => setSelectedSubject(e.target.value)}
+                                value={selectedTerm}
+                                label="Term"
+                                onChange={(e) => setSelectedTerm(e.target.value)}
                             >
-                                {currentUser?.teachSubjects && currentUser.teachSubjects.length > 0 ? (
-                                    currentUser.teachSubjects.map((subject) => (
-                                        <MenuItem key={subject._id} value={subject._id}>
-                                            {subject.subName}
-                                        </MenuItem>
-                                    ))
-                                ) : currentUser?.teachSubject ? (
-                                    <MenuItem value={currentUser.teachSubject._id || currentUser.teachSubject}>
-                                        {currentUser.teachSubject.subName || 'Subject'}
+                                {getAllTerms().map((term) => (
+                                    <MenuItem key={term.key} value={term.key}>
+                                        {term.name} (Months {term.months.join(', ')})
                                     </MenuItem>
-                                ) : (
-                                    <MenuItem value="">No subjects assigned</MenuItem>
-                                )}
+                                ))}
                             </Select>
                         </FormControl>
                     </Box>
@@ -270,9 +308,10 @@ const ClassAttendance = () => {
                 </Box>
             </Box>
             
+            {/* Student List */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom color="text.secondary">
-                    Student Attendance List
+                    Daily Attendance - {getTermName(selectedTerm)}
                 </Typography>
                 
                 <TableContainer component={Paper} sx={{ mt: 2 }}>
@@ -281,7 +320,7 @@ const ClassAttendance = () => {
                             <TableRow>
                                 <TableCell><strong>Roll Number</strong></TableCell>
                                 <TableCell><strong>Student Name</strong></TableCell>
-                                <TableCell><strong>Email</strong></TableCell>
+                                <TableCell><strong>Class</strong></TableCell>
                                 <TableCell><strong>Attendance Status</strong></TableCell>
                             </TableRow>
                         </TableHead>
@@ -290,7 +329,7 @@ const ClassAttendance = () => {
                                 <TableRow key={student._id}>
                                     <TableCell>{student.rollNum}</TableCell>
                                     <TableCell>{student.name}</TableCell>
-                                    <TableCell>{student.email || 'N/A'}</TableCell>
+                                    <TableCell>{student.sclassName?.sclassName || 'N/A'}</TableCell>
                                     <TableCell>
                                         <FormControl size="small" sx={{ minWidth: 120 }}>
                                             <Select
@@ -309,6 +348,7 @@ const ClassAttendance = () => {
                 </TableContainer>
             </Box>
             
+            {/* Actions */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom color="text.secondary">
                     Actions
@@ -324,15 +364,9 @@ const ClassAttendance = () => {
                         variant="contained" 
                         color="primary"
                         onClick={handleSubmitAttendance}
-                        disabled={!sclassStudents || sclassStudents.length === 0 || !selectedSubject}
+                        disabled={!sclassStudents || sclassStudents.length === 0 || !selectedTerm}
                     >
-                        Submit Attendance
-                        {selectedSubject && (
-                            <Typography variant="caption" sx={{ ml: 1, fontSize: '0.75rem' }}>
-                                for {currentUser?.teachSubjects?.find(s => s._id === selectedSubject)?.subName || 
-                                     currentUser?.teachSubject?.subName || 'Selected Subject'}
-                            </Typography>
-                        )}
+                        Submit Term Attendance
                     </Button>
                 </Box>
             </Box>
@@ -346,4 +380,4 @@ const ClassAttendance = () => {
     );
 };
 
-export default ClassAttendance;
+export default TermAttendance;

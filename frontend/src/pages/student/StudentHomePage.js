@@ -81,7 +81,9 @@ const StudentHomePage = () => {
         }
     }, [userDetails])
 
-    const overallAttendancePercentage = calculateOverallAttendancePercentage(subjectAttendance);
+    const overallAttendancePercentage = subjectAttendance && subjectAttendance.length > 0 
+        ? calculateOverallAttendancePercentage(subjectAttendance) 
+        : 0;
     const overallAbsentPercentage = 100 - overallAttendancePercentage;
 
     const chartData = [
@@ -112,7 +114,26 @@ const StudentHomePage = () => {
                             <Data><CountUp start={0} end={assignments.length} duration={4} /></Data>
                         </StyledPaper>
                     </Grid>
-                    <Grid item xs={12} md={4} lg={3}>
+                    <Grid item xs={12} md={3} lg={3}>
+                        <StyledPaper>
+                            <Title>Overall Attendance</Title>
+                            <Data>
+                                <CountUp 
+                                    start={0} 
+                                    end={overallAttendancePercentage} 
+                                    duration={2.5} 
+                                    suffix="%" 
+                                />
+                            </Data>
+                            <Chip 
+                                label={overallAttendancePercentage >= 75 ? 'Good' : 'Low'} 
+                                color={overallAttendancePercentage >= 75 ? 'success' : 'error'}
+                                size="small"
+                                sx={{ mt: 1 }}
+                            />
+                        </StyledPaper>
+                    </Grid>
+                    <Grid item xs={12} md={3} lg={3}>
                         <ChartContainer>
                             {
                                 response ?
