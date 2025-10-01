@@ -9,6 +9,7 @@ import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import { useSelector } from 'react-redux';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 
 const TeacherSideBar = () => {
     const { currentUser } = useSelector((state) => state.user);
@@ -23,6 +24,12 @@ const TeacherSideBar = () => {
                         <HomeIcon color={location.pathname === ("/" || "/Teacher/dashboard") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Home" />
+                </ListItemButton>
+                <ListItemButton component={Link} to="/Teacher/timetable">
+                    <ListItemIcon>
+                        <AccessTimeIcon color={location.pathname.startsWith("/Teacher/timetable") ? 'primary' : 'inherit'} />
+                    </ListItemIcon>
+                    <ListItemText primary="Timetable" />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/Teacher/class">
                     <ListItemIcon>

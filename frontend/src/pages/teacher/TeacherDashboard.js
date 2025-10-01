@@ -23,6 +23,7 @@ import TeacherHomePage from './TeacherHomePage';
 import TeacherProfile from './TeacherProfile';
 import TeacherViewStudent from './TeacherViewStudent';
 import StudentExamMarks from '../admin/studentRelated/StudentExamMarks';
+import TeacherTimetable from './TeacherTimetable';
 
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -82,6 +83,7 @@ const TeacherDashboard = () => {
                         <Route path="/Teacher/complain" element={<TeacherComplain />} />
 
                         <Route path="/Teacher/class" element={<TeacherClassDetails />} />
+                        <Route path="/Teacher/timetable" element={<TeacherTimetable />} />
                         <Route path="/Teacher/class/student/:id" element={<TeacherViewStudent />} />
 
                         <Route path="/Teacher/class/student/attendance/:studentID/:subjectID" element={<StudentAttendance situation="Subject" />} />

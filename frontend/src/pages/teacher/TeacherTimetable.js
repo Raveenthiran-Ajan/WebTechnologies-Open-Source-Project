@@ -15,14 +15,15 @@ const PERIODS = [
 	{ key: "12_50_1_30", label: "12:50 - 1:30" },
 ];
 
-export default function StudentTimetable() {
+export default function TeacherTimetable() {
 	const dispatch = useDispatch();
 	const { currentUser } = useSelector((s) => s.user);
 	const { timetable, loading } = useSelector((s) => s.timetable);
+    const className = typeof currentUser?.teachSclass === 'object' ? currentUser?.teachSclass?.sclassName : '';
 
 	useEffect(() => {
-		if (currentUser?.sclassName) {
-			const classId = typeof currentUser.sclassName === 'string' ? currentUser.sclassName : currentUser.sclassName._id;
+		if (currentUser?.teachSclass) {
+			const classId = typeof currentUser.teachSclass === 'string' ? currentUser.teachSclass : currentUser.teachSclass._id;
 			if (classId) dispatch(fetchTimetable(classId));
 		}
 	}, [currentUser, dispatch]);
@@ -53,7 +54,15 @@ export default function StudentTimetable() {
 								<td><b>{p.label}</b></td>
 								{DAYS.map(d => (
 									<td key={`${d}-${p.key}`}>
-										{timetable?.grid?.[d]?.[p.key]?.subject?.subName || ''}
+										{(() => {
+											const cell = timetable?.grid?.[d]?.[p.key];
+											const teacherId = typeof cell?.teacher === 'object' ? cell?.teacher?._id : cell?.teacher;
+											const myId = currentUser?._id;
+											if (cell && teacherId && myId && teacherId === myId && cell.subject?.subName) {
+												return `${cell.subject.subName} - ${className || ''}`;
+											}
+											return '';
+										})()}
 									</td>
 								))}
 							</tr>
@@ -64,8 +73,5 @@ export default function StudentTimetable() {
 		</div>
 	);
 }
-
-
-
 
 
