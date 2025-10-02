@@ -87,5 +87,18 @@
   "quick_actions_view_all_children": "அனைத்து பிள்ளைகளை பார்க்கவும்",
   "quick_actions_edit_profile": "சுயவிவரத்தை திருத்தவும்",
   "quick_actions_view_notices": "அறிவிப்புகளை பார்க்கவும் ({{count}})",
-  "quick_actions_submit_complaint": "புகார் சமர்ப்பிக்கவும்"
+  "quick_actions_submit_complaint": "புகார் சமர்ப்பிக்கவும்",
+  "admin_register_title": "நிர்வாகி பதிவு",
+  "admin_register_description": "நிர்வாகியாக பதிவு செய்து உங்கள் சொந்த பள்ளியை உருவாக்குங்கள்.\nநீங்கள் மாணவர்களையும் பணியாளர்களையும் சேர்த்து அமைப்பை நிர்வகிக்க முடியும்.",
+  "admin_register_school_label": "உங்கள் பள்ளியின் பெயரை உருவாக்கவும்",
+  "admin_register_school_required": "பள்ளி பெயர் தேவை",
+  "no_account_have": "ஏற்கனவே கணக்கு உள்ளதா?",
+  "admin_dashboard_title": "நிர்வாகி டாஷ்போர்டு",
+  "notice_title": "தலைப்பு",
+  "notice_details": "விவரங்கள்",
+  "notice_date": "தேதி",
+  "invalid_date": "தவறான தேதி",
+  "loading": "ஏற்றுகிறது...",
+  "no_notices": "தற்போது காண்பிக்க அறிவிப்புகள் இல்லை",
+  "notices": "அறிவிப்புகள்"
 }

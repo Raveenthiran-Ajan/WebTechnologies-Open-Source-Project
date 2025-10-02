@@ -87,5 +87,18 @@
   "quick_actions_view_all_children": "සියලු දරුවන් බලන්න",
   "quick_actions_edit_profile": "පැතිකඩ සංස්කරණය කරන්න",
   "quick_actions_view_notices": "නිවේදන බලන්න ({{count}})",
-  "quick_actions_submit_complaint": "පැමිණිල්ලක් ඉදිරිපත් කරන්න"
+  "quick_actions_submit_complaint": "පැමිණිල්ලක් ඉදිරිපත් කරන්න",
+  "admin_register_title": "පරිපාලක ලියාපදිංචි වන්න",
+  "admin_register_description": "පරිපාලකයෙකු ලෙස ලියාපදිංචි වී ඔබේම පාසලක් සාදන්න.\nඔබට ශිෂ්‍යයන් සහ කාර්ය මණ්ඩලය එකතු කර පද්ධතිය කළමනාකරණය කළ හැක.",
+  "admin_register_school_label": "ඔබේ පාසලේ නම තනන්න",
+  "admin_register_school_required": "පාසලේ නම අවශ්‍යයි",
+  "no_account_have": "දැනටමත් ගිණුමක් තිබේද?",
+  "admin_dashboard_title": "පරිපාලක පුවරුව",
+  "notice_title": "ශීර්ෂය",
+  "notice_details": "විස්තර",
+  "notice_date": "දිනය",
+  "invalid_date": "වලංගු නොවන දිනය",
+  "loading": "පූරණය වෙමින්...",
+  "no_notices": "දැනට පෙන්විය හැකි දැන්වීම් නොමැත",
+  "notices": "දැන්වීම්"
 }

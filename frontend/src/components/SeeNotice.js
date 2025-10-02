@@ -3,9 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAllNotices } from '../redux/noticeRelated/noticeHandle';
 import { Paper } from '@mui/material';
 import TableViewTemplate from './TableViewTemplate';
+import { useTranslation } from 'react-i18next';
 
 const SeeNotice = () => {
     const dispatch = useDispatch();
+    const { t } = useTranslation();
 
     const { currentUser, currentRole } = useSelector(state => state.user);
     const { noticesList, loading, error, response } = useSelector((state) => state.notice);
@@ -24,14 +26,14 @@ const SeeNotice = () => {
     }
 
     const noticeColumns = [
-        { id: 'title', label: 'Title', minWidth: 170 },
-        { id: 'details', label: 'Details', minWidth: 100 },
-        { id: 'date', label: 'Date', minWidth: 170 },
+        { id: 'title', label: t('notice_title'), minWidth: 170 },
+        { id: 'details', label: t('notice_details'), minWidth: 100 },
+        { id: 'date', label: t('notice_date'), minWidth: 170 },
     ];
 
     const noticeRows = noticesList.map((notice) => {
         const date = new Date(notice.date);
-        const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
+        const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : t('invalid_date');
         return {
             title: notice.title,
             details: notice.details,
@@ -42,12 +44,12 @@ const SeeNotice = () => {
     return (
         <div style={{ marginTop: '50px', marginRight: '20px' }}>
             {loading ? (
-                <div style={{ fontSize: '20px' }}>Loading...</div>
+                <div style={{ fontSize: '20px' }}>{t('loading')}</div>
             ) : response ? (
-                <div style={{ fontSize: '20px' }}>No Notices to Show Right Now</div>
+                <div style={{ fontSize: '20px' }}>{t('no_notices')}</div>
             ) : (
                 <>
-                    <h3 style={{ fontSize: '30px', marginBottom: '40px' }}>Notices</h3>
+                    <h3 style={{ fontSize: '30px', marginBottom: '40px' }}>{t('notices')}</h3>
                     <Paper sx={{ width: '100%', overflow: 'hidden' }}>
                         {Array.isArray(noticesList) && noticesList.length > 0 &&
                             <TableViewTemplate columns={noticeColumns} rows={noticeRows} />
@@ -56,7 +58,6 @@ const SeeNotice = () => {
                 </>
             )}
         </div>
-
     )
 }
 

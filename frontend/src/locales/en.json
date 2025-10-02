@@ -87,5 +87,18 @@
   "quick_actions_view_all_children": "View All Children",
   "quick_actions_edit_profile": "Edit Profile",
   "quick_actions_view_notices": "View Notices ({{count}})",
-  "quick_actions_submit_complaint": "Submit Complaint"
+  "quick_actions_submit_complaint": "Submit Complaint",
+  "admin_register_title": "Admin Register",
+  "admin_register_description": "Create your own school by registering as an admin.\nYou will be able to add students and faculty and manage the system.",
+  "admin_register_school_label": "Create your school name",
+  "admin_register_school_required": "School name is required",
+  "no_account_have": "Already have an account?",
+  "admin_dashboard_title": "Admin Dashboard",
+  "notice_title": "Title",
+  "notice_details": "Details",
+  "notice_date": "Date",
+  "invalid_date": "Invalid Date",
+  "loading": "Loading...",
+  "no_notices": "No Notices to Show Right Now",
+  "notices": "Notices"
 }
