@@ -1,3 +1,4 @@
+import EventBusyIcon from '@mui/icons-material/EventBusy';
 import * as React from 'react';
 import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
@@ -39,10 +40,10 @@ const SideBar = () => {
     return (
         <>
             <React.Fragment>
-                <ListItemButton 
-                    component={Link} 
+                <ListItemButton
+                    component={Link}
                     to="/"
-                    selected={(location.pathname === "/" || location.pathname === "/Admin/dashboard")}
+                    selected={(location.pathname === "/" || location.pathname === "Admin/dashboard")}
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
@@ -50,10 +51,10 @@ const SideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary={t('menu_home')} />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/Admin/classes"
-                    selected={location.pathname.startsWith('/Admin/classes')}
+                <ListItemButton
+                    component={Link}
+                    to="Admin/classes"
+                    selected={location.pathname.startsWith('Admin/classes')}
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
@@ -61,10 +62,10 @@ const SideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary={t('menu_classes')} />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/Admin/subjects"
-                    selected={location.pathname.startsWith("/Admin/subjects")}
+                <ListItemButton
+                    component={Link}
+                    to="Admin/subjects"
+                    selected={location.pathname.startsWith("Admin/subjects")}
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
@@ -72,10 +73,10 @@ const SideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary={t('menu_subjects')} />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/Admin/teachers"
-                    selected={location.pathname.startsWith("/Admin/teachers")}
+                <ListItemButton
+                    component={Link}
+                    to="Admin/teachers"
+                    selected={location.pathname.startsWith("Admin/teachers")}
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
@@ -83,10 +84,10 @@ const SideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary={t('menu_teachers')} />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/Admin/students"
-                    selected={location.pathname.startsWith("/Admin/students") && !location.pathname.startsWith("/Admin/attendance-report")}
+                <ListItemButton
+                    component={Link}
+                    to="Admin/students"
+                    selected={location.pathname.startsWith("Admin/students") && !location.pathname.startsWith("Admin/attendance-report")}
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
@@ -94,10 +95,10 @@ const SideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary={t('menu_students')} />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/Admin/attendance-report"
-                    selected={location.pathname.startsWith("/Admin/attendance-report")}
+                <ListItemButton
+                    component={Link}
+                    to="Admin/attendance-report"
+                    selected={location.pathname.startsWith("Admin/attendance-report")}
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
@@ -107,10 +108,10 @@ const SideBar = () => {
                 </ListItemButton>
 
 
-                <ListItemButton 
-                    component={Link} 
-                    to="/Admin/notices"
-                    selected={location.pathname.startsWith("/Admin/notices")}
+                <ListItemButton
+                    component={Link}
+                    to="Admin/notices"
+                    selected={location.pathname.startsWith("Admin/notices")}
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
@@ -118,10 +119,10 @@ const SideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary={t('menu_notices')} />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/Admin/complains"
-                    selected={location.pathname.startsWith("/Admin/complains")}
+                <ListItemButton
+                    component={Link}
+                    to="Admin/complains"
+                    selected={location.pathname.startsWith("Admin/complains")}
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
@@ -130,10 +131,10 @@ const SideBar = () => {
                     <ListItemText primary={t('menu_complains')} />
                 </ListItemButton>
                 {/* Parent menu item */}
-                <ListItemButton 
-                    component={Link} 
-                    to="/Admin/parents"
-                    selected={location.pathname.startsWith("/Admin/parents") || location.pathname.startsWith("/Admin/addparent")}
+                <ListItemButton
+                    component={Link}
+                    to="Admin/parents"
+                    selected={location.pathname.startsWith("Admin/parents") || location.pathname.startsWith("Admin/addparent")}
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
@@ -141,16 +142,27 @@ const SideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary={t('menu_parents')} />
                 </ListItemButton>
+                <ListItemButton
+                    component={Link}
+                    to="Admin/leave-requests"
+                    selected={location.pathname === "Admin/leave-requests"}
+                    sx={selectedItemStyles}
+                >
+                    <ListItemIcon>
+                        <EventBusyIcon color={location.pathname === "Admin/leave-requests" ? 'primary' : 'inherit'} />
+                    </ListItemIcon>
+                    <ListItemText primary="Leave Requests" />
+                </ListItemButton>
             </React.Fragment>
             <Divider sx={{ my: 1 }} />
             <React.Fragment>
                 <ListSubheader component="div" inset>
                     {t('menu_user')}
                 </ListSubheader>
-                <ListItemButton 
-                    component={Link} 
-                    to="/Admin/profile"
-                    selected={location.pathname.startsWith("/Admin/profile")}
+                <ListItemButton
+                    component={Link}
+                    to="Admin/profile"
+                    selected={location.pathname.startsWith("Admin/profile")}
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
@@ -158,10 +170,10 @@ const SideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary={t('menu_profile')} />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/logout"
-                    selected={location.pathname.startsWith("/logout")}
+                <ListItemButton
+                    component={Link}
+                    to="logout"
+                    selected={location.pathname.startsWith("logout")}
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>

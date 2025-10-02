@@ -1,3 +1,4 @@
+import LeaveReviewPage from '../LeaveReviewPage';
 import { useState } from 'react';
 import {
     CssBaseline,
@@ -105,54 +106,55 @@ const AdminDashboard = () => {
                     <Routes>
                         <Route path="/" element={<AdminHomePage />} />
                         <Route path='*' element={<Navigate to="/" />} />
-                        <Route path="/Admin/dashboard" element={<AdminHomePage />} />
-                        <Route path="/Admin/profile" element={<AdminProfile />} />
-                        <Route path="/Admin/complains" element={<SeeComplains />} />
+                        <Route path="Admin/dashboard" element={<AdminHomePage />} />
+                        <Route path="Admin/profile" element={<AdminProfile />} />
+                        <Route path="Admin/complains" element={<SeeComplains />} />
 
                         {/* Notice */}
-                        <Route path="/Admin/addnotice" element={<AddNotice />} />
-                        <Route path="/Admin/notices" element={<ShowNotices />} />
+                        <Route path="Admin/addnotice" element={<AddNotice />} />
+                        <Route path="Admin/notices" element={<ShowNotices />} />
 
                         {/* Subject */}
-                        <Route path="/Admin/subjects" element={<ShowSubjects />} />
-                        <Route path="/Admin/subjects/subject/:classID/:subjectID" element={<ViewSubject />} />
-                        <Route path="/Admin/subjects/select-teacher/:subjectId" element={<SelectTeacherForSubject />} />
-                        <Route path="/Admin/subjects/chooseclass" element={<ChooseClass situation="Subject" />} />
+                        <Route path="Admin/subjects" element={<ShowSubjects />} />
+                        <Route path="Admin/subjects/subject/:classID/:subjectID" element={<ViewSubject />} />
+                        <Route path="Admin/subjects/select-teacher/:subjectId" element={<SelectTeacherForSubject />} />
+                        <Route path="Admin/subjects/chooseclass" element={<ChooseClass situation="Subject" />} />
 
-                        <Route path="/Admin/addsubject/:id" element={<SubjectForm />} />
-                        <Route path="/Admin/class/subject/:classID/:subjectID" element={<ViewSubject />} />
+                        <Route path="Admin/addsubject/:id" element={<SubjectForm />} />
+                        <Route path="Admin/class/subject/:classID/:subjectID" element={<ViewSubject />} />
 
                         {/* Class */}
-                        <Route path="/Admin/addclass" element={<AddClass />} />
-                        <Route path="/Admin/classes" element={<ShowClasses />} />
-                        <Route path="/Admin/classes/class/:id" element={<ClassDetails />} />
-                        <Route path="/Admin/class/addstudents/:id" element={<AddStudent situation="Class" />} />
+                        <Route path="Admin/addclass" element={<AddClass />} />
+                        <Route path="Admin/classes" element={<ShowClasses />} />
+                        <Route path="Admin/classes/class/:id" element={<ClassDetails />} />
+                        <Route path="Admin/class/addstudents/:id" element={<AddStudent situation="Class" />} />
 
                         {/* Student */}
-                        <Route path="/Admin/addstudents" element={<AddStudent situation="Student" />} />
-                        <Route path="/Admin/students" element={<ShowStudents />} />
-                        <Route path="/Admin/students/student/:id" element={<ViewStudent />} />
-                        <Route path="/Admin/attendance-report" element={<AdminAttendanceReport />} />
-                        <Route path="/Admin/attendance-debug" element={<AttendanceDebugViewer />} />
+                        <Route path="Admin/addstudents" element={<AddStudent situation="Student" />} />
+                        <Route path="Admin/students" element={<ShowStudents />} />
+                        <Route path="Admin/students/student/:id" element={<ViewStudent />} />
+                        <Route path="Admin/attendance-report" element={<AdminAttendanceReport />} />
+                        <Route path="Admin/attendance-debug" element={<AttendanceDebugViewer />} />
 
                         {/* Teacher */}
-                        <Route path="/Admin/teachers" element={<ShowTeachers />} />
-                        <Route path="/Admin/teachers/add" element={<AddTeacherModern />} />
-                        <Route path="/Admin/teachers/classes" element={<TeacherClassesView />} />
-                        <Route path="/Admin/teachers/teacher/:id" element={<TeacherDetails />} />
-                        <Route path="/Admin/teachers/edit-assignments/:id" element={<EditTeacherAssignments />} />
-                        <Route path="/Admin/teachers/add-multiple" element={<AddTeacherMultiple />} />
-                        <Route path="/Admin/teachers/chooseclass" element={<ChooseClass situation="Teacher" />} />
-                        <Route path="/Admin/teachers/choosesubject/:id" element={<ChooseSubject situation="Norm" />} />
-                        <Route path="/Admin/teachers/choosesubject/:classID/:teacherID" element={<ChooseSubject situation="Teacher" />} />
-                        <Route path="/Admin/teachers/addteacher/:id" element={<AddTeacher />} />
+                        <Route path="Admin/teachers" element={<ShowTeachers />} />
+                        <Route path="Admin/teachers/add" element={<AddTeacherModern />} />
+                        <Route path="Admin/teachers/classes" element={<TeacherClassesView />} />
+                        <Route path="Admin/teachers/teacher/:id" element={<TeacherDetails />} />
+                        <Route path="Admin/teachers/edit-assignments/:id" element={<EditTeacherAssignments />} />
+                        <Route path="Admin/teachers/add-multiple" element={<AddTeacherMultiple />} />
+                        <Route path="Admin/teachers/chooseclass" element={<ChooseClass situation="Teacher" />} />
+                        <Route path="Admin/teachers/choosesubject/:id" element={<ChooseSubject situation="Norm" />} />
+                        <Route path="Admin/teachers/choosesubject/:classID/:teacherID" element={<ChooseSubject situation="Teacher" />} />
+                        <Route path="Admin/teachers/addteacher/:id" element={<AddTeacher />} />
 
                         {/* Parent */}
-                        <Route path="/Admin/addparent" element={<AddParent />} />
-                        <Route path="/Admin/parents" element={<ShowParents />} />
-                        <Route path="/Admin/parents/view/:id" element={<ViewParent />} />
+                        <Route path="Admin/addparent" element={<AddParent />} />
+                        <Route path="Admin/parents" element={<ShowParents />} />
+                        <Route path="Admin/parents/view/:id" element={<ViewParent />} />
 
-                        <Route path="/logout" element={<Logout />} />
+                        <Route path="logout" element={<Logout />} />
+                        <Route path="Admin/leave-requests" element={<LeaveReviewPage reviewer={JSON.parse(localStorage.getItem('user'))} role="admin" />} />
                     </Routes>
                 </Box>
             </Box>

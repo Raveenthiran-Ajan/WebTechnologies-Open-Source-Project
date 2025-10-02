@@ -24,6 +24,7 @@ import Logout from '../Logout'
 import AccountMenu from '../../components/AccountMenu';
 import { AppBar, Drawer } from '../../components/styles';
 import StudentGrades from './StudentGrades';
+import LeaveRequestPage from '../LeaveRequestPage';
 
 const StudentDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -77,18 +78,19 @@ const StudentDashboard = () => {
                     <Routes>
                         <Route path="/" element={<StudentHomePage />} />
                         <Route path='*' element={<Navigate to="/" />} />
-                        <Route path="/Student/dashboard" element={<StudentHomePage />} />
-                        <Route path="/Student/profile" element={<StudentProfile />} />
+                        <Route path="Student/dashboard" element={<StudentHomePage />} />
+                        <Route path="Student/profile" element={<StudentProfile />} />
 
-                        <Route path="/Student/subjects" element={<StudentSubjects />} />
-                        <Route path="/Student/attendance" element={<ViewStdAttendance />} />
-                        <Route path="/Student/term-attendance" element={<TermAttendanceReport />} />
-                        <Route path="/Student/simple-attendance" element={<SimpleAttendanceReport />} />
-                        <Route path="/Student/complain" element={<StudentComplain />} />
-                        <Route path="/Student/timetable" element={<StudentTimetable />} />
-                        <Route path="/Student/grades" element={<StudentGrades />} />
+                        <Route path="Student/subjects" element={<StudentSubjects />} />
+                        <Route path="Student/attendance" element={<ViewStdAttendance />} />
+                        <Route path="Student/term-attendance" element={<TermAttendanceReport />} />
+                        <Route path="Student/simple-attendance" element={<SimpleAttendanceReport />} />
+                        <Route path="Student/complain" element={<StudentComplain />} />
+                        <Route path="Student/timetable" element={<StudentTimetable />} />
+                        <Route path="Student/grades" element={<StudentGrades />} />
 
-                        <Route path="/logout" element={<Logout />} />
+                        <Route path="logout" element={<Logout />} />
+                        <Route path="leave" element={<LeaveRequestPage user={JSON.parse(localStorage.getItem('user'))} role="student" />} />
                     </Routes>
                 </Box>
             </Box>

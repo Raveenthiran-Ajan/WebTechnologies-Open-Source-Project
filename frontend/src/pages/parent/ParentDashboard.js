@@ -22,6 +22,7 @@ import ParentComplaints from './ParentComplaints';
 import ParentSideBar from './ParentSideBar';
 import AccountMenu from '../../components/AccountMenu';
 import Logout from '../Logout';
+import LeaveRequestPage from '../LeaveRequestPage';
 
 const ParentDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -75,14 +76,15 @@ const ParentDashboard = () => {
                     <Routes>
                         <Route path="/" element={<ParentHomePage />} />
                         <Route path='*' element={<Navigate to="/" />} />
-                        <Route path="/Parent/dashboard" element={<ParentHomePage />} />
-                        <Route path="/Parent/children" element={<ChildrenList />} />
-                        <Route path="/Parent/child/:id" element={<ViewChildDetails />} />
-                        <Route path="/Parent/profile" element={<ParentProfile />} />
-                        <Route path="/Parent/notices" element={<ParentNotices />} />
-                        <Route path="/Parent/reports" element={<ParentReports />} />
-                        <Route path="/Parent/complaints" element={<ParentComplaints />} />
-                        <Route path="/logout" element={<Logout />} />
+                        <Route path="Parent/dashboard" element={<ParentHomePage />} />
+                        <Route path="Parent/children" element={<ChildrenList />} />
+                        <Route path="Parent/child/:id" element={<ViewChildDetails />} />
+                        <Route path="Parent/profile" element={<ParentProfile />} />
+                        <Route path="Parent/notices" element={<ParentNotices />} />
+                        <Route path="Parent/reports" element={<ParentReports />} />
+                        <Route path="Parent/complaints" element={<ParentComplaints />} />
+                        <Route path="leave" element={<LeaveRequestPage user={JSON.parse(localStorage.getItem('user'))} role="parent" />} />
+                        <Route path="logout" element={<Logout />} />
                     </Routes>
                 </Box>
             </Box>

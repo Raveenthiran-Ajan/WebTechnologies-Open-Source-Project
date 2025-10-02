@@ -10,6 +10,8 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 
+import EventBusyIcon from '@mui/icons-material/EventBusy';
+
 const ParentSideBar = () => {
     const location = useLocation();
     return (
@@ -18,21 +20,21 @@ const ParentSideBar = () => {
                 <ListSubheader component="div" inset>
                     Main Menu
                 </ListSubheader>
-                <ListItemButton component={Link} to="/Parent/dashboard">
+                <ListItemButton component={Link} to="Parent/dashboard">
                     <ListItemIcon>
-                        <HomeIcon color={(location.pathname === "/" || location.pathname === "/Parent/dashboard") ? 'primary' : 'inherit'} />
+                        <HomeIcon color={(location.pathname === "/" || location.pathname === "Parent/dashboard") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Dashboard" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Parent/children">
+                <ListItemButton component={Link} to="Parent/children">
                     <ListItemIcon>
-                        <FamilyRestroomIcon color={location.pathname.startsWith('/Parent/children') ? 'primary' : 'inherit'} />
+                        <FamilyRestroomIcon color={location.pathname.startsWith('Parent/children') ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="My Children" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Parent/profile">
+                <ListItemButton component={Link} to="Parent/profile">
                     <ListItemIcon>
-                        <AccountCircleOutlinedIcon color={location.pathname.startsWith("/Parent/profile") ? 'primary' : 'inherit'} />
+                        <AccountCircleOutlinedIcon color={location.pathname.startsWith("Parent/profile") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Profile" />
                 </ListItemButton>
@@ -42,23 +44,29 @@ const ParentSideBar = () => {
                 <ListSubheader component="div" inset>
                     School Services
                 </ListSubheader>
-                <ListItemButton component={Link} to="/Parent/notices">
+                <ListItemButton component={Link} to="Parent/notices">
                     <ListItemIcon>
-                        <NotificationsIcon color={location.pathname.startsWith("/Parent/notices") ? 'primary' : 'inherit'} />
+                        <NotificationsIcon color={location.pathname.startsWith("Parent/notices") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Notices" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Parent/reports">
+                <ListItemButton component={Link} to="Parent/reports">
                     <ListItemIcon>
-                        <AssessmentIcon color={location.pathname.startsWith("/Parent/reports") ? 'primary' : 'inherit'} />
+                        <AssessmentIcon color={location.pathname.startsWith("Parent/reports") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Reports" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Parent/complaints">
+                <ListItemButton component={Link} to="Parent/complaints">
                     <ListItemIcon>
-                        <ReportProblemIcon color={location.pathname.startsWith("/Parent/complaints") ? 'primary' : 'inherit'} />
+                        <ReportProblemIcon color={location.pathname.startsWith("Parent/complaints") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Complaints" />
+                </ListItemButton>
+                <ListItemButton component={Link} to="leave">
+                    <ListItemIcon>
+                        <EventBusyIcon color={location.pathname === "leave" ? 'primary' : 'inherit'} />
+                    </ListItemIcon>
+                    <ListItemText primary="Leave Requests" />
                 </ListItemButton>
             </React.Fragment>
             <Divider sx={{ my: 1 }} />
@@ -66,9 +74,9 @@ const ParentSideBar = () => {
                 <ListSubheader component="div" inset>
                     Account
                 </ListSubheader>
-                <ListItemButton component={Link} to="/logout">
+                <ListItemButton component={Link} to="logout">
                     <ListItemIcon>
-                        <ExitToAppIcon color={location.pathname.startsWith("/logout") ? 'primary' : 'inherit'} />
+                        <ExitToAppIcon color={location.pathname.startsWith("logout") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Logout" />
                 </ListItemButton>

@@ -25,7 +25,7 @@ import TeacherProfile from './TeacherProfile';
 import TeacherViewStudent from './TeacherViewStudent';
 import SimpleTermAttendance from './SimpleTermAttendance';
 import TeacherUploadAssignment from './TeacherUploadAssignment';
-
+import LeaveReviewPage from '../LeaveReviewPage';
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);
     const toggleDrawer = () => setOpen(!open);
@@ -77,18 +77,19 @@ const TeacherDashboard = () => {
                 <Routes>
                     <Route path="/" element={<TeacherHomePage />} />
                     <Route path="*" element={<Navigate to="/" />} />
-                    <Route path="/teacher/dashboard" element={<TeacherHomePage />} />
-                    <Route path="/teacher/profile" element={<TeacherProfile />} />
-                    <Route path="/teacher/classes" element={<TeacherClasses />} />
-                    <Route path="/teacher/complain" element={<TeacherComplain />} />
-                    <Route path="/teacher/class" element={<TeacherClassDetails />} />
-                    <Route path="/teacher/class/:classId" element={<TeacherClassDetails />} />
-                    <Route path="/teacher/class/:classId/attendance" element={<SimpleTermAttendance />} />
-                    <Route path="/teacher/class/:classId/simple-attendance" element={<SimpleTermAttendance />} />
-                    <Route path="/teacher/class/attendance/:classId" element={<TeacherViewStudent />} />
-                    <Route path="/teacher/class/student/:id" element={<TeacherViewStudent />} />
-                    <Route path="/teacher/upload-assignment" element={<TeacherUploadAssignment />} />
-                    <Route path="/logout" element={<Logout />} />
+                    <Route path="teacher/dashboard" element={<TeacherHomePage />} />
+                    <Route path="teacher/profile" element={<TeacherProfile />} />
+                    <Route path="teacher/classes" element={<TeacherClasses />} />
+                    <Route path="teacher/complain" element={<TeacherComplain />} />
+                    <Route path="teacher/class" element={<TeacherClassDetails />} />
+                    <Route path="teacher/class/:classId" element={<TeacherClassDetails />} />
+                    <Route path="teacher/class/:classId/attendance" element={<SimpleTermAttendance />} />
+                    <Route path="teacher/class/:classId/simple-attendance" element={<SimpleTermAttendance />} />
+                    <Route path="teacher/class/attendance/:classId" element={<TeacherViewStudent />} />
+                    <Route path="teacher/class/student/:id" element={<TeacherViewStudent />} />
+                    <Route path="teacher/upload-assignment" element={<TeacherUploadAssignment />} />
+                    <Route path="logout" element={<Logout />} />
+                    <Route path="teacher/leave-requests" element={<LeaveReviewPage reviewer={JSON.parse(localStorage.getItem('user'))} role="teacher" />} />
                 </Routes>
             </Box>
         </Box>

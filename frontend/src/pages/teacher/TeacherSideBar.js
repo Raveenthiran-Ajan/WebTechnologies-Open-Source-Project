@@ -1,3 +1,4 @@
+import EventBusyIcon from '@mui/icons-material/EventBusy';
 import * as React from 'react';
 import { 
     Divider, 
@@ -41,49 +42,61 @@ const TeacherSideBar = () => {
                 
                 <Divider />
                 
-                <ListItemButton 
-                    component={Link} 
-                    to="/teacher/classes"
+                <ListItemButton
+                    component={Link}
+                    to="teacher/classes"
                     sx={{
-                        backgroundColor: location.pathname.startsWith("/teacher/classes") ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
+                        backgroundColor: location.pathname.startsWith("teacher/classes") ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
                     }}
                 >
                     <ListItemIcon>
                         <ClassOutlinedIcon
-                            color={location.pathname.startsWith("/teacher/classes") ? "primary" : "inherit"}
+                            color={location.pathname.startsWith("teacher/classes") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
                     <ListItemText primary="Classes" />
                 </ListItemButton>
-                
+
                 <Divider sx={{ my: 1 }} />
-                <ListItemButton 
-                    component={Link} 
-                    to="/teacher/complain"
+                <ListItemButton
+                    component={Link}
+                    to="teacher/complain"
                     sx={{
-                        backgroundColor: location.pathname.startsWith("/teacher/complain") ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
+                        backgroundColor: location.pathname.startsWith("teacher/complain") ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
                     }}
                 >
                     <ListItemIcon>
                         <AnnouncementOutlinedIcon
-                            color={location.pathname.startsWith("/teacher/complain") ? "primary" : "inherit"}
+                            color={location.pathname.startsWith("teacher/complain") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_complain')} />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/teacher/upload-assignment"
+                <ListItemButton
+                    component={Link}
+                    to="teacher/upload-assignment"
                     sx={{
-                        backgroundColor: location.pathname === "/teacher/upload-assignment" ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
+                        backgroundColor: location.pathname === "teacher/upload-assignment" ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
                     }}
                 >
                     <ListItemIcon>
                         <AssignmentIcon
-                            color={location.pathname === "/teacher/upload-assignment" ? "primary" : "inherit"}
+                            color={location.pathname === "teacher/upload-assignment" ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_upload_assignments')} />
+                </ListItemButton>
+                <ListItemButton
+                    component={Link}
+                    to="teacher/leave-requests"
+                    sx={{
+                        backgroundColor: location.pathname === "teacher/leave-requests" ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
+                    }}
+                >
+                    <ListItemIcon>
+                        <EventBusyIcon color={location.pathname === "teacher/leave-requests" ? 'primary' : 'inherit'} />
+                    </ListItemIcon>
+                    <ListItemText primary="Leave Requests" />
                 </ListItemButton>
             </React.Fragment>
 
@@ -93,30 +106,30 @@ const TeacherSideBar = () => {
                 <ListSubheader component="div" inset>
                     {t('menu_user')}
                 </ListSubheader>
-                <ListItemButton 
-                    component={Link} 
-                    to="/teacher/profile"
+                <ListItemButton
+                    component={Link}
+                    to="teacher/profile"
                     sx={{
-                        backgroundColor: location.pathname.startsWith("/teacher/profile") ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
+                        backgroundColor: location.pathname.startsWith("teacher/profile") ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
                     }}
                 >
                     <ListItemIcon>
                         <AccountCircleOutlinedIcon
-                            color={location.pathname.startsWith("/teacher/profile") ? "primary" : "inherit"}
+                            color={location.pathname.startsWith("teacher/profile") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_profile')} />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/logout"
+                <ListItemButton
+                    component={Link}
+                    to="logout"
                     sx={{
-                        backgroundColor: location.pathname.startsWith("/logout") ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
+                        backgroundColor: location.pathname.startsWith("logout") ? 'rgba(25, 118, 210, 0.08)' : 'transparent'
                     }}
                 >
                     <ListItemIcon>
                         <ExitToAppIcon
-                            color={location.pathname.startsWith("/logout") ? "primary" : "inherit"}
+                            color={location.pathname.startsWith("logout") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_logout')} />
