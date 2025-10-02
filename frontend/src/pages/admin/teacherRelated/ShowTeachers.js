@@ -7,6 +7,7 @@ import { deleteUser } from '../../../redux/userRelated/userHandle';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
 import Delete from '@mui/icons-material/Delete';
+import Edit from '@mui/icons-material/Edit';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -129,18 +130,27 @@ const ShowTeachers = () => {
             headerName: 'Attendance Class',
             width: 180,
             renderCell: (params) => {
-                const attendanceClass = params.row.attendanceClass;
-                return attendanceClass ? (
-                    <Chip 
-                        label={attendanceClass.sclassName} 
-                        size="small" 
-                        color="success" 
-                        variant="filled" 
-                    />
-                ) : (
-                    <Typography variant="body2" color="text.secondary">
-                        Not assigned
-                    </Typography>
+                const { attendanceClass } = params.row;
+                if (!attendanceClass) {
+                    return (
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                            No attendance duty
+                        </Typography>
+                    );
+                }
+                return (
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Chip 
+                            label={attendanceClass.sclassName} 
+                            size="small" 
+                            color="success" 
+                            variant="filled"
+                            sx={{ mr: 1 }} 
+                        />
+                        <Typography variant="caption" sx={{ color: 'success.main' }}>
+                            ✓ Attendance Teacher
+                        </Typography>
+                    </Box>
                 );
             },
         },
@@ -150,17 +160,24 @@ const ShowTeachers = () => {
             width: 150,
             renderCell: (params) => {
                 return (
-                    <Box>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
                         <IconButton
                             onClick={() => deleteHandler(params.row.id, "Teacher")}
                         >
                             <Delete color="error" />
                         </IconButton>
                         <Button
-                            variant="contained" sx={{ ml: 1 }}
+                            variant="contained"
                             onClick={() => navigate(`/Admin/teachers/teacher/${params.row.id}`)}>
                             View
                         </Button>
+                        <IconButton
+                            color="secondary"
+                            onClick={() => navigate(`/Admin/teachers/edit-assignments/${params.row.id}`)}
+                            title="Edit Assignments"
+                        >
+                            <Edit />
+                        </IconButton>
                     </Box>
                 );
             },
@@ -183,17 +200,12 @@ const ShowTeachers = () => {
             teachingClasses = [teacher.teachSclass];
         }
         
-        let attendanceClass = teacher.attendanceClass || teacher.teachSclass;
-        if (!attendanceClass && teachingClasses.length > 0) {
-            attendanceClass = teachingClasses[0];
-        }
-        
         const row = {
             id: teacher._id,
             name: teacher.name,
             teachSubjects: teachingSubjects,
             teachSclasses: teachingClasses,
-            attendanceClass: attendanceClass,
+            attendanceClass: teacher.attendanceClass || null,
             teachSubject: teacher.teachSubject?.subName || null,
             teachSclass: teacher.teachSclass ? teacher.teachSclass.sclassName : 'No Class',
         };

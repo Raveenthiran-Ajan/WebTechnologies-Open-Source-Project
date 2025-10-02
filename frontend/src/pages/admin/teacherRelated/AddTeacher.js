@@ -23,7 +23,8 @@ const AddTeacher = () => {
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('')
+  const [password, setPassword] = useState('');
+  const [isAttendanceTeacher, setIsAttendanceTeacher] = useState(false);
 
   const [showPopup, setShowPopup] = useState(false);
   const [message, setMessage] = useState("");
@@ -32,9 +33,11 @@ const AddTeacher = () => {
   const role = "Teacher"
   const school = subjectDetails && subjectDetails.school
   const teachSubject = subjectDetails && subjectDetails._id
-  const teachSclass = subjectDetails && subjectDetails.sclassName && subjectDetails.sclassName._id
+  const teachSclass = subjectDetails && subjectDetails.sclassName && subjectDetails.sclassName._id;
+  // If teacher is assigned for attendance, set attendanceClass to the same class
+  const attendanceClass = isAttendanceTeacher ? teachSclass : null;
 
-  const fields = { name, email, password, role, school, teachSubject, teachSclass }
+  const fields = { name, email, password, role, school, teachSubject, teachSclass, attendanceClass }
 
   const submitHandler = (event) => {
     event.preventDefault()
@@ -113,6 +116,19 @@ const AddTeacher = () => {
                 autoComplete="new-password"
                 required
               />
+            </Grid>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <input
+                  type="checkbox"
+                  id="attendanceTeacher"
+                  checked={isAttendanceTeacher}
+                  onChange={(e) => setIsAttendanceTeacher(e.target.checked)}
+                />
+                <Typography>
+                  Assign as attendance teacher for this class
+                </Typography>
+              </Box>
             </Grid>
             <Grid item xs={12}>
               <Button variant="contained" color="primary" type="submit" disabled={loader}>
