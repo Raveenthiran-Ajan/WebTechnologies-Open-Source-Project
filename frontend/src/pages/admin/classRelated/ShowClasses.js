@@ -3,11 +3,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import { getAllSclasses } from '../../../redux/sclassRelated/sclassHandle';
-import { Paper, Box, Typography, Button, IconButton, CircularProgress, Menu, MenuItem, ListItemIcon } from '@mui/material';
+import { Paper, Box, Typography, Button, IconButton, CircularProgress, Menu, MenuItem, ListItemIcon, Grid, Card, CardContent, CardActions, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import AddCardIcon from '@mui/icons-material/AddCard';
 import Delete from '@mui/icons-material/Delete';
 import PostAddIcon from '@mui/icons-material/PostAdd';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
+import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
+import GroupIcon from '@mui/icons-material/Group';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import {
     DataGrid,
@@ -28,6 +33,7 @@ const ShowClasses = () => {
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
     const [anchorEl, setAnchorEl] = useState({});
+    const [view, setView] = useState('list');
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const adminID = currentUser._id;
@@ -67,12 +73,58 @@ const ShowClasses = () => {
         setAnchorEl({ ...anchorEl, [id]: null });
     };
 
+    const handleViewChange = (event, newView) => {
+        if (newView !== null) {
+            setView(newView);
+        }
+    };
+
     const columns = [
-        { field: 'name', headerName: 'Class Name', width: 200 },
+        {
+            field: 'name', headerName: 'Class Name', flex: 1,
+            renderCell: (params) => (
+                <Button variant="text" onClick={() => navigate(`/Admin/classes/class/${params.row.id}`)}>{params.value}</Button>
+            )
+        },
+        {
+            field: 'students',
+            headerName: 'Students',
+            flex: 0.5,
+            renderCell: (params) => (
+                <Button
+                    variant="text"
+                    onClick={() => navigate(`/Admin/classes/class/${params.row.id}?tab=3`)}
+                >
+                    {params.value}
+                </Button>
+            ),
+        },
+        {
+            field: 'teachers',
+            headerName: 'Teachers',
+            flex: 0.5,
+            renderCell: (params) => (
+                <Button variant="text" onClick={() => navigate(`/Admin/classes/class/${params.row.id}?tab=4`)}>
+                    {params.value}
+                </Button>
+            ),
+        },
+        {
+            field: 'timetable',
+            headerName: 'Timetable',
+            flex: 0.5,
+            renderCell: (params) => (
+                <Button
+                    onClick={() => navigate(`/Admin/classes/class/${params.row.id}?tab=5`)}
+                >
+                    <CalendarMonthIcon />
+                </Button>
+            ),
+        },
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 300,
+            flex: 1,
             renderCell: (params) => {
                 const isMenuOpen = Boolean(anchorEl[params.row.id]);
                 return (
@@ -83,8 +135,9 @@ const ShowClasses = () => {
                             <Delete color="error" />
                         </IconButton>
                         <Button
-                            variant="contained" sx={{ ml: 1, mr: 1 }}
-                            onClick={() => navigate("/Admin/classes/class/" + params.row.id)}>
+                            variant="contained"
+                            onClick={() => navigate(`/Admin/classes/class/${params.row.id}`)}
+                        >
                             View
                         </Button>
                         <IconButton
@@ -133,6 +186,9 @@ const ShowClasses = () => {
     const rows = sortedClasses.map((sclass) => ({
         id: sclass._id,
         name: sclass.sclassName,
+        students: sclass.students,
+        teachers: sclass.teachers,
+        timetable: sclass._id, // Pass the id for navigation
     }));
 
     function CustomToolbar() {
@@ -153,35 +209,101 @@ const ShowClasses = () => {
         );
     }
 
+    const ClassBoxes = () => (
+        <Grid container spacing={3} sx={{ p: 2 }}>
+            {sortedClasses.map((sclass) => {
+                const isMenuOpen = Boolean(anchorEl[sclass._id]);
+                return (
+                    <Grid item xs={12} sm={6} md={4} key={sclass._id}>
+                        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <CardContent sx={{ flexGrow: 1 }}>
+                                <Typography variant="h6" component="div" gutterBottom>
+                                    {sclass.sclassName}
+                                </Typography>
+                                <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary', mb: 1 }}>
+                                    <GroupIcon sx={{ mr: 1 }} />
+                                    <Typography variant="body2">
+                                        {sclass.students} Students, {sclass.teachers} Teachers
+                                    </Typography>
+                                </Box>
+                            </CardContent>
+                            <CardActions sx={{ justifyContent: 'space-between', borderTop: '1px solid #eee' }}>
+                                <Button size="small" onClick={() => navigate(`/Admin/classes/class/${sclass._id}`)} sx={{ minWidth: 'auto', p: '4px' }}>View</Button>
+                                <IconButton size="small" onClick={() => navigate(`/Admin/classes/class/${sclass._id}?tab=5`)} title="Timetable">
+                                    <CalendarMonthIcon />
+                                </IconButton>
+                                <IconButton size="small" onClick={() => navigate("/Admin/class/addstudents/" + sclass._id)} title="Add Student">
+                                    <PersonAddAlt1Icon />
+                                </IconButton>
+                                <IconButton size="small" onClick={() => navigate("/Admin/teachers/add?classId=" + sclass._id)} title="Add Teacher">
+                                    <SupervisorAccountOutlinedIcon />
+                                </IconButton>
+                                <IconButton size="small" onClick={() => deleteHandler(sclass._id, "Sclass")} color="error">
+                                    <Delete />
+                                </IconButton>
+                                {/* The "Add Subjects" can be accessed from the class details page */}
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                );
+            })}
+        </Grid>
+    );
+
     if (loading) {
         return <CircularProgress />;
     }
 
     return (
         <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <Typography variant="h6" gutterBottom component="div" sx={{ p: 2 }}>
-                All Classes
-            </Typography>
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                p: 2,
+                borderBottom: '1px solid #ccc'
+            }}>
+                <Typography variant="h6" component="div">
+                    All Classes
+                </Typography>
+                <ToggleButtonGroup
+                    value={view}
+                    exclusive
+                    onChange={handleViewChange}
+                    aria-label="view mode"
+                >
+                    <ToggleButton value="list" aria-label="list view">
+                        <ViewListIcon />
+                    </ToggleButton>
+                    <ToggleButton value="box" aria-label="box view">
+                        <ViewModuleIcon />
+                    </ToggleButton>
+                </ToggleButtonGroup>
+            </Box>
             {loading ?
                 <CircularProgress />
                 :
-                (Array.isArray(sortedClasses) && sortedClasses.length > 0 ?
-                <Box sx={{ height: 400, width: '100%' }}>
-                    <DataGrid rows={rows || []} columns={columns} components={{ Toolbar: CustomToolbar }} />
-                </Box>
-                :
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
-                    <Typography variant="h5" gutterBottom>
-                        No classes found
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        startIcon={<AddCardIcon />}
-                        onClick={() => navigate('/Admin/addclass')}
-                    >
-                        Add a Class
-                    </Button>
-                </Box>
+                (Array.isArray(rows) && rows.length > 0 ?
+                    (view === 'list' ?
+                        <Box sx={{ height: 400, width: '100%' }}>
+                            <DataGrid rows={rows || []} columns={columns} components={{ Toolbar: CustomToolbar }} />
+                        </Box>
+                        :
+                        <ClassBoxes />
+                    )
+                    :
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+                        <Typography variant="h5" gutterBottom>
+                            No classes found
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddCardIcon />}
+                            onClick={() => navigate('/Admin/addclass')}
+                        >
+                            Add a Class
+                        </Button>
+                    </Box>
                 )
             }
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />

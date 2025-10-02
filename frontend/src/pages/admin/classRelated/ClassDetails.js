@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { getClassDetails, getClassStudents, getClassTeachers, getSubjectList } from "../../../redux/sclassRelated/sclassHandle";
 import { resetSubjects } from '../../../redux/sclassRelated/sclassSlice';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
@@ -30,6 +30,7 @@ import Timetable from './Timetable';
 const ClassDetails = () => {
     const params = useParams()
     const navigate = useNavigate()
+    const location = useLocation();
     const dispatch = useDispatch();
     const { subjectsList, sclassStudents, sclassTeachers, sclassDetails, loading, error, response, getresponse, getTeachersResponse } = useSelector((state) => state.sclass);
 
@@ -40,7 +41,13 @@ const ClassDetails = () => {
         dispatch(getSubjectList(classID, "ClassSubjects"))
         dispatch(getClassStudents(classID));
         dispatch(getClassTeachers(classID));
-    }, [dispatch, classID])
+
+        const searchParams = new URLSearchParams(location.search);
+        const tab = searchParams.get('tab');
+        if (tab) {
+            setValue(tab);
+        }
+    }, [dispatch, classID, location.search])
 
     if (error) {
         console.log(error)
@@ -430,13 +437,6 @@ const ClassDetails = () => {
                                         Add Subjects
                                     </Button>
                                 }
-                                <Button 
-                                    variant="contained" 
-                                    color="primary"
-                                    onClick={() => navigate(`/Admin/class/timetable/${classID}`)}
-                                >
-                                    View Timetable
-                                </Button>
                                 <Button variant="outlined" onClick={() => navigate(-1)}>
                                     Go Back
                                 </Button>

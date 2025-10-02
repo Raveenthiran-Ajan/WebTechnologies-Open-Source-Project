@@ -30,9 +30,18 @@ const sclassCreate = async (req, res) => {
 
 const sclassList = async (req, res) => {
     try {
-        let sclasses = await Sclass.find({ school: req.params.id })
+        let sclasses = await Sclass.find({ school: req.params.id }).lean();
         if (sclasses.length > 0) {
-            res.send(sclasses)
+            const sclassesWithCounts = await Promise.all(sclasses.map(async (sclass) => {
+                const studentCount = await Student.countDocuments({ sclassName: sclass._id });
+                const teacherCount = await Teacher.countDocuments({ teachSclass: sclass._id });
+                return {
+                    ...sclass,
+                    students: studentCount,
+                    teachers: teacherCount,
+                };
+            }));
+            res.send(sclassesWithCounts);
         } else {
             res.send({ message: "No sclasses found" });
         }
