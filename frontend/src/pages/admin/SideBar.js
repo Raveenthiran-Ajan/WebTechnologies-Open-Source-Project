@@ -7,16 +7,37 @@ import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
 import ReportIcon from '@mui/icons-material/Report';
+import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
+import CoPresentIcon from '@mui/icons-material/CoPresent';
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
+import StorageIcon from '@mui/icons-material/Storage';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import { useTranslation } from 'react-i18next';
 
 const SideBar = () => {
     const location = useLocation();
     const { t } = useTranslation();
+
+    const selectedItemStyles = {
+        '&.Mui-selected': {
+            backgroundColor: 'rgba(25, 118, 210, 0.08)', // A more subtle background color
+            borderLeft: '4px solid #1976d2',
+            '&:hover': {
+                backgroundColor: 'rgba(25, 118, 210, 0.12)',
+            },
+            '& .MuiListItemIcon-root': {
+                color: 'primary.main',
+            },
+            '& .MuiListItemText-primary': {
+                fontWeight: '600',
+            },
+        },
+    };
+
     return (
         <>
             <React.Fragment>
@@ -24,18 +45,7 @@ const SideBar = () => {
                     component={Link} 
                     to="/"
                     selected={(location.pathname === "/" || location.pathname === "/Admin/dashboard")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
                         <HomeIcon />
@@ -46,18 +56,7 @@ const SideBar = () => {
                     component={Link} 
                     to="/Admin/classes"
                     selected={location.pathname.startsWith('/Admin/classes')}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
                         <ClassOutlinedIcon />
@@ -68,18 +67,7 @@ const SideBar = () => {
                     component={Link} 
                     to="/Admin/subjects"
                     selected={location.pathname.startsWith("/Admin/subjects")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
                         <AssignmentIcon />
@@ -90,18 +78,7 @@ const SideBar = () => {
                     component={Link} 
                     to="/Admin/teachers"
                     selected={location.pathname.startsWith("/Admin/teachers")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
                         <SupervisorAccountOutlinedIcon />
@@ -112,18 +89,7 @@ const SideBar = () => {
                     component={Link} 
                     to="/Admin/students"
                     selected={location.pathname.startsWith("/Admin/students") && !location.pathname.startsWith("/Admin/attendance-report")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
                         <PersonOutlineIcon />
@@ -134,21 +100,10 @@ const SideBar = () => {
                     component={Link} 
                     to="/Admin/attendance-report"
                     selected={location.pathname.startsWith("/Admin/attendance-report")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <ReportIcon />
+                        <CoPresentIcon />
                     </ListItemIcon>
                     <ListItemText primary="Attendance Reports" />
                 </ListItemButton>
@@ -156,21 +111,10 @@ const SideBar = () => {
                     component={Link} 
                     to="/Admin/attendance-debug"
                     selected={location.pathname.startsWith("/Admin/attendance-debug")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <ReportIcon />
+                        <StorageIcon />
                     </ListItemIcon>
                     <ListItemText primary="Database Viewer" />
                 </ListItemButton>
@@ -178,21 +122,10 @@ const SideBar = () => {
                     component={Link} 
                     to="/Admin/notices"
                     selected={location.pathname.startsWith("/Admin/notices")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <AnnouncementOutlinedIcon />
+                        <NotificationsIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_notices')} />
                 </ListItemButton>
@@ -200,21 +133,10 @@ const SideBar = () => {
                     component={Link} 
                     to="/Admin/complains"
                     selected={location.pathname.startsWith("/Admin/complains")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <ReportIcon />
+                        <FeedbackOutlinedIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_complains')} />
                 </ListItemButton>
@@ -223,18 +145,7 @@ const SideBar = () => {
                     component={Link} 
                     to="/Admin/parents"
                     selected={location.pathname.startsWith("/Admin/parents") || location.pathname.startsWith("/Admin/addparent")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
                         <FamilyRestroomIcon />
@@ -251,18 +162,7 @@ const SideBar = () => {
                     component={Link} 
                     to="/Admin/profile"
                     selected={location.pathname.startsWith("/Admin/profile")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
                         <AccountCircleOutlinedIcon />
@@ -273,18 +173,7 @@ const SideBar = () => {
                     component={Link} 
                     to="/logout"
                     selected={location.pathname.startsWith("/logout")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
+                    sx={selectedItemStyles}
                 >
                     <ListItemIcon>
                         <ExitToAppIcon />
