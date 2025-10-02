@@ -10,6 +10,7 @@ import {
     GridToolbarExport
 } from '@mui/x-data-grid';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getTeacherFreeClassSubjects, getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
 import { updateTeachSubject } from '../../../redux/teacherRelated/teacherHandle';
@@ -90,19 +91,9 @@ const ChooseSubject = ({ situation }) => {
             headerName: 'Assigned Teacher', 
             width: 200,
             renderCell: (params) => {
-                console.log(`Rendering teacher cell for ${params.row.subName}:`, {
-                    hasTeacher: params.row.hasTeacher,
-                    teacher: params.row.teacher,
-                    teacherName: params.row.teacher?.name
-                });
-                
-                // More robust check - use hasTeacher field from backend or check if teacher has a name
-                const hasTeacher = params.row.hasTeacher || (params.row.teacher && params.row.teacher.name);
-                
+                const hasTeacher = params.row.hasTeacher;
                 return hasTeacher ? (
-                    <Typography variant="body2" color="text.secondary">
-                        Already Assigned ({params.row.teacher?.name || 'Unknown'})
-                    </Typography>
+                    <CheckCircleIcon color="success" />
                 ) : (
                     <Typography variant="body2" color="success.main">
                         Available
@@ -115,28 +106,32 @@ const ChooseSubject = ({ situation }) => {
             headerName: 'Actions',
             width: 150,
             renderCell: (params) => {
-                const hasTeacher = params.row.hasTeacher || (params.row.teacher && params.row.teacher.name);
+                const hasTeacher = params.row.hasTeacher;
                 return (
                     <Box>
-                        {situation === "Norm" ? (
-                            <Button 
-                                variant="contained"
-                                color={hasTeacher ? "warning" : "success"}
-                                startIcon={<PersonAddIcon />}
-                                onClick={() => navigate("/Admin/teachers/addteacher/" + params.row.id)}
-                            >
-                                {hasTeacher ? "Replace" : "Choose"}
-                            </Button>
-                        ) : (
-                            <Button 
-                                variant="contained" 
-                                color="success"
-                                disabled={loader || hasTeacher}
-                                onClick={() => updateSubjectHandler(teacherID, params.row.id)}
-                            >
-                                {loader ? <CircularProgress size={16} /> : "Assign"}
-                            </Button>
-                        )}
+                        <Button 
+                            variant="contained"
+                            color={hasTeacher ? "success" : "success"}
+                            startIcon={<PersonAddIcon />}
+                            disabled={hasTeacher}
+                            onClick={() => navigate(`/Admin/teachers/addteacher/${params.row.id}`)}
+                            sx={{
+                                borderColor: "#4CAF50",
+                                color: "#FFFFFF",
+                                backgroundColor: "#4CAF50",
+                                borderRadius: "50px",
+                                padding: "8px 16px",
+                                fontSize: "0.875rem",
+                                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                                textTransform: "capitalize",
+                                '&:hover': {
+                                    backgroundColor: "#45A049",
+                                    boxShadow: "0px 6px 8px rgba(0, 0, 0, 0.15)",
+                                },
+                            }}
+                        >
+                            Choose
+                        </Button>
                     </Box>
                 );
             },
@@ -148,6 +143,7 @@ const ChooseSubject = ({ situation }) => {
         subName: subject.subName,
         subCode: subject.subCode,
         sessions: subject.sessions || 'N/A',
+        hasTeacher: subject.hasTeacher,
     })) : [];
 
     function CustomToolbar() {
