@@ -74,7 +74,7 @@ exports.getSubmissionsByStudent = async (req, res) => {
   try {
     const submissions = await Submission.find({ studentId: req.params.studentId })
       .populate("assignmentId", "title dueDate")
-      .select("assignmentId submittedAt grade feedback"); // include grade and feedback fields
+      .select("assignmentId submittedAt grade feedback fileUrl answerText"); // include grade, feedback, fileUrl, answerText fields
     res.json(submissions);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -82,6 +82,64 @@ exports.getSubmissionsByStudent = async (req, res) => {
 };
 
 exports.upload = upload;
+
+// Update submission (student can edit)
+exports.updateSubmission = async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+    const { answerText } = req.body;
+    let fileUrl = null;
+
+    const submission = await Submission.findById(submissionId);
+    if (!submission) {
+      return res.status(404).json({ error: "Submission not found" });
+    }
+
+    // If new file, delete old file and set new
+    if (req.file) {
+      if (submission.fileUrl) {
+        const oldFilePath = path.join(__dirname, '..', submission.fileUrl);
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+      fileUrl = `/uploads/submissions/${req.file.filename}`;
+    }
+
+    submission.answerText = answerText || submission.answerText;
+    if (fileUrl) submission.fileUrl = fileUrl;
+
+    await submission.save();
+    res.json({ message: "Submission updated successfully", submission });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Delete submission
+exports.deleteSubmission = async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+
+    const submission = await Submission.findById(submissionId);
+    if (!submission) {
+      return res.status(404).json({ error: "Submission not found" });
+    }
+
+    // Delete file if exists
+    if (submission.fileUrl) {
+      const filePath = path.join(__dirname, '..', submission.fileUrl);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    await Submission.findByIdAndDelete(submissionId);
+    res.json({ message: "Submission deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
 
 // Add updateSubmissionMarking function to update grade and feedback
 exports.updateSubmissionMarking = async (req, res) => {

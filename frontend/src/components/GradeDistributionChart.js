@@ -1,7 +1,7 @@
 import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
-const GradeDistributionChart = ({ submissions }) => {
+const GradeDistributionChart = ({ submissions, onBarClick }) => {
   // Calculate grade distribution buckets
   const buckets = {
     '0-59': 0,
@@ -27,6 +27,13 @@ const GradeDistributionChart = ({ submissions }) => {
     count: buckets[key],
   }));
 
+  const handleClick = (data, index) => {
+    if (onBarClick) {
+      const range = data.range.split('-').map(Number);
+      onBarClick(range);
+    }
+  };
+
   return (
     <ResponsiveContainer width="100%" height={150}>
       <BarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -34,7 +41,7 @@ const GradeDistributionChart = ({ submissions }) => {
         <XAxis dataKey="range" />
         <YAxis allowDecimals={false} />
         <Tooltip />
-        <Bar dataKey="count" fill="#1976d2" />
+        <Bar dataKey="count" fill="#1976d2" onClick={handleClick} cursor="pointer" />
       </BarChart>
     </ResponsiveContainer>
   );

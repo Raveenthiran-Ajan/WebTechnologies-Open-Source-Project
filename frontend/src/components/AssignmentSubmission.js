@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Paper,
@@ -30,7 +30,7 @@ const validateFile = (file) => {
   return allowedTypes.includes(file.type) && file.size <= maxSize;
 };
 
-const AssignmentSubmission = ({ assignmentId, studentId, onClose, onSubmitted }) => {
+const AssignmentSubmission = ({ assignmentId, studentId, onClose, onSubmitted, deadline }) => {
   const [file, setFile] = useState(null);
   const [answerText, setAnswerText] = useState("");
   const [alert, setAlert] = useState({
@@ -41,6 +41,41 @@ const AssignmentSubmission = ({ assignmentId, studentId, onClose, onSubmitted })
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errors, setErrors] = useState({});
+  const [existingSubmission, setExistingSubmission] = useState(null);
+  const [isDeadlineOver, setIsDeadlineOver] = useState(false);
+
+  useEffect(() => {
+    // Check if deadline is over
+    if (deadline) {
+      const deadlineDate = new Date(deadline);
+      const now = new Date();
+      setIsDeadlineOver(now > deadlineDate);
+    }
+  }, [deadline]);
+
+  useEffect(() => {
+    // Fetch existing submission for this assignment and student
+    async function fetchSubmission() {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/submissions`, {
+          params: { assignmentId, studentId },
+        });
+        if (res.data && res.data.length > 0) {
+          const submission = res.data[0];
+          setExistingSubmission(submission);
+          setAnswerText(submission.answerText || "");
+          setFile(null); // File editing can be handled separately if needed
+        } else {
+          setExistingSubmission(null);
+          setAnswerText("");
+          setFile(null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch submission", error);
+      }
+    }
+    fetchSubmission();
+  }, [assignmentId, studentId]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -67,20 +102,27 @@ const AssignmentSubmission = ({ assignmentId, studentId, onClose, onSubmitted })
       formData.append("answerText", answerText);
     }
 
-    axios
-      .post(`${API_BASE_URL}/submissions`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percentCompleted);
-        },
-      })
+    const request = existingSubmission
+      ? axios.put(`${API_BASE_URL}/submissions/${existingSubmission._id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          },
+        })
+      : axios.post(`${API_BASE_URL}/submissions`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          },
+        });
+
+    request
       .then((res) => {
         setAlert({
           open: true,
-          message: "Submission uploaded successfully!",
+          message: existingSubmission ? "Submission updated successfully!" : "Submission uploaded successfully!",
           severity: "success",
         });
         setFile(null);
@@ -89,6 +131,7 @@ const AssignmentSubmission = ({ assignmentId, studentId, onClose, onSubmitted })
         setUploading(false);
         setUploadProgress(0);
         if (onSubmitted) onSubmitted();
+        setExistingSubmission(res.data);
       })
       .catch((err) => {
         setAlert({
@@ -100,6 +143,33 @@ const AssignmentSubmission = ({ assignmentId, studentId, onClose, onSubmitted })
         });
         setUploading(false);
         setUploadProgress(0);
+      });
+  };
+
+  const handleDelete = () => {
+    if (!existingSubmission) return;
+    setUploading(true);
+    axios
+      .delete(`${API_BASE_URL}/submissions/${existingSubmission._id}`)
+      .then(() => {
+        setAlert({
+          open: true,
+          message: "Submission deleted successfully!",
+          severity: "success",
+        });
+        setExistingSubmission(null);
+        setAnswerText("");
+        setFile(null);
+        setUploading(false);
+        if (onSubmitted) onSubmitted();
+      })
+      .catch(() => {
+        setAlert({
+          open: true,
+          message: "Failed to delete submission.",
+          severity: "error",
+        });
+        setUploading(false);
       });
   };
 
@@ -127,6 +197,7 @@ const AssignmentSubmission = ({ assignmentId, studentId, onClose, onSubmitted })
                 onChange={(e) => setAnswerText(e.target.value)}
                 multiline
                 rows={3}
+                disabled={isDeadlineOver}
               />
             </Grid>
             <Grid item xs={12}>
@@ -136,14 +207,15 @@ const AssignmentSubmission = ({ assignmentId, studentId, onClose, onSubmitted })
                   borderRadius: 2,
                   p: 2,
                   textAlign: "center",
-                  cursor: "pointer",
+                  cursor: isDeadlineOver ? "not-allowed" : "pointer",
                   position: "relative",
                   bgcolor: file ? "#e3f2fd" : "transparent",
                 }}
-                onClick={() => document.getElementById("fileInputStudent").click()}
+                onClick={() => !isDeadlineOver && document.getElementById("fileInputStudent").click()}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                   e.preventDefault();
+                  if (isDeadlineOver) return;
                   if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
                     const droppedFile = e.dataTransfer.files[0];
                     if (validateFile(droppedFile)) {
@@ -165,6 +237,7 @@ const AssignmentSubmission = ({ assignmentId, studentId, onClose, onSubmitted })
                   accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
                   style={{ display: "none" }}
                   onChange={(e) => {
+                    if (isDeadlineOver) return;
                     const selectedFile = e.target.files[0];
                     if (validateFile(selectedFile)) {
                       setFile(selectedFile);
@@ -186,12 +259,13 @@ const AssignmentSubmission = ({ assignmentId, studentId, onClose, onSubmitted })
                         e.stopPropagation();
                         setFile(null);
                       }}
+                      disabled={isDeadlineOver}
                     >
                       {/* Removed ClearIcon for official look */}
                     </IconButton>
                   </Box>
                 ) : (
-                  <Typography color="textSecondary">
+                  <Typography color={isDeadlineOver ? "text.disabled" : "textSecondary"}>
                     Drag & drop a file here, or click to select file (Max 5MB)
                   </Typography>
                 )}
@@ -215,9 +289,44 @@ const AssignmentSubmission = ({ assignmentId, studentId, onClose, onSubmitted })
               </Button>
             </Grid>
             <Grid item xs={6}>
-              <Button type="submit" variant="contained" color="primary" fullWidth disabled={uploading}>
-                {uploading ? "Uploading..." : "Submit"}
-              </Button>
+              {!existingSubmission && (
+                <Button type="submit" variant="contained" color="primary" fullWidth disabled={uploading}>
+                  {uploading ? "Uploading..." : "Submit"}
+                </Button>
+              )}
+              {existingSubmission && !isDeadlineOver && (
+                <>
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    fullWidth
+                    disabled={uploading}
+                    onClick={handleSubmit}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    fullWidth
+                    disabled={uploading}
+                    onClick={handleDelete}
+                    sx={{ mt: 1 }}
+                  >
+                    Delete
+                  </Button>
+                </>
+              )}
+              {existingSubmission && isDeadlineOver && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  disabled
+                >
+                  Download
+                </Button>
+              )}
             </Grid>
           </Grid>
         </form>
