@@ -81,7 +81,11 @@ const AdminDashboard = () => {
                             variant="h6"
                             color="inherit"
                             noWrap
-                            sx={{ flexGrow: 1 }}
+                            sx={{
+                                flexGrow: 1,
+                                fontWeight: 700,
+                                letterSpacing: '0.1rem',
+                            }}
                         >
                             Admin Dashboard
                         </Typography>
