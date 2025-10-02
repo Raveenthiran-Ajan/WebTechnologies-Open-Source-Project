@@ -44,7 +44,7 @@ const TeacherDetails = () => {
     // Support both new multi-assignment structure and old single assignment
     const teachingClasses = teacherDetails?.teachSclasses || [teacherDetails?.teachSclass].filter(Boolean);
     const teachingSubjects = teacherDetails?.teachSubjects || [teacherDetails?.teachSubject].filter(Boolean);
-    const attendanceClass = teacherDetails?.attendanceClass || teacherDetails?.teachSclass;
+    const attendanceClass = teacherDetails?.attendanceClass || null;
     
     const hasMultipleAssignments = teachingClasses?.length > 0 || teachingSubjects?.length > 0;
     const isSubjectNamePresent = teacherDetails?.teachSubject?.subName || teachingSubjects?.length > 0;
@@ -167,15 +167,22 @@ const TeacherDetails = () => {
                                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                         Attendance Responsibility
                                     </Typography>
-                                    <Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         {attendanceClass ? (
-                                            <Chip 
-                                                label={attendanceClass.sclassName} 
-                                                color="success" 
-                                                variant="filled"
-                                            />
+                                            <>
+                                                <Chip 
+                                                    label={attendanceClass.sclassName} 
+                                                    color="success" 
+                                                    variant="filled"
+                                                />
+                                                <Typography variant="caption" sx={{ color: 'success.main' }}>
+                                                    ✓ Assigned for attendance
+                                                </Typography>
+                                            </>
                                         ) : (
-                                            <Typography color="text.secondary">No attendance class assigned</Typography>
+                                            <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                                                Not assigned for attendance duties
+                                            </Typography>
                                         )}
                                     </Box>
                                 </Box>

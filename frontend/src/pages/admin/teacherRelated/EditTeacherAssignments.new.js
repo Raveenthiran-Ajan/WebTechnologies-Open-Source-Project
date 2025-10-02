@@ -51,35 +51,19 @@ const EditTeacherAssignments = () => {
             
             setSelectedClasses(currentClasses.map(c => c._id));
             setSelectedSubjects(currentSubjects.map(s => s._id));
-            // Initialize attendance class state with proper validation
-            const currentAttendanceClass = teacherDetails.attendanceClass;
-            if (currentAttendanceClass && currentAttendanceClass._id) {
-                // Verify that attendance class is in selected classes
-                const isValidAttendanceClass = teacherDetails.teachSclasses?.some(c => c._id === currentAttendanceClass._id) ||
-                    (teacherDetails.teachSclass && teacherDetails.teachSclass._id === currentAttendanceClass._id);
-                setAttendanceClass(isValidAttendanceClass ? currentAttendanceClass._id : '');
-            } else {
-                setAttendanceClass('');
-            }
+            // Set attendance class only if it exists, otherwise empty string (none)
+            setAttendanceClass(teacherDetails.attendanceClass ? teacherDetails.attendanceClass._id : '');
         }
     }, [teacherDetails]);
 
     useEffect(() => {
-        console.log('Subjects from Redux:', subjectsList);
-        console.log('Selected classes:', selectedClasses);
-        
         if (selectedClasses.length > 0 && subjectsList && subjectsList.length > 0) {
             // Get subjects that belong to selected classes
-            const subjects = subjectsList.filter(subject => {
-                const belongsToClass = selectedClasses.includes(subject.sclassName?._id);
-                console.log(`Subject ${subject.subName} belongs to selected class:`, belongsToClass);
-                return belongsToClass;
-            });
-            console.log('Filtered subjects:', subjects);
+            const subjects = subjectsList.filter(subject => 
+                selectedClasses.includes(subject.sclassName?._id)
+            );
             setAvailableSubjects(subjects);
         } else if (subjectsList && subjectsList.length > 0) {
-            // If no classes selected, show all subjects
-            console.log('Using all subjects:', subjectsList);
             setAvailableSubjects(subjectsList);
         }
     }, [selectedClasses, subjectsList]);
@@ -87,8 +71,9 @@ const EditTeacherAssignments = () => {
     const handleClassChange = (event) => {
         const value = event.target.value;
         setSelectedClasses(typeof value === 'string' ? value.split(',') : value);
-        // Reset subjects when classes change
+        // Reset subjects and attendance class when classes change
         setSelectedSubjects([]);
+        setAttendanceClass('');
     };
 
     const handleSubjectChange = (event) => {
@@ -97,7 +82,8 @@ const EditTeacherAssignments = () => {
     };
 
     const handleAttendanceClassChange = (event) => {
-        setAttendanceClass(event.target.value);
+        const value = event.target.value;
+        setAttendanceClass(value);
     };
 
     const handleSaveAssignments = async () => {
@@ -107,36 +93,30 @@ const EditTeacherAssignments = () => {
             return;
         }
 
-        // If attendanceClass is an empty string, send null to backend
-        const attendanceClassToSend = attendanceClass || null;
-
         if (selectedSubjects.length === 0) {
             setMessage("Please select at least one subject");
             setShowPopup(true);
             return;
         }
 
-        // Validate only if an attendance class is selected
-        if (attendanceClass && !selectedClasses.includes(attendanceClass)) {
-            setMessage("Attendance class must be one of the selected teaching classes");
-            setShowPopup(true);
-            return;
-        }
+        // If attendanceClass is an empty string, send null to backend
+        const attendanceClassToSend = attendanceClass || null;
 
         setLoader(true);
         try {
-                        const response = await dispatch(assignMultipleSubjects(id, selectedSubjects, attendanceClassToSend));
+            const response = await dispatch(assignMultipleSubjects(id, selectedSubjects, attendanceClassToSend));
+            
             if (response.payload && response.payload.message && response.payload.message.includes('already assigned for attendance')) {
                 setMessage(response.payload.message);
                 setShowPopup(true);
                 setLoader(false);
                 return;
             }
+            
             setMessage("Teacher assignments updated successfully!");
             setShowPopup(true);
-            
             setTimeout(() => {
-                navigate(-1); // Go back to previous page
+                navigate(-1);
             }, 2000);
         } catch (error) {
             setMessage(error.response?.data?.message || "Error updating assignments. Please try again.");
@@ -214,22 +194,21 @@ const EditTeacherAssignments = () => {
                             <Typography variant="body2" color="text.secondary" gutterBottom>
                                 Attendance Class:
                             </Typography>
-                            {teacherDetails?.attendanceClass ? (
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            {teacherDetails && teacherDetails.attendanceClass ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <Chip 
-                                        label={teacherDetails.attendanceClass.sclassName}
+                                        label={teacherDetails.attendanceClass.sclassName} 
                                         size="small" 
                                         color="success" 
                                         variant="filled"
-                                        sx={{ mr: 1 }}
                                     />
                                     <Typography variant="caption" sx={{ color: 'success.main' }}>
-                                        ✓ Attendance Teacher
+                                        ✓ Currently assigned for attendance
                                     </Typography>
                                 </Box>
                             ) : (
                                 <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                                    No attendance duty
+                                    Not assigned for attendance duties
                                 </Typography>
                             )}
                         </Box>
@@ -300,8 +279,13 @@ const EditTeacherAssignments = () => {
                                 value={attendanceClass}
                                 onChange={handleAttendanceClassChange}
                                 label="Attendance Class (Optional)"
+                                displayEmpty
                             >
-                                <MenuItem value="">None</MenuItem>
+                                <MenuItem value="">
+                                    <Typography sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                                        None (No attendance duty)
+                                    </Typography>
+                                </MenuItem>
                                 {selectedClasses.map((classId) => {
                                     const sclass = sclassesList.find(c => c._id === classId);
                                     return (

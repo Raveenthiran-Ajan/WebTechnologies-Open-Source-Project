@@ -29,8 +29,16 @@ export const getTeacherDetails = (id) => async (dispatch) => {
 
     try {
         const result = await axios.get(`${REACT_APP_BASE_URL}/Teacher/${id}`);
-        if (result.data) {
-            dispatch(doneSuccess(result.data));
+        if (result.data?.message) {
+            dispatch(getFailed(result.data.message));
+        } else if (result.data) {
+            // Clean up any undefined or null values
+            const cleanedData = {...result.data};
+            if (!cleanedData.teachSubjects?.length) delete cleanedData.teachSubjects;
+            if (!cleanedData.teachSclasses?.length) delete cleanedData.teachSclasses;
+            if (!cleanedData.attendanceClass) delete cleanedData.attendanceClass;
+            
+            dispatch(doneSuccess(cleanedData));
         }
     } catch (error) {
         dispatch(getError(error));

@@ -3,12 +3,35 @@ const Teacher = require('../models/teacherSchema.js');
 const Subject = require('../models/subjectSchema.js');
 
 const teacherRegister = async (req, res) => {
-    const { name, email, password, role, school, teachSubject, teachSclass } = req.body;
+    const { name, email, password, role, school, teachSubject, teachSclass, attendanceClass } = req.body;
     try {
         const salt = await bcrypt.genSalt(10);
         const hashedPass = await bcrypt.hash(password, salt);
 
-        const teacher = new Teacher({ name, email, password: hashedPass, role, school, teachSubject, teachSclass });
+        // Only check for existing attendance teacher if attendance class is explicitly set
+        if (attendanceClass) {
+            const existingAttendanceTeacher = await Teacher.findOne({ attendanceClass });
+            if (existingAttendanceTeacher) {
+                return res.send({ message: 'Another teacher is already assigned for attendance in this class' });
+            }
+        }
+
+        const teacherData = { 
+            name, 
+            email, 
+            password: hashedPass, 
+            role, 
+            school, 
+            teachSubject, 
+            teachSclass
+        };
+
+        // Only add attendanceClass if it's explicitly provided
+        if (attendanceClass) {
+            teacherData.attendanceClass = attendanceClass;
+        }
+
+        const teacher = new Teacher(teacherData);
 
         const existingTeacherByEmail = await Teacher.findOne({ email });
 
@@ -58,7 +81,12 @@ const getTeachers = async (req, res) => {
             .populate("attendanceClass", "sclassName");
         if (teachers.length > 0) {
             let modifiedTeachers = teachers.map((teacher) => {
-                return { ...teacher._doc, password: undefined };
+                const teacherDoc = { ...teacher._doc, password: undefined };
+                // Only include attendanceClass if it's explicitly set
+                if (!teacherDoc.attendanceClass) {
+                    delete teacherDoc.attendanceClass;
+                }
+                return teacherDoc;
             });
             res.send(modifiedTeachers);
         } else {
@@ -72,15 +100,38 @@ const getTeachers = async (req, res) => {
 const getTeacherDetail = async (req, res) => {
     try {
         let teacher = await Teacher.findById(req.params.id)
-            .populate("teachSubject", "subName sessions")
+            .populate("teachSubject", "subName sessions sclassName")
             .populate("school", "schoolName")
             .populate("teachSclass", "sclassName")
-            .populate("teachSubjects", "subName sessions")
+            .populate({
+                path: "teachSubjects",
+                select: "subName sessions sclassName",
+                populate: {
+                    path: "sclassName",
+                    select: "sclassName"
+                }
+            })
             .populate("teachSclasses", "sclassName")
             .populate("attendanceClass", "sclassName")
+
         if (teacher) {
-            teacher.password = undefined;
-            res.send(teacher);
+            const teacherDoc = teacher.toObject();
+            teacherDoc.password = undefined;
+
+            // Clean up the data
+            if (!teacherDoc.teachSubjects?.length) delete teacherDoc.teachSubjects;
+            if (!teacherDoc.teachSclasses?.length) delete teacherDoc.teachSclasses;
+            if (!teacherDoc.attendanceClass) delete teacherDoc.attendanceClass;
+
+            // Ensure legacy fields are properly populated if arrays are empty
+            if (!teacherDoc.teachSubjects && teacherDoc.teachSubject) {
+                teacherDoc.teachSubjects = [teacherDoc.teachSubject];
+            }
+            if (!teacherDoc.teachSclasses && teacherDoc.teachSclass) {
+                teacherDoc.teachSclasses = [teacherDoc.teachSclass];
+            }
+
+            res.send(teacherDoc);
         }
         else {
             res.send({ message: "No teacher found" });
@@ -188,8 +239,22 @@ const assignMultipleSubjects = async (req, res) => {
         const classIds = [...new Set(subjects.map(subject => subject.sclassName._id.toString()))];
         console.log('Class IDs:', classIds);
 
-        // Use provided attendance class or default to first class
-        const finalAttendanceClass = attendanceClassId || classIds[0];
+        // Check if another teacher is already assigned for attendance in the selected class
+        if (attendanceClassId) {
+            const existingAttendanceTeacher = await Teacher.findOne({
+                attendanceClass: attendanceClassId,
+                _id: { $ne: teacherId } // Exclude current teacher
+            });
+            
+            if (existingAttendanceTeacher) {
+                return res.status(400).json({
+                    message: `Teacher ${existingAttendanceTeacher.name} is already assigned for attendance in this class`
+                });
+            }
+        }
+
+        // Only set attendance class if explicitly provided
+        const finalAttendanceClass = attendanceClassId || null;
         console.log('Final attendance class:', finalAttendanceClass);
 
         // Direct update - replace all arrays
