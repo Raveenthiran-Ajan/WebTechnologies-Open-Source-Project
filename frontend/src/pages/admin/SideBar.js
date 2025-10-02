@@ -9,9 +9,10 @@ import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined
 import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
-import ReportIcon from '@mui/icons-material/Report';
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import { useTranslation } from 'react-i18next';
 
 const SideBar = () => {
@@ -148,32 +149,11 @@ const SideBar = () => {
                     }}
                 >
                     <ListItemIcon>
-                        <ReportIcon />
+                        <AssessmentIcon />
                     </ListItemIcon>
                     <ListItemText primary="Attendance Reports" />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/Admin/attendance-debug"
-                    selected={location.pathname.startsWith("/Admin/attendance-debug")}
-                    sx={{
-                        '&.Mui-selected': {
-                            backgroundColor: 'primary.main',
-                            color: 'white',
-                            '&:hover': {
-                                backgroundColor: 'primary.dark',
-                            },
-                            '& .MuiListItemIcon-root': {
-                                color: 'white',
-                            },
-                        },
-                    }}
-                >
-                    <ListItemIcon>
-                        <ReportIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="Database Viewer" />
-                </ListItemButton>
+
                 <ListItemButton 
                     component={Link} 
                     to="/Admin/notices"
@@ -214,7 +194,7 @@ const SideBar = () => {
                     }}
                 >
                     <ListItemIcon>
-                        <ReportIcon />
+                        <MonitorHeartIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_complains')} />
                 </ListItemButton>
