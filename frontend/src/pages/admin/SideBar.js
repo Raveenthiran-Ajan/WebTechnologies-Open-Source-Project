@@ -10,11 +10,9 @@ import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
-import ReportIcon from '@mui/icons-material/Report';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
-import CoPresentIcon from '@mui/icons-material/CoPresent';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
-import StorageIcon from '@mui/icons-material/Storage';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import { useTranslation } from 'react-i18next';
 
@@ -103,21 +101,12 @@ const SideBar = () => {
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <CoPresentIcon />
+                        <AssessmentOutlinedIcon />
                     </ListItemIcon>
                     <ListItemText primary="Attendance Reports" />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/Admin/attendance-debug"
-                    selected={location.pathname.startsWith("/Admin/attendance-debug")}
-                    sx={selectedItemStyles}
-                >
-                    <ListItemIcon>
-                        <StorageIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="Database Viewer" />
-                </ListItemButton>
+
+
                 <ListItemButton 
                     component={Link} 
                     to="/Admin/notices"

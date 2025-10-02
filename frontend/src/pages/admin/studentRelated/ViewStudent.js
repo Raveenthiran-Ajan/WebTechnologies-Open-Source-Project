@@ -133,7 +133,6 @@ const ViewStudent = () => {
                                 <StyledTableCell>Present</StyledTableCell>
                                 <StyledTableCell>Total Sessions</StyledTableCell>
                                 <StyledTableCell>Attendance Percentage</StyledTableCell>
-                                <StyledTableCell align="center">Actions</StyledTableCell>
                             </StyledTableRow>
                         </TableHead>
                         {Object.entries(groupAttendanceBySubject(subjectAttendance)).map(([subName, { present, allData, subId, sessions }], index) => {
@@ -145,19 +144,6 @@ const ViewStudent = () => {
                                         <StyledTableCell>{present}</StyledTableCell>
                                         <StyledTableCell>{sessions}</StyledTableCell>
                                         <StyledTableCell>{subjectAttendancePercentage}%</StyledTableCell>
-                                        <StyledTableCell align="center">
-                                            <Button variant="contained"
-                                                onClick={() => handleOpen(subId)}>
-                                                {openStates[subId] ? <KeyboardArrowUp /> : <KeyboardArrowDown />}Details
-                                            </Button>
-                                            <IconButton onClick={() => removeSubAttendance(subId)}>
-                                                <DeleteIcon color="error" />
-                                            </IconButton>
-                                            <Button variant="contained" sx={styles.attendanceButton}
-                                                onClick={() => navigate(`/Admin/subject/student/attendance/${studentID}/${subId}`)}>
-                                                Change
-                                            </Button>
-                                        </StyledTableCell>
                                     </StyledTableRow>
                                     <StyledTableRow>
                                         <StyledTableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={6}>
@@ -200,7 +186,6 @@ const ViewStudent = () => {
                     <div>
                         Overall Attendance Percentage: {overallAttendancePercentage.toFixed(2)}%
                     </div>
-                    <Button variant="contained" color="error" startIcon={<DeleteIcon />} onClick={() => removeHandler(studentID, "RemoveStudentAtten")}>Delete All</Button>
                 </>
             )
         }
@@ -267,9 +252,6 @@ const ViewStudent = () => {
                             })}
                         </TableBody>
                     </Table>
-                    <Button variant="contained" sx={styles.styledButton} onClick={() => navigate("/Admin/students/student/marks/" + studentID)}>
-                        Add Marks
-                    </Button>
                 </>
             )
         }
@@ -383,37 +365,10 @@ const ViewStudent = () => {
                             </Box>
                         )}
                         
-                        {/* Actions Section */}
-                        <Box sx={{ mt: 4 }}>
-                            <Typography variant="h6" gutterBottom color="text.secondary">
-                                Actions
-                            </Typography>
-                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 2 }}>
-                                <Button 
-                                    variant="contained" 
-                                    color="primary"
-                                    onClick={() => navigate(`/Admin/students/student/attendance/${studentID}`)}
-                                >
-                                    Take Attendance
-                                </Button>
-                                <Button 
-                                    variant="contained" 
-                                    color="secondary"
-                                    onClick={() => navigate(`/Admin/students/student/marks/${studentID}`)}
-                                >
-                                    Add Marks
-                                </Button>
-                                <Button 
-                                    variant="outlined" 
-                                    color="error"
-                                    onClick={deleteHandler}
-                                >
-                                    Delete Student
-                                </Button>
-                                <Button variant="outlined" onClick={() => navigate(-1)}>
-                                    Go Back
-                                </Button>
-                            </Box>
+                        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+                            <Button variant="outlined" onClick={() => navigate(-1)}>
+                                Go Back
+                            </Button>
                         </Box>
                     </Box>
                 </Box>
