@@ -52,40 +52,35 @@ const Timetable = ({ classID }) => {
         const response = await fetch(`http://localhost:5000/Sclass/Timetable/${classID}`);
         const data = await response.json();
         if (Array.isArray(data)) {
-          if (data.length === 0) {
-            // Initialize with default empty timetable
-            const defaultTimetable = {};
-            daysOfWeek.forEach(day => {
-              defaultTimetable[day] = {};
-              periods.forEach(period => {
-                defaultTimetable[day][period] = { subjectId: '', teacherId: '', subjectName: '', teacherName: '' };
-              });
+          // Always initialize with all days and periods
+          const timetableObj = {};
+          const newSelectedSubjects = {};
+          const newSelectedTeachers = {};
+          daysOfWeek.forEach(day => {
+            timetableObj[day] = {};
+            periods.forEach(period => {
+              timetableObj[day][period] = { subjectId: '', teacherId: '', subjectName: '', teacherName: '' };
             });
-            setTimetable(defaultTimetable);
-          } else {
-            // Convert array to object
-            const timetableObj = {};
-            const newSelectedSubjects = {};
-            const newSelectedTeachers = {};
-            data.forEach(entry => {
-              if (!timetableObj[entry.day]) timetableObj[entry.day] = {};
-              timetableObj[entry.day][entry.period] = {
-                subjectId: entry.subjectId || '',
-                teacherId: entry.teacher || '',
-                subjectName: entry.subject || '',
-                teacherName: '' // Will populate if needed
-              };
-              if (entry.subjectId) {
-                newSelectedSubjects[`${entry.day}-${entry.period}`] = entry.subjectId;
-              }
-              if (entry.teacher) {
-                newSelectedTeachers[`${entry.day}-${entry.period}`] = entry.teacher;
-              }
-            });
-            setTimetable(timetableObj);
-            setSelectedSubjects(newSelectedSubjects);
-            setSelectedTeachers(newSelectedTeachers);
-          }
+          });
+          // Fill in with fetched data
+          data.forEach(entry => {
+            if (!timetableObj[entry.day]) timetableObj[entry.day] = {};
+            timetableObj[entry.day][entry.period] = {
+              subjectId: entry.subjectId || '',
+              teacherId: entry.teacher || '',
+              subjectName: entry.subject || '',
+              teacherName: '' // Will populate if needed
+            };
+            if (entry.subjectId) {
+              newSelectedSubjects[`${entry.day}-${entry.period}`] = entry.subjectId;
+            }
+            if (entry.teacher) {
+              newSelectedTeachers[`${entry.day}-${entry.period}`] = entry.teacher;
+            }
+          });
+          setTimetable(timetableObj);
+          setSelectedSubjects(newSelectedSubjects);
+          setSelectedTeachers(newSelectedTeachers);
         }
       } catch (error) {
         console.error("Failed to fetch timetable", error);

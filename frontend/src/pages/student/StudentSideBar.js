@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
@@ -5,53 +6,89 @@ import { Link, useLocation } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
-import { useTranslation } from 'react-i18next';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import { useTranslation } from 'react-i18next';
+
 
 const StudentSideBar = () => {
     const location = useLocation();
     const { t } = useTranslation();
+
+    const selectedItemStyles = {
+        '&.Mui-selected': {
+            backgroundColor: 'rgba(25, 118, 210, 0.08)',
+            borderLeft: '4px solid #1976d2',
+            '&:hover': {
+                backgroundColor: 'rgba(25, 118, 210, 0.12)',
+            },
+            '& .MuiListItemIcon-root': {
+                color: 'primary.main',
+            },
+            '& .MuiListItemText-primary': {
+                fontWeight: '600',
+            },
+        },
+    };
+
     return (
         <>
             <React.Fragment>
-                <ListItemButton component={Link} to="/">
+                <ListItemButton 
+                    component={Link} 
+                    to="/"
+                    selected={location.pathname === "/" || location.pathname === "/Student/dashboard"}
+                    sx={selectedItemStyles}
+                >
                     <ListItemIcon>
-                        <HomeIcon color={location.pathname === ("/" || "/Student/dashboard") ? 'primary' : 'inherit'} />
+                        <HomeIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_home')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Student/subjects">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Student/subjects"
+                    selected={location.pathname.startsWith("/Student/subjects")}
+                    sx={selectedItemStyles}
+                >
                     <ListItemIcon>
-                        <AssignmentIcon color={location.pathname.startsWith("/Student/subjects") ? 'primary' : 'inherit'} />
+                        <AssignmentIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_subjects')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Student/simple-attendance">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Student/timetable"
+                    selected={location.pathname.startsWith("/Student/timetable")}
+                    sx={selectedItemStyles}
+                >
                     <ListItemIcon>
-                        <ClassOutlinedIcon color={location.pathname.startsWith("/Student/simple-attendance") ? 'primary' : 'inherit'} />
+                        <ScheduleIcon />
                     </ListItemIcon>
-                    <ListItemText primary="Simple Attendance Report" />
+                    <ListItemText primary={t('menu_timetable') || 'Timetable'} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Student/attendance">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Student/attendance"
+                    selected={location.pathname.startsWith("/Student/attendance")}
+                    sx={selectedItemStyles}
+                >
                     <ListItemIcon>
-                        <ClassOutlinedIcon color={location.pathname.startsWith("/Student/attendance") ? 'primary' : 'inherit'} />
+                        <ClassOutlinedIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_attendance')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/assignments">
+                <ListItemButton 
+                    component={Link} 
+                    to="/assignments"
+                    selected={location.pathname === "/assignments"}
+                    sx={selectedItemStyles}
+                >
                     <ListItemIcon>
-                        <AssignmentIcon color={location.pathname === "/assignments" ? 'primary' : 'inherit'} />
+                        <AssignmentIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_assignment_submission')} />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Student/complain">
-                    <ListItemIcon>
-                        <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Student/complain") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary={t('menu_complain')} />
                 </ListItemButton>
             </React.Fragment>
             <Divider sx={{ my: 1 }} />
@@ -59,15 +96,25 @@ const StudentSideBar = () => {
                 <ListSubheader component="div" inset>
                     {t('menu_user')}
                 </ListSubheader>
-                <ListItemButton component={Link} to="/Student/profile">
+                <ListItemButton 
+                    component={Link} 
+                    to="/Student/profile"
+                    selected={location.pathname.startsWith("/Student/profile")}
+                    sx={selectedItemStyles}
+                >
                     <ListItemIcon>
-                        <AccountCircleOutlinedIcon color={location.pathname.startsWith("/Student/profile") ? 'primary' : 'inherit'} />
+                        <AccountCircleOutlinedIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_profile')} />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/logout">
+                <ListItemButton 
+                    component={Link} 
+                    to="/logout"
+                    selected={location.pathname.startsWith("/logout")}
+                    sx={selectedItemStyles}
+                >
                     <ListItemIcon>
-                        <ExitToAppIcon color={location.pathname.startsWith("/logout") ? 'primary' : 'inherit'} />
+                        <ExitToAppIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_logout')} />
                 </ListItemButton>

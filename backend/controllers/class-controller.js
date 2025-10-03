@@ -34,11 +34,15 @@ const sclassList = async (req, res) => {
         if (sclasses.length > 0) {
             const sclassesWithCounts = await Promise.all(sclasses.map(async (sclass) => {
                 const studentCount = await Student.countDocuments({ sclassName: sclass._id });
-                const teacherCount = await Teacher.countDocuments({ teachSclass: sclass._id });
+                // Only teachers who teach any subject in the class
+                const subjectIds = await Subject.find({ sclassName: sclass._id }).distinct('_id');
+                const teacherObjs = await Teacher.find({ teachSubjects: { $in: subjectIds } }).select('_id name email');
+                const teacherCount = teacherObjs.length;
                 return {
                     ...sclass,
                     students: studentCount,
                     teachers: teacherCount,
+                    teacherList: teacherObjs,
                 };
             }));
             res.send(sclassesWithCounts);
