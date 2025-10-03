@@ -1,0 +1,26 @@
+[33mad96975[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mAssignment-submission[m[33m)[m HEAD@{0}: reset: moving to ORIG_HEAD
+[33mc26f484[m[33m ([m[1;31morigin/Assignment-submission[m[33m)[m HEAD@{1}: reset: moving to c26f484209c7349b4fa9e9a205c18ab00079204b
+[33mad96975[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mAssignment-submission[m[33m)[m HEAD@{2}: commit: Resolve merge conflicts: update getAvailableSubjects to filter by timetable clashes, update TODO for teacher assignment, add existing teacher option to ClassDetails
+[33mc26f484[m[33m ([m[1;31morigin/Assignment-submission[m[33m)[m HEAD@{3}: pull: Fast-forward
+[33m2809c0a[m HEAD@{4}: reset: moving to HEAD
+[33m2809c0a[m HEAD@{5}: commit: Edit timetable feature improved
+[33m351a609[m HEAD@{6}: pull: Fast-forward
+[33m0382254[m HEAD@{7}: commit: Submission feature upload
+[33m1854fae[m HEAD@{8}: pull: Fast-forward
+[33m7b1be95[m HEAD@{9}: commit: Add submission functionality
+[33m6b01ea7[m HEAD@{10}: checkout: moving from Multi-language-support to Assignment-submission
+[33mf9d8431[m HEAD@{11}: checkout: moving from Assignment-submission to Multi-language-support
+[33m6b01ea7[m HEAD@{12}: commit: Add upload assignment feature on teacher dashboard
+[33mb7371bb[m HEAD@{13}: commit: Add upload assignment feature on teacher dashboard
+[33m04dbc20[m HEAD@{14}: commit: Refactor components for improved structure and readability
+[33m4317ff5[m HEAD@{15}: commit: Implement assignment submission and retrieval features
+[33m96e47a4[m[33m ([m[1;31morigin/UI[m[33m)[m HEAD@{16}: checkout: moving from main to Assignment-submission
+[33m0e987f6[m HEAD@{17}: checkout: moving from Assignment-submission to main
+[33m96e47a4[m[33m ([m[1;31morigin/UI[m[33m)[m HEAD@{18}: checkout: moving from Assignment-submission to Assignment-submission
+[33m96e47a4[m[33m ([m[1;31morigin/UI[m[33m)[m HEAD@{19}: checkout: moving from Assignment-submission to Assignment-submission
+[33m96e47a4[m[33m ([m[1;31morigin/UI[m[33m)[m HEAD@{20}: checkout: moving from main to Assignment-submission
+[33m0e987f6[m HEAD@{21}: checkout: moving from Assignment-submission to main
+[33m96e47a4[m[33m ([m[1;31morigin/UI[m[33m)[m HEAD@{22}: checkout: moving from main to Assignment-submission
+[33m0e987f6[m HEAD@{23}: checkout: moving from Assignment-submission to main
+[33m96e47a4[m[33m ([m[1;31morigin/UI[m[33m)[m HEAD@{24}: checkout: moving from main to Assignment-submission
+[33m0e987f6[m HEAD@{25}: clone: from https://github.com/Raveenthiran-Ajan/WebTechnologies-Open-Source-Project.git

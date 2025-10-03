@@ -10,6 +10,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Button,
 } from "@mui/material";
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -32,30 +33,61 @@ const TeacherTimetable = () => {
   useEffect(() => {
     async function fetchTimetable() {
       try {
+        if (!currentUser || !currentUser.teachSclass) return;
         const response = await fetch(`http://localhost:5000/Sclass/Timetable/${currentUser.teachSclass._id}`);
         const data = await response.json();
+        console.log("Fetched timetable data:", data);
         if (Array.isArray(data)) {
           // Convert array to object
           const timetableObj = {};
           data.forEach(entry => {
             if (!timetableObj[entry.day]) timetableObj[entry.day] = {};
-            timetableObj[entry.day][entry.period] = entry.subject;
+            timetableObj[entry.day][entry.period] = entry;
           });
+          console.log("Processed timetable object:", timetableObj);
           setTimetable(timetableObj);
         }
       } catch (error) {
         console.error("Failed to fetch timetable", error);
       }
     }
-    if (currentUser && currentUser.teachSclass) {
-      fetchTimetable();
-    }
+    fetchTimetable();
   }, [currentUser]);
+
+  // Get teacher's ID
+  const teacherId = currentUser?._id;
+
+  const isTeacherSlot = (slotTeacherId) => {
+    if (!slotTeacherId) return false;
+    return slotTeacherId === teacherId;
+  };
+
+  const downloadTimetable = () => {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Time," + daysOfWeek.join(",") + "\n";
+
+    periods.forEach(period => {
+      let row = timeSlots[period - 1];
+      daysOfWeek.forEach(day => {
+        const subject = timetable[day]?.[period]?.subject || "";
+        row += "," + subject;
+      });
+      csvContent += row + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "teacher_timetable.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom>
-        My Class Timetable
+        Class Timetable
       </Typography>
       <TableContainer component={Paper}>
         <Table aria-label="timetable table">
@@ -72,11 +104,20 @@ const TeacherTimetable = () => {
               <React.Fragment key={period}>
                 <TableRow>
                   <TableCell>{timeSlots[period - 1]}</TableCell>
-                  {daysOfWeek.map(day => (
-                    <TableCell key={`${day}-${period}`}>
-                      {timetable[day]?.[period] || ''}
-                    </TableCell>
-                  ))}
+                  {daysOfWeek.map(day => {
+                    const subject = timetable[day]?.[period];
+                    return (
+                      <TableCell
+                        key={`${day}-${period}`}
+                        sx={{
+                          backgroundColor: isTeacherSlot(timetable[day]?.[period]?.teacher) ? 'rgba(241, 234, 97, 0.7)' : 'inherit',
+                          fontWeight: isTeacherSlot(timetable[day]?.[period]?.teacher) ? 'bold' : 'normal',
+                        }}
+                      >
+                        {subject?.subject || ''}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
                 {period === 4 && (
                   <TableRow key="interval">
@@ -91,6 +132,11 @@ const TeacherTimetable = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <Box sx={{ mt: 2, textAlign: 'right' }}>
+        <Button variant="contained" onClick={downloadTimetable}>
+          Download Timetable
+        </Button>
+      </Box>
     </Box>
   );
 };

@@ -25,6 +25,7 @@ import TeacherProfile from './TeacherProfile';
 import TeacherViewStudent from './TeacherViewStudent';
 import SimpleTermAttendance from './SimpleTermAttendance';
 import TeacherUploadAssignment from './TeacherUploadAssignment';
+import TeacherTimetable from './TeacherTimetable';
 
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -88,6 +89,7 @@ const TeacherDashboard = () => {
                     <Route path="/teacher/class/attendance/:classId" element={<TeacherViewStudent />} />
                     <Route path="/teacher/class/student/:id" element={<TeacherViewStudent />} />
                     <Route path="/teacher/upload-assignment" element={<TeacherUploadAssignment />} />
+                    <Route path="/teacher/timetable" element={<TeacherTimetable />} />
                     <Route path="/logout" element={<Logout />} />
                 </Routes>
             </Box>

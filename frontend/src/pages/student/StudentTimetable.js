@@ -10,6 +10,8 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Button,
+  Tooltip,
 } from "@mui/material";
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
@@ -52,37 +54,64 @@ const StudentTimetable = () => {
     }
   }, [currentUser]);
 
+  const downloadTimetable = () => {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Time," + daysOfWeek.join(",") + "\n";
+
+    periods.forEach(period => {
+      let row = timeSlots[period - 1];
+      daysOfWeek.forEach(day => {
+        const subject = timetable[day]?.[period] || "";
+        row += "," + subject;
+      });
+      csvContent += row + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "student_timetable.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom>
         My Class Timetable
       </Typography>
-      <TableContainer component={Paper}>
-        <Table aria-label="timetable table">
+      <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
+        <Table aria-label="timetable table" sx={{ borderCollapse: 'collapse' }}>
           <TableHead>
             <TableRow>
-              <TableCell>Time</TableCell>
+              <TableCell sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)', backgroundColor: 'cornflowerblue', color: 'white', fontWeight: 'bold', width: '120px' }}>Time</TableCell>
               {daysOfWeek.map(day => (
-                <TableCell key={day}>{day}</TableCell>
+                <TableCell key={day} sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)', backgroundColor: 'cornflowerblue', color: 'white', fontWeight: 'bold' }}>{day}</TableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {periods.map(period => (
               <React.Fragment key={period}>
-                <TableRow>
-                  <TableCell>{timeSlots[period - 1]}</TableCell>
-                  {daysOfWeek.map(day => (
-                    <TableCell key={`${day}-${period}`}>
-                      {timetable[day]?.[period] || ''}
-                    </TableCell>
-                  ))}
+                <TableRow hover>
+                  <TableCell sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)', fontWeight: 'bold', backgroundColor: 'cornflowerblue', color: 'white', width: '120px' }}>{timeSlots[period - 1]}</TableCell>
+                  {daysOfWeek.map(day => {
+                    const subject = timetable[day]?.[period] || '';
+                    return (
+                      <Tooltip key={`${day}-${period}`} title={subject} arrow>
+                        <TableCell sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)', cursor: 'default' }}>
+                          {subject}
+                        </TableCell>
+                      </Tooltip>
+                    );
+                  })}
                 </TableRow>
                 {period === 4 && (
-                  <TableRow key="interval">
-                    <TableCell>Interval (10:30 - 10:45)</TableCell>
+                  <TableRow key="interval" sx={{ backgroundColor: '#e0e0e0', height: '20px' }}>
+                    <TableCell sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)', fontStyle: 'italic', width: '120px' }}>Interval (10:30 - 10:45)</TableCell>
                     {daysOfWeek.map(day => (
-                      <TableCell key={`interval-${day}`}></TableCell>
+                      <TableCell key={`interval-${day}`} sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)' }}></TableCell>
                     ))}
                   </TableRow>
                 )}
@@ -91,6 +120,11 @@ const StudentTimetable = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <Box sx={{ mt: 2, textAlign: 'right' }}>
+        <Button variant="contained" onClick={downloadTimetable}>
+          Download Timetable
+        </Button>
+      </Box>
     </Box>
   );
 };

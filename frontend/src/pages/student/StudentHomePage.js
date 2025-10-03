@@ -1,5 +1,19 @@
 import React, { useEffect, useState } from 'react'
-import { Container, Grid, Paper, Typography, List, ListItem, ListItemText, Button, Box, Chip } from '@mui/material'
+import {
+    Container,
+    Grid,
+    Paper,
+    Typography,
+    Button,
+    Box,
+    Chip,
+    TableContainer,
+    Table,
+    TableHead,
+    TableRow,
+    TableCell,
+    TableBody
+} from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux';
 import { calculateOverallAttendancePercentage } from '../../components/attendanceCalculator';
 import CustomPieChart from '../../components/CustomPieChart';
@@ -26,6 +40,117 @@ const StudentHomePage = () => {
     const [assignmentsLoading, setAssignmentsLoading] = useState(false);
     const [submissions, setSubmissions] = useState([]);
     const [showSubmissionForm, setShowSubmissionForm] = useState(null);
+    const [editingSubmission, setEditingSubmission] = useState(null);
+    const [submissionAnswer, setSubmissionAnswer] = useState('');
+    const [submissionFile, setSubmissionFile] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+
+    const handleOpenSubmissionForm = (assignmentId) => {
+        console.log('Opening submission form for assignmentId:', assignmentId);
+        const existingSubmission = submissions.find(sub => sub.assignmentId._id === assignmentId);
+        console.log('Existing submission found:', existingSubmission);
+        const assignment = assignments.find(a => a._id === assignmentId);
+        const now = new Date();
+        const dueDate = assignment ? new Date(assignment.dueDate) : null;
+        if (dueDate && dueDate < now) {
+            // Deadline passed, do not allow editing or deleting
+            alert('The deadline for this assignment has passed. You cannot edit or delete your submission.');
+            return;
+        }
+        if (existingSubmission) {
+            setEditingSubmission(existingSubmission);
+            setSubmissionAnswer(existingSubmission.answerText || '');
+            setSubmissionFile(null); // File editing can be handled separately if needed
+        } else {
+            setEditingSubmission(null);
+            setSubmissionAnswer('');
+            setSubmissionFile(null);
+        }
+        setShowSubmissionForm(assignmentId);
+        // Scroll to the submission form after setting it visible
+        setTimeout(() => {
+            const formElement = document.getElementById('submissionForm');
+            if (formElement) {
+                formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
+    };
+
+    const handleCloseSubmissionForm = () => {
+        setShowSubmissionForm(null);
+        setEditingSubmission(null);
+        setSubmissionAnswer('');
+        setSubmissionFile(null);
+    };
+
+    const handleFileChange = (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setSubmissionFile(e.target.files[0]);
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!showSubmissionForm) return;
+        setSubmitting(true);
+        try {
+            const formData = new FormData();
+            formData.append('studentId', currentUser._id);
+            formData.append('assignmentId', showSubmissionForm);
+            formData.append('answerText', submissionAnswer);
+            if (submissionFile) {
+                formData.append('file', submissionFile);
+            }
+            if (editingSubmission) {
+                // Update existing submission
+                const response = await axios.put(`${API_BASE_URL}/submissions/${editingSubmission._id}`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                if (response.status !== 200) {
+                    throw new Error('Failed to update submission');
+                }
+            } else {
+                // Create new submission
+                const response = await axios.post(`${API_BASE_URL}/submissions`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                if (response.status !== 201) {
+                    throw new Error('Failed to create submission');
+                }
+            }
+            await fetchSubmissions();
+            // After submission, show success message and close form
+            const message = editingSubmission ? 'Assignment updated successfully.' : 'Assignment submitted successfully.';
+            setSuccessMessage(message);
+            setErrorMessage('');
+            handleCloseSubmissionForm();
+        } catch (error) {
+            console.error('Error submitting assignment:', error);
+            setErrorMessage('Failed to submit assignment. Please try again.');
+            setSuccessMessage('');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleDelete = async (submission = editingSubmission) => {
+        if (!submission) return;
+        setSubmitting(true);
+        try {
+            await axios.delete(`${API_BASE_URL}/submissions/${submission._id}`);
+            await fetchSubmissions();
+            setSuccessMessage('Submission deleted successfully.');
+            setErrorMessage('');
+            handleCloseSubmissionForm();
+        } catch (error) {
+            console.error('Error deleting submission:', error);
+            setErrorMessage('Failed to delete submission. Please try again.');
+            setSuccessMessage('');
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     const classID = currentUser.sclassName._id
 
@@ -81,10 +206,11 @@ const StudentHomePage = () => {
         }
     }, [userDetails])
 
-    const overallAttendancePercentage = subjectAttendance && subjectAttendance.length > 0 
-        ? calculateOverallAttendancePercentage(subjectAttendance) 
+    const overallAttendancePercentage = subjectAttendance && subjectAttendance.length > 0
+        ? calculateOverallAttendancePercentage(subjectAttendance)
         : 0;
     const overallAbsentPercentage = 100 - overallAttendancePercentage;
+
 
     const chartData = [
         { name: 'Present', value: overallAttendancePercentage },
@@ -109,7 +235,7 @@ const StudentHomePage = () => {
                         <StyledPaper>
                             <img src={Assignment} alt="Assignments" />
                             <Title>
-                                 {t('student_total_assignments')}
+                                {t('student_total_assignments')}
                             </Title>
                             <Data><CountUp start={0} end={assignments.length} duration={4} /></Data>
                         </StyledPaper>
@@ -118,15 +244,15 @@ const StudentHomePage = () => {
                         <StyledPaper>
                             <Title>Overall Attendance</Title>
                             <Data>
-                                <CountUp 
-                                    start={0} 
-                                    end={overallAttendancePercentage} 
-                                    duration={2.5} 
-                                    suffix="%" 
+                                <CountUp
+                                    start={0}
+                                    end={overallAttendancePercentage}
+                                    duration={2.5}
+                                    suffix="%"
                                 />
                             </Data>
-                            <Chip 
-                                label={overallAttendancePercentage >= 75 ? 'Good' : 'Low'} 
+                            <Chip
+                                label={overallAttendancePercentage >= 75 ? 'Good' : 'Low'}
                                 color={overallAttendancePercentage >= 75 ? 'success' : 'error'}
                                 size="small"
                                 sx={{ mt: 1 }}
@@ -179,85 +305,155 @@ const StudentHomePage = () => {
                             ) : assignments.length > 0 ? (
                                 <Box sx={{ width: "100%" }}>
                                     <Box sx={{ maxHeight: 600, overflowY: "auto", width: "100%" }}>
-                                        <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                                            <thead>
-                                                <tr>
-                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "25%", fontWeight: "bold" }}>Title</th>
-                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Due Date</th>
-                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "15%", fontWeight: "bold" }}>Status</th>
-                                                    <th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Time Left</th>
-<th style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold", verticalAlign: "middle" }}>Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {assignments.map((assignment) => {
-                                                    const submission = submissions.find(
-                                                        (sub) => sub.assignmentId._id === assignment._id
-                                                    );
-                                                    const isSubmitted = !!submission;
-                                                    const timeLeft = calculateTimeLeft(assignment.dueDate);
-                                                    const isOverdue = timeLeft === 'Overdue';
+                                        <TableContainer> {/* Added TableContainer for better scrolling handling */}
+                                            <Table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
+                                                <TableHead>
+                                                    <TableRow>
+                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "25%", fontWeight: "bold" }}>Title</TableCell>
+                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Due Date</TableCell>
+                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "15%", fontWeight: "bold" }}>Status</TableCell>
+                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Time Left</TableCell>
+                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold", verticalAlign: "middle" }}>Actions</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {assignments.map((assignment) => {
+                                                        const submission = submissions.find(
+                                                            (sub) => sub.assignmentId._id === assignment._id
+                                                        );
+                                                        const isSubmitted = !!submission;
+                                                        const timeLeft = calculateTimeLeft(assignment.dueDate);
+                                                        const isOverdue = timeLeft === 'Overdue';
+                                                        // Define 'dueDate' and 'status' here to fix the error
+                                                        const dueDateDisplay = new Date(assignment.dueDate).toLocaleDateString('en-US', {
+                                                            year: 'numeric',
+                                                            month: 'short',
+                                                            day: 'numeric'
+                                                        });
+                                                        const status = isSubmitted ? 'Submitted' : (isOverdue ? 'Missing' : 'Pending');
 
-                                                    return (
-                                                        <tr key={assignment._id} style={{ borderBottom: "1px solid #eee" }}>
-                                                            <td style={{ padding: "8px", verticalAlign: "top", wordBreak: "break-word" }}>
-                                                                {assignment.title}
-                                                            </td>
-                                                            <td style={{ padding: "8px", verticalAlign: "top", wordBreak: "break-word" }}>
-                                                                {assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No due date'}
-                                                            </td>
-                                                            <td style={{ padding: "8px", verticalAlign: "top" }}>
-                                                                <Chip label={isSubmitted ? 'Submitted' : 'Pending'} color={isSubmitted ? 'success' : 'warning'} />
-                                                            </td>
-                                                            <td style={{ padding: "8px", verticalAlign: "top" }}>
-                                                                <Chip label={timeLeft} color={isOverdue ? 'error' : 'primary'} />
-                                                            </td>
-<td style={{ padding: "8px", verticalAlign: "middle" }}>
-    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-start' }}>
-        {assignment.fileUrl && (
-            <Button
-                variant="outlined"
-                size="small"
-                sx={{ minWidth: 80 }}
-                href={`${API_BASE_URL}${assignment.fileUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                Download
-            </Button>
-        )}
-        <Button
-            variant="contained"
-            size="small"
-            sx={{ minWidth: 80 }}
-            disabled={isSubmitted || isOverdue}
-            onClick={() => setShowSubmissionForm(assignment._id)}
-        >
-            {isSubmitted ? 'Submitted' : 'Submit'}
-        </Button>
-    </Box>
-</td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
+                                                        return (
+                                                            <TableRow key={assignment._id} hover>
+                                                                <TableCell sx={{ fontWeight: '500', wordBreak: 'break-word' }}>{assignment.title}</TableCell>
+                                                                <TableCell sx={{ color: 'text.secondary' }}>{dueDateDisplay}</TableCell>
+                                                                <TableCell sx={{ textAlign: 'center' }}>
+                                                                    <Chip
+                                                                        label={status}
+                                                                        color={isSubmitted ? 'success' : status === 'Pending' ? 'warning' : 'error'}
+                                                                        variant="filled"
+                                                                        sx={{
+                                                                            borderRadius: '16px',
+                                                                            fontWeight: 'bold',
+                                                                            minWidth: 90,
+                                                                            justifyContent: 'center',
+                                                                            backgroundColor: isSubmitted ? '#388e3c' : status === 'Pending' ? '#ffb74d' : '#d32f2f',
+                                                                            color: 'white',
+                                                                        }}
+                                                                    />
+                                                                </TableCell>
+                                                                <TableCell sx={{ textAlign: 'center' }}>
+                                                                    <Chip
+                                                                        label={isOverdue ? 'Overdue' : `${timeLeft}`}
+                                                                        variant="filled"
+                                                                        sx={{
+                                                                            borderRadius: '16px',
+                                                                            fontSize: '0.8rem',
+                                                                            fontWeight: 'bold',
+                                                                            minWidth: 110,
+                                                                            justifyContent: 'center',
+                                                                            backgroundColor: isOverdue ? '#d32f2f' : '#1976d2',
+                                                                            color: 'white',
+                                                                        }}
+                                                                    />
+                                                                </TableCell>
+                                                                <TableCell sx={{ textAlign: 'center' }}>
+                                                                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                                                                        {(() => {
+                                                                            const submission = submissions.find(sub => sub.assignmentId._id === assignment._id);
+                                                                            const now = new Date();
+                                                                            const deadline = assignment.dueDate ? new Date(assignment.dueDate) : null;
+                                                                            const isDeadlineOver = deadline ? now > deadline : false;
+                                                                            if (!submission) {
+                                                                                return (
+                                                                                    <>
+                                                                                        <Button
+                                                                                            variant="outlined"
+                                                                                            href={`${API_BASE_URL}${assignment.fileUrl}`}
+                                                                                            target="_blank"
+                                                                                            rel="noopener noreferrer"
+                                                                                            disabled={!assignment.fileUrl}
+                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase' }}
+                                                                                        >
+                                                                                            Download
+                                                                                        </Button>
+                                                                                        <Button
+                                                                                            variant="contained"
+                                                                                            disabled={isDeadlineOver}
+                                                                                            onClick={() => handleOpenSubmissionForm(assignment._id)}
+                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase' }}
+                                                                                        >
+                                                                                            Submit
+                                                                                        </Button>
+                                                                                    </>
+                                                                                );
+                                                                            } else if (submission && !isDeadlineOver) {
+                                                                                return (
+                                                                                    <>
+                                                                                        <Button
+                                                                                            variant="outlined"
+                                                                                            href={`${API_BASE_URL}${assignment.fileUrl}`}
+                                                                                            target="_blank"
+                                                                                            rel="noopener noreferrer"
+                                                                                            disabled={!assignment.fileUrl}
+                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase' }}
+                                                                                        >
+                                                                                            Download
+                                                                                        </Button>
+                                                                                        <Button
+                                                                                            variant="outlined"
+                                                                                            size="small"
+                                                                                            onClick={() => handleOpenSubmissionForm(assignment._id)}
+                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase', ml: 1 }}
+                                                                                        >
+                                                                                            Edit
+                                                                                        </Button>
+                                                                                        <Button
+                                                                                            variant="outlined"
+                                                                                            color="error"
+                                                                                            size="small"
+                                                                                            onClick={() => handleDelete(submission)}
+                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase', ml: 1 }}
+                                                                                        >
+                                                                                            Delete
+                                                                                        </Button>
+                                                                                    </>
+                                                                                );
+                                                                            } else if (submission && isDeadlineOver) {
+                                                                                return (
+                                                                                    <>
+                                                                                        <Button
+                                                                                            variant="outlined"
+                                                                                            href={`${API_BASE_URL}${assignment.fileUrl}`}
+                                                                                            target="_blank"
+                                                                                            rel="noopener noreferrer"
+                                                                                            disabled={!assignment.fileUrl}
+                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase' }}
+                                                                                        >
+                                                                                            Download
+                                                                                        </Button>
+                                                                                    </>
+                                                                                );
+                                                                            }
+                                                                        })()}
+                                                                    </Box>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        );
+                                                    })}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
                                     </Box>
-                                    {assignments.map((assignment) => (
-                                        showSubmissionForm === assignment._id && (
-                                            <Box key={assignment._id} sx={{ mt: 2, width: '100%' }}>
-                                                <AssignmentSubmission
-                                                    assignmentId={assignment._id}
-                                                    studentId={currentUser._id}
-                                                    onClose={() => setShowSubmissionForm(null)}
-                                                    onSubmitted={() => {
-                                                        setShowSubmissionForm(null);
-                                                        fetchSubmissions();
-                                                    }}
-                                                />
-                                            </Box>
-                                        )
-                                    ))}
                                 </Box>
                             ) : (
                                 <Typography>No assignments found.</Typography>
@@ -265,40 +461,125 @@ const StudentHomePage = () => {
                         </Paper>
                     </Grid>
                 </Grid>
+
+                {/* Submission Form Inline Below Assignments */}
+                {showSubmissionForm && (
+                    <Paper id="submissionForm" sx={{ p: 3, mt: 2, width: "100%", maxWidth: 1200, boxShadow: 2, display: 'flex', flexDirection: 'column' }}>
+                        <Typography variant="h6" gutterBottom>{editingSubmission ? 'Edit Submission' : 'Submit Assignment'}</Typography>
+                        <textarea
+                            placeholder="Answer Text (optional)"
+                            value={submissionAnswer}
+                            onChange={(e) => setSubmissionAnswer(e.target.value)}
+                            rows={4}
+                            style={{ width: '100%', marginBottom: 16, padding: 8, fontSize: 16, border: '1px solid #ccc', borderRadius: 4 }}
+                        />
+                        <Box
+                            {...{
+                                onDragOver: (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                },
+                                onDrop: (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                                        setSubmissionFile(e.dataTransfer.files[0]);
+                                        e.dataTransfer.clearData();
+                                    }
+                                },
+                            }}
+                            sx={{
+                                border: '2px dashed #1976d2',
+                                borderRadius: 2,
+                                padding: 2,
+                                textAlign: 'center',
+                                color: submissionFile ? 'black' : '#1976d2',
+                                cursor: 'pointer',
+                                marginBottom: 2,
+                            }}
+                            onClick={() => document.getElementById('fileInput').click()}
+                        >
+                            {submissionFile ? submissionFile.name : 'Drag & drop a file here, or click to select file (Max 5MB)'}
+                        </Box>
+                        <input
+                            id="fileInput"
+                            type="file"
+                            onChange={handleFileChange}
+                            style={{ display: 'none' }}
+                            accept="*"
+                        />
+                        {errorMessage && <Typography color="error" sx={{ mb: 2 }}>{errorMessage}</Typography>}
+                        {successMessage && <Typography color="success" sx={{ mb: 2 }}>{successMessage}</Typography>}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Button variant="outlined" onClick={handleCloseSubmissionForm} disabled={submitting}>
+                                Cancel
+                            </Button>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                {editingSubmission ? (
+                                    <>
+                                        <Button
+                                            variant="outlined"
+                                            color="error"
+                                            onClick={() => handleDelete()} // Pass no argument, will use editingSubmission state
+                                            disabled={submitting}
+                                        >
+                                            Delete
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            onClick={handleSubmit}
+                                            disabled={submitting}
+                                        >
+                                            Update
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <Button
+                                        variant="contained"
+                                        onClick={handleSubmit}
+                                        disabled={submitting}
+                                    >
+                                        Submit
+                                    </Button>
+                                )}
+                            </Box>
+                        </Box>
+                    </Paper>
+                )}
             </Container>
         </>
     )
 }
 
+// Styled components remain the same
 const ChartContainer = styled.div`
-  padding: 2px;
-  display: flex;
-  flex-direction: column;
-  height: 240px;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+    padding: 2px;
+    display: flex;
+    flex-direction: column;
+    height: 240px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 `;
 
 const StyledPaper = styled(Paper)`
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  height: 200px;
-  justify-content: space-between;
-  align-items: center;
-  text-align: center;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    height: 200px;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
 `;
 
 const Title = styled.p`
-  font-size: 1.25rem;
+    font-size: 1.25rem;
+    margin: 0;
 `;
 
 const Data = styled.span`
-  font-size: calc(1.3rem + .6vw);
-  color: green;
+    font-size: calc(1.3rem + .6vw);
+    color: green;
 `;
-
-
 
 export default StudentHomePage

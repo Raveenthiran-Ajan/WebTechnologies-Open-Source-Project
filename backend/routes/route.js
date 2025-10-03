@@ -138,6 +138,8 @@ router.get("/assignments/teacher/:teacherId", getAssignmentsByTeacher);
 router.post("/submissions", submissionUpload.single('file'), studentSubmit);
 router.get("/submissions/assignment/:assignmentId", getSubmissionsByAssignment);
 router.get("/submissions/student/:studentId", getSubmissionsByStudent);
+router.put("/submissions/:submissionId", submissionUpload.single('file'), require("../controllers/submission-controller").updateSubmission);
+router.delete("/submissions/:submissionId", require("../controllers/submission-controller").deleteSubmission);
 
 // Update submission marking (grade and feedback)
 router.put("/submissions/:submissionId/marking", require("../controllers/submission-controller").updateSubmissionMarking);
