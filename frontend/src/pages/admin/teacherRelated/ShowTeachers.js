@@ -148,7 +148,7 @@ const ShowTeachers = () => {
                             sx={{ mr: 1 }} 
                         />
                         <Typography variant="caption" sx={{ color: 'success.main' }}>
-                            ✓ Attendance Teacher
+                            ✓ Class Teacher
                         </Typography>
                     </Box>
                 );

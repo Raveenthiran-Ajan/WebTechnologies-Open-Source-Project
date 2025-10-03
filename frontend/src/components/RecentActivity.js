@@ -8,7 +8,7 @@ const RecentActivity = ({ noticesList }) => {
     // Get recent notices (last 3)
     const getRecentNotices = () => {
         if (!noticesList || !Array.isArray(noticesList)) return [];
-        return noticesList
+        return [...noticesList]
             .sort((a, b) => new Date(b.date) - new Date(a.date))
             .slice(0, 3);
     };
