@@ -5,6 +5,8 @@ const LeaveReviewPage = ({ reviewer, role }) => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectingId, setRejectingId] = useState(null);
 
   useEffect(() => {
     fetchAllLeaveRequests();
@@ -22,22 +24,53 @@ const LeaveReviewPage = ({ reviewer, role }) => {
     setLoading(false);
   };
 
-  const handleReview = async (requestId, status) => {
-    const rejectionReason = status === 'Rejected' ? prompt('Enter rejection reason:') : undefined;
+  const handleApprove = async (requestId) => {
     setLoading(true);
     setMessage('');
     try {
       await axios.patch(`/leave/${requestId}/review`, {
-        status,
-        reviewedBy: reviewer._id,
-        rejectionReason
+        status: 'Approved',
+        reviewedBy: reviewer._id
       });
-      setMessage(`Leave request ${status.toLowerCase()}`);
+      setMessage('Leave request approved');
       fetchAllLeaveRequests();
     } catch (err) {
       setMessage('Failed to update leave request');
     }
     setLoading(false);
+  };
+
+  const handleReject = async (requestId) => {
+    if (!rejectionReason.trim()) {
+      setMessage('Please enter a rejection reason');
+      return;
+    }
+    setLoading(true);
+    setMessage('');
+    try {
+      await axios.patch(`/leave/${requestId}/review`, {
+        status: 'Rejected',
+        reviewedBy: reviewer._id,
+        rejectionReason
+      });
+      setMessage('Leave request rejected');
+      setRejectionReason('');
+      setRejectingId(null);
+      fetchAllLeaveRequests();
+    } catch (err) {
+      setMessage('Failed to update leave request');
+    }
+    setLoading(false);
+  };
+
+  const startReject = (id) => {
+    setRejectingId(id);
+    setRejectionReason('');
+  };
+
+  const cancelReject = () => {
+    setRejectingId(null);
+    setRejectionReason('');
   };
 
   return (
@@ -70,8 +103,23 @@ const LeaveReviewPage = ({ reviewer, role }) => {
                 <td>
                   {lr.status === 'Pending' && (
                     <>
-                      <button onClick={() => handleReview(lr._id, 'Approved')}>Approve</button>
-                      <button onClick={() => handleReview(lr._id, 'Rejected')}>Reject</button>
+                      <button onClick={() => handleApprove(lr._id)}>Approve</button>
+                      {rejectingId === lr._id ? (
+                        <div>
+                          <textarea
+                            value={rejectionReason}
+                            onChange={(e) => setRejectionReason(e.target.value)}
+                            placeholder="Enter rejection reason"
+                            rows="2"
+                            cols="20"
+                          />
+                          <br />
+                          <button onClick={() => handleReject(lr._id)}>Confirm Reject</button>
+                          <button onClick={cancelReject}>Cancel</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => startReject(lr._id)}>Reject</button>
+                      )}
                     </>
                   )}
                 </td>

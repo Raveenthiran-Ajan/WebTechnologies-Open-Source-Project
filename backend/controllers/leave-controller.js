@@ -25,7 +25,8 @@ exports.getAllLeaveRequests = async (req, res) => {
   try {
     const leaveRequests = await LeaveRequest.find()
       .populate('student', 'name')
-      .populate('parent', 'name');
+      .populate('parent', 'name')
+      .populate('reviewedBy', 'name');
     res.json(leaveRequests);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -41,7 +42,8 @@ exports.getLeaveRequestsByUser = async (req, res) => {
     if (role === 'parent') filter.parent = userId;
     const leaveRequests = await LeaveRequest.find(filter)
       .populate('student', 'name')
-      .populate('parent', 'name');
+      .populate('parent', 'name')
+      .populate('reviewedBy', 'name');
     res.json(leaveRequests);
   } catch (error) {
     res.status(500).json({ error: error.message });
