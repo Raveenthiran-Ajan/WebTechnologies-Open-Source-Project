@@ -14,7 +14,14 @@ export const getAllComplains = (id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/${address}List/${id}`);
+        const url = `${REACT_APP_BASE_URL}/${address}List/${id}`;
+        // Debug: log the GET URL
+        // eslint-disable-next-line no-console
+        console.debug('complainHandle.getAllComplains: GET', url);
+        const result = await axios.get(url);
+        // Debug: log server response
+        // eslint-disable-next-line no-console
+        console.debug('complainHandle.getAllComplains: response', result && result.data);
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {

@@ -22,8 +22,18 @@ const SeeComplains = () => {
   const [updatingComplaint, setUpdatingComplaint] = useState(null);
 
   useEffect(() => {
-    dispatch(getAllComplains(currentUser._id, "Complain"));
-  }, [currentUser._id, dispatch]);
+    // Fetch complaints. Use currentUser._id (original behavior) but guard for presence
+    if (currentUser && currentUser._id) {
+      // Debug: log currentUser and id used to fetch complaints
+      try {
+        // eslint-disable-next-line no-console
+        console.debug('SeeComplains: currentUser=', currentUser);
+        // eslint-disable-next-line no-console
+        console.debug('SeeComplains: fetching ComplainList for id=', currentUser._id);
+      } catch (e) {}
+      dispatch(getAllComplains(currentUser._id, "Complain"));
+    }
+  }, [currentUser, dispatch]);
 
   if (error) {
     console.log(error);

@@ -57,5 +57,6 @@
   "menu_assignment_submission": "පැවරුම් ඉදිරිපත් කිරීම",
   "menu_complain": "පැමිණිල්ල",
   "menu_upload_assignments": "පැවරුම් උඩුගත කරන්න",
-  "menu_class_label": "පන්ති {{name}}"   
+  "menu_class_label": "පන්ති {{name}}",
+  "menu_timetable": "කාලසටහන"
 }

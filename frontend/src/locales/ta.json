@@ -57,5 +57,7 @@
   "menu_assignment_submission": "பணி சமர்ப்பித்தல்",
   "menu_complain": "புகார்",
   "menu_upload_assignments": "பணிகளை பதிவேற்றவும்",
-  "menu_class_label": "வகுப்பு {{name}}"
+  "menu_class_label": "வகுப்பு {{name}}",
+  "menu_timetable": "நேர அட்டவணை"
+
 }

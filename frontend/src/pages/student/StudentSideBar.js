@@ -81,6 +81,28 @@ const StudentSideBar = () => {
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
+                    to="/Student/grades"
+                    selected={location.pathname.startsWith("/Student/grades")}
+                    sx={selectedItemStyles}
+                >
+                    <ListItemIcon>
+                        <AssignmentIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={t('menu_grades') || 'Grades'} />
+                </ListItemButton>
+                <ListItemButton 
+                    component={Link} 
+                    to="/Student/complain"
+                    selected={location.pathname.startsWith("/Student/complain")}
+                    sx={selectedItemStyles}
+                >
+                    <ListItemIcon>
+                        <AssignmentIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={t('menu_complain') || 'Complain'} />
+                </ListItemButton>
+                <ListItemButton 
+                    component={Link} 
                     to="/assignments"
                     selected={location.pathname === "/assignments"}
                     sx={selectedItemStyles}

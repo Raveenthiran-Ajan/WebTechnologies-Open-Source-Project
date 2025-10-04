@@ -57,5 +57,8 @@
   "menu_assignment_submission": "Assignment Submission",
   "menu_complain": "Complain",
   "menu_upload_assignments": "Upload Assignments",
-  "menu_class_label": "Class {{name}}"
+  "menu_class_label": "Class {{name}}",
+  "menu_timetable": "Timetable",
+
+  "menu_grades": "Grades"
 }
