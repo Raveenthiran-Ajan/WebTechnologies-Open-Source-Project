@@ -18,7 +18,7 @@ import ChildrenList from './ChildrenList';
 import ParentProfile from './ParentProfile';
 import ParentNotices from './ParentNotices';
 import ParentReports from './ParentReports';
-import ParentComplaints from './ParentComplaints';
+import ParentComplaints from './ParentComplain';
 import ParentSideBar from './ParentSideBar';
 import AccountMenu from '../../components/AccountMenu';
 import Logout from '../Logout';

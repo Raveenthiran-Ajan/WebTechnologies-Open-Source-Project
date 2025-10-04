@@ -35,21 +35,11 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { addComplaint, deleteComplaint } from '../../redux/complainRelated/complainHandle';
 import { getAllComplains } from '../../redux/complainRelated/complainHandle';
 
-const StudentComplain = () => {
+const ParentComplaints = () => {
     const dispatch = useDispatch();
     const { currentUser, status, error: userError } = useSelector((state) => state.user);
     const { complainsList, loading: complainLoading, error: complainError } = useSelector((state) => state.complain);
     const [loading, setLoading] = useState(false);
-    
-    console.log('Component State:', { 
-        currentUser: currentUser ? { 
-            _id: currentUser._id, 
-            school: currentUser.school 
-        } : null,
-        complainsList,
-        loading: complainLoading || loading,
-        error: complainError
-    });
     
     const [openDialog, setOpenDialog] = useState(false);
     const [complaint, setComplaint] = useState('');
@@ -61,9 +51,10 @@ const StudentComplain = () => {
     const [alertSeverity, setAlertSeverity] = useState('success');
     const [openViewDialog, setOpenViewDialog] = useState(false);
 
-    // Load initial complaints
     useEffect(() => {
         const fetchComplaints = async () => {
+            if (!currentUser?.school?._id) return;
+            
             try {
                 setLoading(true);
                 await dispatch(getAllComplains(currentUser.school._id, "Complain"));
@@ -76,94 +67,20 @@ const StudentComplain = () => {
             }
         };
         fetchComplaints();
-    }, [dispatch, currentUser.school._id]);
+    }, [dispatch, currentUser?.school?._id]);
 
-    // Filter complaints by current user
     const userComplaints = React.useMemo(() => {
-        // Ensure we have an array and current user
         if (!Array.isArray(complainsList) || !currentUser) {
-            console.log('Invalid complaints list or no current user:', {
-                isArray: Array.isArray(complainsList),
-                hasCurrentUser: Boolean(currentUser)
-            });
             return [];
         }
-
-        console.log('Filtering complaints:', {
-            totalComplaints: complainsList.length,
-            currentUserId: currentUser._id
+        return complainsList.filter(complain => {
+            if (!complain || !complain.user) return false;
+            const complainUserId = typeof complain.user === 'object' 
+                ? complain.user._id 
+                : complain.user;
+            return complainUserId === currentUser._id;
         });
-        
-        try {
-            return complainsList.filter(complain => {
-                if (!complain || !complain.user) {
-                    console.log('Invalid complaint structure:', complain);
-                    return false;
-                }
-                
-                // Handle both string and object user references
-                const complainUserId = typeof complain.user === 'object' 
-                    ? complain.user._id 
-                    : complain.user;
-                
-                const matches = complainUserId === currentUser._id;
-                console.log('Complaint check:', {
-                    complainId: complain._id,
-                    complainUserId,
-                    currentUserId: currentUser._id,
-                    matches
-                });
-                return matches;
-            });
-        } catch (error) {
-            console.error('Error filtering complaints:', error);
-            return [];
-        }
     }, [complainsList, currentUser]);
-
-    useEffect(() => {
-        if (!currentUser) {
-            console.log('No current user available');
-            return;
-        }
-        if (!currentUser.school) {
-            console.log('No school info in current user');
-            return;
-        }
-        
-        console.log('Fetching complaints for:', {
-            userId: currentUser._id,
-            schoolId: currentUser.school._id
-        });
-        
-        dispatch(getAllComplains(currentUser.school._id, "Complain"));
-    }, [dispatch, currentUser]);
-
-    // Log complaints list whenever it changes
-    useEffect(() => {
-        console.log('Complaints List:', complainsList);
-        console.log('User Complaints:', userComplaints);
-    }, [complainsList]);
-
-    useEffect(() => {
-        if (status === "added") {
-            setSubmitLoading(false);
-            setMessage("Complaint submitted successfully!");
-            setAlertSeverity('success');
-            setOpenDialog(false);
-            setComplaint('');
-            setTitle('');
-            setDate(new Date().toISOString().split('T')[0]);
-            // Refresh complaints list
-            if (currentUser && currentUser.school) {
-                dispatch(getAllComplains(currentUser.school._id, "Complain"));
-            }
-        } else if (userError) {
-            setSubmitLoading(false);
-            setMessage("Error submitting complaint. Please try again.");
-            setAlertSeverity('error');
-        }
-    }, [status, userError, dispatch, currentUser]);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -176,7 +93,7 @@ const StudentComplain = () => {
         setSubmitLoading(true);
         const fields = {
             user: currentUser._id,
-            userType: 'student',
+            userType: 'parent',
             date,
             title: title.trim(),
             description: complaint.trim(),
@@ -185,9 +102,7 @@ const StudentComplain = () => {
         };
 
         try {
-            console.log('Submitting complaint:', fields);
             const result = await dispatch(addComplaint(fields));
-            
             if (result.success) {
                 setMessage("Complaint submitted successfully!");
                 setAlertSeverity('success');
@@ -195,9 +110,6 @@ const StudentComplain = () => {
                 setComplaint('');
                 setTitle('');
                 setDate(new Date().toISOString().split('T')[0]);
-                
-                // Refresh the complaints list
-                console.log('Refreshing complaints list...');
                 await dispatch(getAllComplains(currentUser.school._id, "Complain"));
             } else {
                 setMessage(result.message || "Error submitting complaint.");
@@ -211,8 +123,6 @@ const StudentComplain = () => {
             setSubmitLoading(false);
         }
     };
-
-    // This section intentionally left empty as we moved the code above
 
     const CustomToolbar = () => {
         return (
@@ -323,43 +233,28 @@ const StudentComplain = () => {
         },
     ];
 
-    // Create rows from filtered complaints
-    const rows = userComplaints.map((complain, index) => {
-        // Debug logs for data transformation
-        console.log(`Processing complaint ${index + 1}:`, {
-            id: complain._id,
-            userId: complain.user,
-            currentUserId: currentUser?._id,
-            title: complain.title || complain.complaint,
-        });
-        
-        return {
-            id: index + 1,
-            date: complain.date || new Date().toISOString(),
-            title: complain.title || complain.complaint || 'No title',
-            description: complain.description || complain.complaint || '',
-            complaint: complain.complaint,
-            status: complain.status || 'Pending',
-            _id: complain._id,
-            actionedDate: complain.actionedDate
-        };
-    });
+    const rows = userComplaints.map((complain, index) => ({
+        id: index + 1,
+        date: complain.date || new Date().toISOString(),
+        title: complain.title || complain.complaint || 'No title',
+        description: complain.description || complain.complaint || '',
+        complaint: complain.complaint,
+        status: complain.status || 'Pending',
+        _id: complain._id,
+        actionedDate: complain.actionedDate
+    }));
 
     const handleView = (row) => {
         setViewing(row);
-        console.log('Viewing complaint:', row);
-        // Open a dedicated dialog for viewing complaint details
         setOpenViewDialog(true);
     };
 
     const handleDelete = async (row) => {
-        console.log('Deleting complaint:', row);
         if (window.confirm('Are you sure you want to delete this complaint?')) {
             try {
-                await dispatch(deleteComplaint(row._id)); // Use the actual complaint ID from the database
+                await dispatch(deleteComplaint(row._id));
                 setMessage('Complaint deleted successfully');
                 setAlertSeverity('success');
-                // Refresh complaints list after deletion
                 if (currentUser && currentUser.school) {
                     await dispatch(getAllComplains(currentUser.school._id, "Complain"));
                 }
@@ -373,7 +268,6 @@ const StudentComplain = () => {
 
     return (
         <Container maxWidth="lg">
-            {/* Alert Messages */}
             {message && (
                 <Alert 
                     severity={alertSeverity} 
@@ -461,7 +355,6 @@ const StudentComplain = () => {
                     </Box>
                 )}
 
-                {/* Summary Information */}
                 <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                     <Typography variant="body2" color="text.secondary" align="center">
                         Total Complaints: {userComplaints.length} | 
@@ -471,25 +364,6 @@ const StudentComplain = () => {
                 </Box>
             </Box>
 
-            {/* Floating Action Button */}
-            <Fab 
-                color="primary" 
-                aria-label="add complaint"
-                onClick={() => setOpenDialog(true)}
-                sx={{ 
-                    position: 'fixed', 
-                    bottom: 24, 
-                    right: 24,
-                    '&:hover': {
-                        transform: 'scale(1.1)'
-                    },
-                    transition: 'all 0.3s ease-in-out'
-                }}
-            >
-                <AddIcon />
-            </Fab>
-
-            {/* Add Complaint Dialog */}
             <Dialog 
                 open={openDialog} 
                 onClose={() => setOpenDialog(false)}
@@ -566,7 +440,6 @@ const StudentComplain = () => {
                 </form>
             </Dialog>
 
-            {/* View Complaint Dialog */}
             <Dialog 
                 open={!!viewing} 
                 onClose={() => setViewing(null)} 
@@ -685,4 +558,4 @@ const StudentComplain = () => {
     );
 };
 
-export default StudentComplain;
+export default ParentComplaints;
