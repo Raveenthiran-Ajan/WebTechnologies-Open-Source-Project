@@ -268,16 +268,22 @@ const ShowNotices = () => {
                                         borderRadius: 1
                                     }}
                                 >
-                                    <Typography 
-                                        variant="body1" 
-                                        sx={{ 
-                                            whiteSpace: 'pre-wrap',
+                                    <div 
+                                        style={{ 
                                             color: '#2c3e50',
-                                            lineHeight: 1.6
+                                            lineHeight: 1.6,
+                                            whiteSpace: 'pre-wrap'
                                         }}
-                                    >
-                                        {viewing.details}
-                                    </Typography>
+                                        dangerouslySetInnerHTML={{ 
+                                          __html: viewing.details
+                                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                            .replace(/<u>(.*?)<\/u>/g, '<u>$1</u>')
+                                            .replace(/^- (.*)$/gm, '• $1')
+                                            .replace(/^(\d+)\. (.*)$/gm, '$1. $2')
+                                            .replace(/\n/g, '<br>')
+                                        }}
+                                    />
                                 </Paper>
                             </Grid>
 
