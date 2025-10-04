@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Paper, Box, Chip, Button, Alert, Typography, CircularProgress,
-  Dialog, DialogTitle, DialogContent, DialogActions
+  Dialog, DialogTitle, DialogContent, DialogActions, Grid, Badge
 } from '@mui/material';
 import { getAllComplains, updateComplaint } from '../../../redux/complainRelated/complainHandle';
 import {
@@ -13,6 +13,8 @@ import {
     GridToolbarDensitySelector,
     GridToolbarExport
 } from '@mui/x-data-grid';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { Link } from 'react-router-dom';
 
 const SeeComplains = () => {
   const dispatch = useDispatch();
@@ -22,7 +24,6 @@ const SeeComplains = () => {
   const [alertSeverity, setAlertSeverity] = useState('success');
   const [updatingComplaint, setUpdatingComplaint] = useState(null);
   const [viewing, setViewing] = useState(null);
-  const [showRaw, setShowRaw] = useState(false);
 
 
   useEffect(() => {
@@ -59,6 +60,16 @@ const SeeComplains = () => {
         console.debug('SeeComplains: first complain=', complainsList[0]);
       }
     } catch (e) {}
+  }, [complainsList]);
+
+  useEffect(() => {
+    if (Array.isArray(complainsList)) {
+      const hasPending = complainsList.some(complain => complain.status === 'Pending');
+      const sidebarLink = document.querySelector('#sidebar-complain-link');
+      if (sidebarLink) {
+        sidebarLink.setAttribute('data-has-pending', hasPending);
+      }
+    }
   }, [complainsList]);
 
   if (error) {
@@ -117,8 +128,18 @@ const SeeComplains = () => {
 
   const complainColumns = [
     { field: 'user', headerName: 'User Type', width: 150 },
+    { field: 'date', headerName: 'Submitted Date', width: 150 },
     { field: 'title', headerName: 'Title', width: 300, flex: 1 },
-    { field: 'date', headerName: 'Date', width: 150 },
+    { field: 'description', headerName: 'Description', width: 300, renderCell: (params) => (
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<VisibilityIcon />}
+          onClick={() => setViewing(params.row)}
+        >
+          View
+        </Button>
+      ) },
     {
       field: 'status',
       headerName: 'Status',
@@ -141,13 +162,6 @@ const SeeComplains = () => {
         
         return (
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => setViewing(params.row)}
-            >
-              View
-            </Button>
             <Button
               size="small"
               variant="outlined"
@@ -179,7 +193,6 @@ const SeeComplains = () => {
       user: userTypeDisplay,
       title: complain.title || complain.complaint || 'No title',
       description: complain.description || complain.complaint || '',
-      complaint: complain.complaint,
       date: dateString,
       status: complain.status || 'Pending',
     };
@@ -216,11 +229,6 @@ const SeeComplains = () => {
         <Typography variant="h6" gutterBottom component="div" sx={{ p: 2 }}>
           All Complaints
         </Typography>
-        <Box sx={{ px: 2, mb: 1 }}>
-          <Button size="small" variant="outlined" onClick={() => setShowRaw(s => !s)}>
-            {showRaw ? 'Hide raw data' : 'Show raw data'}
-          </Button>
-        </Box>
         {response ?
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
             <Typography variant="h6" gutterBottom>
@@ -247,25 +255,120 @@ const SeeComplains = () => {
           )
         }
       </Paper>
-      {showRaw && Array.isArray(complainsList) && (
-        <Paper sx={{ mt: 2, p: 2, whiteSpace: 'pre-wrap', maxHeight: 300, overflow: 'auto' }}>
-          <Typography variant="subtitle2">Raw complaints JSON (first 20kb)</Typography>
-          <Box component="pre" sx={{ fontSize: 12 }}>{JSON.stringify(complainsList, (k, v) => k === '__v' ? undefined : v, 2)}</Box>
-        </Paper>
-      )}
       {/* View Dialog */}
-      <Dialog open={!!viewing} onClose={() => setViewing(null)} maxWidth="md" fullWidth>
-        <DialogTitle>Complaint Details</DialogTitle>
-        <DialogContent dividers>
+      <Dialog open={!!viewing} onClose={() => setViewing(null)} maxWidth="sm" fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+          }
+        }}
+      >
+        <DialogTitle 
+          sx={{ 
+            borderBottom: '1px solid #e0e0e0',
+            background: 'linear-gradient(to right, #1976d2, #2196f3)',
+            color: 'white',
+            py: 2
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Complaint Details
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ py: 3 }}>
           {viewing && (
-            <Box>
-              <Typography variant="h6" gutterBottom>{viewing.title || viewing.complaint}</Typography>
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{viewing.description || viewing.complaint}</Typography>
-            </Box>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" color="textSecondary">Status</Typography>
+                  <Chip
+                    label={viewing.status || 'Pending'}
+                    size="small"
+                    color={viewing.status === 'Actioned' ? 'success' : 'warning'}
+                    variant="filled"
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" color="textSecondary">Date Submitted</Typography>
+                <Typography variant="body1" sx={{ mt: 1 }}>
+                  {new Date(viewing.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" color="textSecondary">Title</Typography>
+                <Typography variant="body1" sx={{ mt: 1, fontWeight: 500, color: '#1976d2' }}>
+                  {viewing.title}
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" color="textSecondary">Description</Typography>
+                <Paper 
+                  elevation={0}
+                  sx={{
+                    mt: 1,
+                    p: 2,
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: 1
+                  }}
+                >
+                  <Typography 
+                    variant="body1" 
+                    sx={{ 
+                      whiteSpace: 'pre-wrap',
+                      color: '#2c3e50',
+                      lineHeight: 1.6
+                    }}
+                  >
+                    {viewing.description || viewing.complaint}
+                  </Typography>
+                </Paper>
+              </Grid>
+              {viewing.status === 'Actioned' && viewing.actionedDate && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="textSecondary">Actioned Date</Typography>
+                  <Typography variant="body1" sx={{ mt: 1 }}>
+                    {new Date(viewing.actionedDate).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </Typography>
+                </Grid>
+              )}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-start', gap: 2, mt: 2 }}>
+                  <Button
+                    variant="contained"
+                    color={viewing.status === 'Pending' ? 'success' : 'warning'}
+                    onClick={() => {
+                      handleStatusUpdate(viewing.id, viewing.status);
+                      setViewing(null); // Close the dialog after marking
+                    }}
+                  >
+                    {viewing.status === 'Pending' ? 'Mark Actioned' : 'Mark Pending'}
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setViewing(null)}>Close</Button>
+        <DialogActions sx={{ borderTop: '1px solid #e0e0e0', p: 2 }}>
+          <Button 
+            variant="contained" 
+            onClick={() => setViewing(null)}
+          >
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
     </>

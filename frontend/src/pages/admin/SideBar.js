@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
+import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Badge } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 import HomeIcon from "@mui/icons-material/Home";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
@@ -19,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 const SideBar = () => {
     const location = useLocation();
     const { t } = useTranslation();
+    const { complainsList } = useSelector((state) => state.complain);
 
     const selectedItemStyles = {
         '&.Mui-selected': {
@@ -125,7 +127,13 @@ const SideBar = () => {
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <FeedbackOutlinedIcon />
+                        <Badge 
+                          color="error" 
+                          variant="dot" 
+                          invisible={!complainsList || !complainsList.some(complain => complain.status === 'Pending')} 
+                        >
+                          <FeedbackOutlinedIcon />
+                        </Badge>
                     </ListItemIcon>
                     <ListItemText primary={t('menu_complains')} />
                 </ListItemButton>
