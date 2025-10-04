@@ -10,11 +10,33 @@ import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import { useTranslation } from 'react-i18next';
+import { useDispatch, useSelector } from 'react-redux';
+import Badge from '@mui/material/Badge';
+import { getAllComplains } from '../../redux/complainRelated/complainHandle';
 
 
 const StudentSideBar = () => {
     const location = useLocation();
     const { t } = useTranslation();
+    const dispatch = useDispatch();
+    const { currentUser } = useSelector((state) => state.user);
+    const { complainsList } = useSelector((state) => state.complain);
+
+    React.useEffect(() => {
+        if (currentUser && currentUser.school) {
+            dispatch(getAllComplains(currentUser.school._id, 'Complain'));
+        }
+    }, [currentUser, dispatch]);
+
+    // Count actioned complaints for current user (student)
+    const actionedCount = React.useMemo(() => {
+        if (!complainsList || !currentUser) return 0;
+        return complainsList.filter((c) => {
+            if (!c.user) return false;
+            const userId = typeof c.user === 'string' ? c.user : (c.user._id || c.user);
+            return userId === currentUser._id && c.status === 'Actioned';
+        }).length;
+    }, [complainsList, currentUser]);
 
     const selectedItemStyles = {
         '&.Mui-selected': {
@@ -99,7 +121,14 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <AssignmentIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_complain') || 'Complain'} />
+                    <ListItemText primary={
+                        <>
+                            {t('menu_complain') || 'Complain'}
+                            {actionedCount > 0 && (
+                                <Badge badgeContent={actionedCount} color="success" sx={{ ml: 2 }} />
+                            )}
+                        </>
+                    } />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 

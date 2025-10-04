@@ -3,7 +3,7 @@ const router = require('express').Router();
 const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChildDetails, addAnotherChild,deleteParent } = require('../controllers/parent-controller.js');
 const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
 const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents } = require('../controllers/class-controller.js');
-const { complainCreate, complainList, complainUpdate } = require('../controllers/complain-controller.js');
+const { complainCreate, complainList, complainUpdate, complainDelete } = require('../controllers/complain-controller.js');
 const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice } = require('../controllers/notice-controller.js');
 // const { adminRegister, adminLogIn, deleteAdmin, getAdminDetail, updateAdmin } = require('../controllers/admin-controller.js');
 const {
@@ -39,6 +39,12 @@ const {
   getSubmissionsByStudent,
   upload: submissionUpload,
 } = require("../controllers/submission-controller");
+// Complaint Routes
+router.post('/ComplainAdd', complainCreate);
+router.get('/ComplainList/:id', complainList);
+router.put('/ComplainUpdate/:id', complainUpdate);
+router.delete('/ComplainDelete/:id', complainDelete);
+
 // Admin
 router.post('/AdminReg', adminRegister);
 router.post('/AdminLogin', adminLogIn);

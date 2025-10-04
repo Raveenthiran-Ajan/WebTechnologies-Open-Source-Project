@@ -2,7 +2,17 @@ const Complain = require('../models/complainSchema.js');
 
 const complainCreate = async (req, res) => {
     try {
-        const complain = new Complain(req.body)
+        // Support both new (title/description) and legacy (complaint) payloads
+        const payload = {
+            ...req.body,
+        };
+        // If title/description not provided but legacy complaint exists, map it
+        if (!payload.title && payload.complaint) {
+            payload.title = payload.complaint.substring(0, 80) || 'Complaint';
+            payload.description = payload.complaint;
+        }
+
+        const complain = new Complain(payload);
         const result = await complain.save()
         res.send(result)
     } catch (err) {
@@ -13,13 +23,18 @@ const complainCreate = async (req, res) => {
 const complainList = async (req, res) => {
     try {
         let complains = await Complain.find({ school: req.params.id });
-        if (complains.length > 0) {
-            res.send(complains)
-        } else {
-            res.send({ message: "No complains found" });
-        }
+        // Always send an array, even if empty
+        res.json({
+            success: true,
+            data: complains,
+            message: complains.length > 0 ? null : "No complains found"
+        });
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({
+            success: false,
+            data: [],
+            message: err.message || "Error fetching complaints"
+        });
     }
 };
 
@@ -80,4 +95,38 @@ const complainUpdate = async (req, res) => {
     }
 };
 
-module.exports = { complainCreate, complainList, complainUpdate };
+const complainDelete = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Check if complaint exists first
+        const complaint = await Complain.findById(id);
+        if (!complaint) {
+            return res.status(404).json({ 
+                success: false,
+                message: "Complaint not found" 
+            });
+        }
+
+        // Delete the complaint
+        await Complain.findByIdAndDelete(id);
+        
+        res.json({
+            success: true,
+            data: complaint,
+            message: "Complaint deleted successfully"
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message || "Error deleting complaint"
+        });
+    }
+};
+
+module.exports = {
+    complainCreate,
+    complainList,
+    complainUpdate,
+    complainDelete
+};

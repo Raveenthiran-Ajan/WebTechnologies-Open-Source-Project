@@ -12,23 +12,32 @@ const REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5
 
 export const getAllComplains = (id, address) => async (dispatch) => {
     dispatch(getRequest());
+    console.log('Starting complaint fetch:', { id, address });
 
     try {
         const url = `${REACT_APP_BASE_URL}/${address}List/${id}`;
-        // Debug: log the GET URL
-        // eslint-disable-next-line no-console
-        console.debug('complainHandle.getAllComplains: GET', url);
+        console.log('API request:', { method: 'GET', url });
+        
         const result = await axios.get(url);
-        // Debug: log server response
-        // eslint-disable-next-line no-console
-        console.debug('complainHandle.getAllComplains: response', result && result.data);
-        if (result.data.message) {
-            dispatch(getFailed(result.data.message));
+        console.log('API response:', {
+            status: result.status,
+            data: result.data
+        });
+
+        // Handle the standardized response format
+        if (result.data.success) {
+            dispatch(getSuccess(result.data)); // Will contain data array and message
         } else {
-            dispatch(getSuccess(result.data));
+            console.warn('Request unsuccessful:', result.data.message);
+            dispatch(getFailed(result.data.message));
         }
     } catch (error) {
-        dispatch(getError(error));
+        console.error('API error:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+        dispatch(getError(error.response?.data?.message || error.message || 'Failed to fetch complaints'));
     }
 }
 
@@ -49,3 +58,39 @@ export const updateComplaint = (complainId, updateData) => async (dispatch) => {
         throw error;
     }
 }
+
+export const deleteComplaint = (complainId) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.delete(`${REACT_APP_BASE_URL}/ComplainDelete/${complainId}`);
+        if (result.data.success) {
+            // Dispatch an action to remove the complaint from the state
+            dispatch(getSuccess(result.data.data));
+        } else {
+            dispatch(getError('Failed to delete complaint'));
+            throw new Error('Failed to delete complaint');
+        }
+    } catch (error) {
+        dispatch(getError(error.response?.data?.message || error.message));
+        throw error;
+    }
+};
+
+export const addComplaint = (fields) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.post(`${REACT_APP_BASE_URL}/ComplainAdd`, fields);
+        if (result.data.success) {
+            // Dispatch an action to update the state with the new complaint
+            dispatch(getSuccess(result.data.data));
+        } else {
+            dispatch(getError('Failed to add complaint'));
+            throw new Error('Failed to add complaint');
+        }
+    } catch (error) {
+        dispatch(getError(error.response?.data?.message || error.message));
+        throw error;
+    }
+};

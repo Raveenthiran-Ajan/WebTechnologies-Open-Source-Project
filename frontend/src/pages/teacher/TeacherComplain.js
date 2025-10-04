@@ -39,6 +39,8 @@ const TeacherComplain = () => {
     
     const [openDialog, setOpenDialog] = useState(false);
     const [complaint, setComplaint] = useState('');
+    const [title, setTitle] = useState('');
+    const [viewing, setViewing] = useState(null); // stores currently viewed complaint object
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [submitLoading, setSubmitLoading] = useState(false);
     const [message, setMessage] = useState('');
@@ -57,6 +59,7 @@ const TeacherComplain = () => {
             setAlertSeverity('success');
             setOpenDialog(false);
             setComplaint('');
+            setTitle('');
             setDate(new Date().toISOString().split('T')[0]);
             // Refresh complaints list
             if (currentUser && currentUser.school) {
@@ -82,6 +85,9 @@ const TeacherComplain = () => {
             user: currentUser._id,
             userType: 'teacher',
             date,
+            title: title.trim() || (complaint.trim().substring(0, 80)),
+            description: complaint.trim(),
+            // keep legacy field too
             complaint: complaint.trim(),
             school: currentUser.school._id,
         };
@@ -140,9 +146,9 @@ const TeacherComplain = () => {
             ),
         },
         {
-            field: 'complaint',
-            headerName: 'Complaint Description',
-            width: 300,
+            field: 'title',
+            headerName: 'Title',
+            width: 250,
             flex: 1,
             renderCell: (params) => (
                 <Box sx={{ py: 1 }}>
@@ -186,10 +192,7 @@ const TeacherComplain = () => {
                         variant="outlined"
                         size="small"
                         startIcon={<VisibilityIcon />}
-                        onClick={() => {
-                            // Handle view complaint details
-                            console.log('View complaint:', params.row);
-                        }}
+                        onClick={() => setViewing(params.row)}
                         sx={{ textTransform: 'none' }}
                     >
                         View
@@ -202,6 +205,8 @@ const TeacherComplain = () => {
     const rows = userComplaints.map((complain, index) => ({
         id: index + 1,
         date: complain.date,
+        title: complain.title || complain.complaint || 'No title',
+        description: complain.description || complain.complaint || '',
         complaint: complain.complaint,
         status: complain.status,
         originalId: complain._id,
@@ -311,6 +316,22 @@ const TeacherComplain = () => {
             >
                 <AddIcon />
             </Fab>
+
+            {/* View Dialog for full description */}
+            <Dialog open={!!viewing} onClose={() => setViewing(null)} maxWidth="md" fullWidth>
+                <DialogTitle>Complaint Details</DialogTitle>
+                <DialogContent dividers>
+                    {viewing && (
+                        <Box>
+                            <Typography variant="h6" gutterBottom>{viewing.title || viewing.complaint}</Typography>
+                            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{viewing.description || viewing.complaint}</Typography>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setViewing(null)}>Close</Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Add Complaint Dialog */}
             <Dialog 

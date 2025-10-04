@@ -14,9 +14,20 @@ const complainSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-    complaint: {
+    // New structured fields
+    title: {
         type: String,
         required: true
+    },
+    description: {
+        type: String,
+        required: true
+    },
+    // Backwards compatibility: keep old `complaint` field optional
+    complaint: {
+        type: String,
+        required: false,
+        default: null
     },
     school: {
         type: mongoose.Schema.Types.ObjectId,

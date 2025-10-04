@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  Paper, Box, Chip, Button, Alert, Typography, CircularProgress
+  Paper, Box, Chip, Button, Alert, Typography, CircularProgress,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { getAllComplains, updateComplaint } from '../../../redux/complainRelated/complainHandle';
 import {
@@ -20,20 +21,45 @@ const SeeComplains = () => {
   const [message, setMessage] = useState('');
   const [alertSeverity, setAlertSeverity] = useState('success');
   const [updatingComplaint, setUpdatingComplaint] = useState(null);
+  const [viewing, setViewing] = useState(null);
+  const [showRaw, setShowRaw] = useState(false);
+
 
   useEffect(() => {
-    // Fetch complaints. Use currentUser._id (original behavior) but guard for presence
-    if (currentUser && currentUser._id) {
-      // Debug: log currentUser and id used to fetch complaints
-      try {
-        // eslint-disable-next-line no-console
-        console.debug('SeeComplains: currentUser=', currentUser);
-        // eslint-disable-next-line no-console
-        console.debug('SeeComplains: fetching ComplainList for id=', currentUser._id);
-      } catch (e) {}
-      dispatch(getAllComplains(currentUser._id, "Complain"));
+    // Fetch complaints. The backend expects the school id in the route (ComplainList/:schoolId).
+    // Try to use currentUser.school._id when available, otherwise fall back to currentUser._id.
+    if (currentUser) {
+      let fetchId = null;
+      if (currentUser.school) {
+        // school can be an object or a string id
+        fetchId = typeof currentUser.school === 'string' ? currentUser.school : (currentUser.school._id || currentUser.school);
+      } else {
+        fetchId = currentUser._id;
+      }
+
+      if (fetchId) {
+        try {
+          // eslint-disable-next-line no-console
+          console.debug('SeeComplains: currentUser=', currentUser);
+          // eslint-disable-next-line no-console
+          console.debug('SeeComplains: fetching ComplainList for id=', fetchId);
+        } catch (e) {}
+        dispatch(getAllComplains(fetchId, "Complain"));
+      }
     }
   }, [currentUser, dispatch]);
+
+  useEffect(() => {
+    // Log complaints when they arrive so we can verify title/description exist
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('SeeComplains: complainsList length=', Array.isArray(complainsList) ? complainsList.length : 0);
+      if (Array.isArray(complainsList) && complainsList.length > 0) {
+        // eslint-disable-next-line no-console
+        console.debug('SeeComplains: first complain=', complainsList[0]);
+      }
+    } catch (e) {}
+  }, [complainsList]);
 
   if (error) {
     console.log(error);
@@ -91,7 +117,7 @@ const SeeComplains = () => {
 
   const complainColumns = [
     { field: 'user', headerName: 'User Type', width: 150 },
-    { field: 'complaint', headerName: 'Complaint', width: 300 },
+    { field: 'title', headerName: 'Title', width: 300, flex: 1 },
     { field: 'date', headerName: 'Date', width: 150 },
     {
       field: 'status',
@@ -108,24 +134,33 @@ const SeeComplains = () => {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 180,
+      width: 220,
       renderCell: (params) => {
         const status = params.row.status;
         const complainId = params.row.id;
         
         return (
-          <Button
-            size="small"
-            variant="outlined"
-            color={status === 'Pending' ? 'success' : 'warning'}
-            onClick={() => handleStatusUpdate(complainId, status)}
-            disabled={updatingComplaint === complainId}
-          >
-            {updatingComplaint === complainId 
-              ? 'Updating...' 
-              : (status === 'Pending' ? 'Mark Actioned' : 'Mark Pending')
-            }
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => setViewing(params.row)}
+            >
+              View
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              color={status === 'Pending' ? 'success' : 'warning'}
+              onClick={() => handleStatusUpdate(complainId, status)}
+              disabled={updatingComplaint === complainId}
+            >
+              {updatingComplaint === complainId 
+                ? 'Updating...' 
+                : (status === 'Pending' ? 'Mark Actioned' : 'Mark Pending')
+              }
+            </Button>
+          </Box>
         );
       },
     },
@@ -142,6 +177,8 @@ const SeeComplains = () => {
     return {
       id: complain._id,
       user: userTypeDisplay,
+      title: complain.title || complain.complaint || 'No title',
+      description: complain.description || complain.complaint || '',
       complaint: complain.complaint,
       date: dateString,
       status: complain.status || 'Pending',
@@ -179,6 +216,11 @@ const SeeComplains = () => {
         <Typography variant="h6" gutterBottom component="div" sx={{ p: 2 }}>
           All Complaints
         </Typography>
+        <Box sx={{ px: 2, mb: 1 }}>
+          <Button size="small" variant="outlined" onClick={() => setShowRaw(s => !s)}>
+            {showRaw ? 'Hide raw data' : 'Show raw data'}
+          </Button>
+        </Box>
         {response ?
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '40vh' }}>
             <Typography variant="h6" gutterBottom>
@@ -205,6 +247,27 @@ const SeeComplains = () => {
           )
         }
       </Paper>
+      {showRaw && Array.isArray(complainsList) && (
+        <Paper sx={{ mt: 2, p: 2, whiteSpace: 'pre-wrap', maxHeight: 300, overflow: 'auto' }}>
+          <Typography variant="subtitle2">Raw complaints JSON (first 20kb)</Typography>
+          <Box component="pre" sx={{ fontSize: 12 }}>{JSON.stringify(complainsList, (k, v) => k === '__v' ? undefined : v, 2)}</Box>
+        </Paper>
+      )}
+      {/* View Dialog */}
+      <Dialog open={!!viewing} onClose={() => setViewing(null)} maxWidth="md" fullWidth>
+        <DialogTitle>Complaint Details</DialogTitle>
+        <DialogContent dividers>
+          {viewing && (
+            <Box>
+              <Typography variant="h6" gutterBottom>{viewing.title || viewing.complaint}</Typography>
+              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{viewing.description || viewing.complaint}</Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setViewing(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

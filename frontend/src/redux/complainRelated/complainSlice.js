@@ -16,10 +16,11 @@ const complainSlice = createSlice({
             state.error = null;
         },
         getSuccess: (state, action) => {
-            state.complainsList = action.payload;
+            // Ensure complainsList is always an array
+            state.complainsList = Array.isArray(action.payload?.data) ? action.payload.data : [];
             state.loading = false;
             state.error = null;
-            state.response = null;
+            state.response = action.payload?.message || null;
         },
         getFailed: (state, action) => {
             state.response = action.payload;
