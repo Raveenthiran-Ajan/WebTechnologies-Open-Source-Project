@@ -7,10 +7,13 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
-import { Paper, Box, Typography, Button, IconButton, CircularProgress, Grid, Chip } from '@mui/material';
+import { Paper, Box, Typography, Button, IconButton, CircularProgress, Grid, Chip, Tooltip } from '@mui/material';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import Delete from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import DownloadIcon from '@mui/icons-material/Download';
+import { API_BASE_URL } from '../../../config';
 import { getAllNotices, deleteNotice } from '../../../redux/noticeRelated/noticeHandle';
 import {
     DataGrid,
@@ -291,13 +294,35 @@ const ShowNotices = () => {
                                             borderRadius: 1
                                         }}
                                     >
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                                {viewing.fileType ? viewing.fileType.toUpperCase() : 'FILE'}
-                                            </Typography>
-                                            <Typography variant="body2" color="primary">
-                                                {viewing.filePath}
-                                            </Typography>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                    {viewing.fileType ? viewing.fileType.toUpperCase() : 'FILE'}
+                                                </Typography>
+                                                <Typography variant="body2" color="primary">
+                                                    {viewing.filePath.split('/').pop()}
+                                                </Typography>
+                                            </Box>
+                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                                <Tooltip title="Preview">
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => window.open(`${API_BASE_URL}/${viewing.filePath}`, '_blank')}
+                                                    >
+                                                        <OpenInNewIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Tooltip title="Download">
+                                                    <IconButton
+                                                        size="small"
+                                                        component="a"
+                                                        href={`${API_BASE_URL}/download/notice/${viewing.filePath.split(/[/\\]/).pop()}`}
+                                                        download
+                                                    >
+                                                        <DownloadIcon />
+                                                    </IconButton>
+                                                </Tooltip>
+                                            </Box>
                                         </Box>
                                     </Paper>
                                 </Grid>

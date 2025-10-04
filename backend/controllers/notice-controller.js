@@ -5,13 +5,29 @@ const noticeCreate = async (req, res) => {
         const { title, details, date, adminID } = req.body;
         const file = req.file;
 
+        let fileType = 'text';
+        let filePath = null;
+
+        if (file) {
+            filePath = file.path;
+            if (file.mimetype.startsWith('image/')) {
+                fileType = 'image';
+            } else if (file.mimetype === 'application/pdf') {
+                fileType = 'pdf';
+            } else if (file.mimetype.startsWith('video/')) {
+                fileType = 'video';
+            } else {
+                fileType = 'text';
+            }
+        }
+
         const notice = new Notice({
             title,
             details,
             date,
             school: adminID,
-            fileType: file ? file.mimetype.split('/')[0] : 'text',
-            filePath: file ? file.path : null
+            fileType,
+            filePath
         });
 
         const result = await notice.save();

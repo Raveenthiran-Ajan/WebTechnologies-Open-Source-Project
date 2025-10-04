@@ -116,6 +116,10 @@ router.get('/NoticeList/:id', noticeList);
 router.delete("/Notices/:id", deleteNotices)
 router.delete("/Notice/:id", deleteNotice)
 router.put("/Notice/:id", updateNotice)
+router.get('/download/notice/:filename', (req, res) => {
+    const filePath = path.join(__dirname, '../uploads/notices', req.params.filename);
+    res.download(filePath);
+});
 // ------------------- Notice -------------------
 
 // Complain
