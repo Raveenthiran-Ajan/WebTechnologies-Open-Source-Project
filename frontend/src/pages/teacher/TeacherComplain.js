@@ -202,6 +202,20 @@ const TeacherComplain = () => {
             ),
         },
         {
+            field: 'date',
+            headerName: 'Date Submitted',
+            width: 150,
+            headerAlign: 'center',
+            align: 'center',
+            renderCell: (params) => (
+                new Date(params.value).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                })
+            ),
+        },
+        {
             field: 'title',
             headerName: 'Title',
             width: 250,
@@ -421,9 +435,29 @@ const TeacherComplain = () => {
                             </Grid>
                             <Grid item xs={12}>
                                 <Typography variant="subtitle2" color="textSecondary">Description</Typography>
-                                <Typography variant="body1" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
-                                    {viewing.description || viewing.complaint}
-                                </Typography>
+                                <Box
+                                    sx={{
+                                        mt: 1,
+                                        p: 2,
+                                        backgroundColor: '#f5f5f5',
+                                        borderRadius: 1,
+                                        border: '1px solid #e0e0e0',
+                                        '&:hover': {
+                                            backgroundColor: '#f0f0f0',
+                                        }
+                                    }}
+                                >
+                                    <Typography 
+                                        variant="body1" 
+                                        sx={{ 
+                                            whiteSpace: 'pre-wrap',
+                                            fontFamily: 'monospace',
+                                            color: '#333'
+                                        }}
+                                    >
+                                        {viewing.description || viewing.complaint}
+                                    </Typography>
+                                </Box>
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <Typography variant="subtitle2" color="textSecondary">Status</Typography>
