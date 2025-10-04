@@ -6,7 +6,7 @@ const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChil
 const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
 const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents } = require('../controllers/class-controller.js');
 const { complainCreate, complainList, complainUpdate, complainDelete } = require('../controllers/complain-controller.js');
-const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice } = require('../controllers/notice-controller.js');
+const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice, markNoticeAsRead } = require('../controllers/notice-controller.js');
 // const { adminRegister, adminLogIn, deleteAdmin, getAdminDetail, updateAdmin } = require('../controllers/admin-controller.js');
 const {
     studentRegister,
@@ -131,6 +131,7 @@ router.get('/NoticeList/:id', noticeList);
 router.delete("/Notices/:id", deleteNotices)
 router.delete("/Notice/:id", deleteNotice)
 router.put("/Notice/:id", updateNotice)
+router.put('/NoticeRead', markNoticeAsRead);
 router.get('/download/notice/:filename', (req, res) => {
     const filePath = path.join(__dirname, '../uploads/notices', req.params.filename);
     res.download(filePath);

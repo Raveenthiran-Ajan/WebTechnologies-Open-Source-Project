@@ -86,4 +86,24 @@ const deleteNotices = async (req, res) => {
     }
 }
 
-module.exports = { noticeCreate, noticeList, updateNotice, deleteNotice, deleteNotices };
+const markNoticeAsRead = async (req, res) => {
+    try {
+        const { noticeId, userId } = req.body;
+        
+        const result = await Notice.findByIdAndUpdate(
+            noticeId,
+            { $addToSet: { readBy: userId } }, // $addToSet prevents duplicates
+            { new: true }
+        );
+        
+        if (!result) {
+            return res.status(404).json({ message: "Notice not found" });
+        }
+        
+        res.send(result);
+    } catch (error) {
+        res.status(500).json({ message: "An error occurred while marking notice as read", error });
+    }
+}
+
+module.exports = { noticeCreate, noticeList, updateNotice, deleteNotice, deleteNotices, markNoticeAsRead };

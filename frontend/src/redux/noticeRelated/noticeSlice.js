@@ -32,6 +32,13 @@ const noticeSlice = createSlice({
         REMOVE_NOTICE: (state, action) => {
             state.noticesList = state.noticesList.filter(notice => notice._id !== action.payload);
             state.loading = false;
+        },
+        MARK_NOTICE_READ: (state, action) => {
+            const { noticeId, userId } = action.payload;
+            const notice = state.noticesList.find(n => n._id === noticeId);
+            if (notice && !notice.readBy?.includes(userId)) {
+                notice.readBy = [...(notice.readBy || []), userId];
+            }
         }
     },
 });
@@ -41,7 +48,8 @@ export const {
     getSuccess,
     getFailed,
     getError
-    , REMOVE_NOTICE
+    , REMOVE_NOTICE,
+    MARK_NOTICE_READ
 } = noticeSlice.actions;
 
 export const noticeReducer = noticeSlice.reducer;

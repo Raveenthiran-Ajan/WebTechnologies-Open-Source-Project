@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Container,
@@ -29,7 +29,7 @@ import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import { API_BASE_URL } from '../../config';
-import { getAllNotices } from '../../redux/noticeRelated/noticeHandle';
+import { getAllNotices, markNoticeAsRead } from '../../redux/noticeRelated/noticeHandle';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -45,6 +45,7 @@ const TeacherNotices = () => {
     const { noticesList, loading, error, response } = useSelector((state) => state.notice);
     const [viewing, setViewing] = useState(null);
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
+    const [cardFilter, setCardFilter] = useState('all'); // 'all', 'unread', 'read'
 
     useEffect(() => {
         if (currentUser && currentUser.school) {
@@ -79,27 +80,62 @@ const TeacherNotices = () => {
                     variant="outlined"
                     size="small"
                     startIcon={<VisibilityIcon />}
-                    onClick={() => setViewing(params.row)}
+                    onClick={async () => {
+                        // Mark notice as read
+                        if (!params.row.readBy || !params.row.readBy.includes(currentUser?._id)) {
+                            try {
+                                await dispatch(markNoticeAsRead(params.row._id, currentUser._id));
+                            } catch (error) {
+                                console.error('Failed to mark notice as read:', error);
+                            }
+                        }
+                        // Open the view dialog
+                        setViewing(params.row);
+                    }}
                     sx={{ textTransform: 'none' }}
                 >
                     View
                 </Button>
             ),
         },
+        { 
+            field: 'status', 
+            headerName: 'Status', 
+            width: 120,
+            headerAlign: 'center',
+            align: 'center',
+            renderCell: (params) => {
+                // Find the current notice from Redux store to get latest readBy status
+                const currentNotice = noticesList?.find(n => n._id === params.row._id);
+                const isRead = currentNotice?.readBy && currentNotice.readBy.includes(currentUser?._id);
+                return (
+                    <Chip
+                        label={isRead ? "Read" : "Unread"}
+                        size="small"
+                        color={isRead ? "success" : "warning"}
+                        variant={isRead ? "outlined" : "filled"}
+                    />
+                );
+            },
+        },
     ];
 
-    const rows = noticesList && noticesList.map((notice, index) => {
-        const date = new Date(notice.date);
-        const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
-        return {
-            id: index + 1,
-            title: notice.title,
-            details: notice.details,
-            date: dateString,
-            fileType: notice.fileType || [],
-            filePath: notice.filePath || [],
-        };
-    });
+    const rows = useMemo(() => {
+        return noticesList && noticesList.map((notice, index) => {
+            const date = new Date(notice.date);
+            const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
+            return {
+                id: index + 1,
+                _id: notice._id, // Add the notice ID for lookup
+                title: notice.title,
+                details: notice.details,
+                date: dateString,
+                fileType: notice.fileType || [],
+                filePath: notice.filePath || [],
+                readBy: notice.readBy || [],
+            };
+        });
+    }, [noticesList]);
 
     function CustomToolbar() {
         return (
@@ -113,10 +149,43 @@ const TeacherNotices = () => {
         );
     }
 
-    const renderCardView = () => (
-        <Box sx={{ p: 2 }}>
-            <Grid container spacing={3}>
-                {noticesList && noticesList.map((notice, index) => {
+    const renderCardView = () => {
+        // Filter notices based on read status
+        const filteredNotices = noticesList && noticesList.filter(notice => {
+            if (cardFilter === 'all') return true;
+            if (cardFilter === 'unread') return !notice.readBy || !notice.readBy.includes(currentUser?._id);
+            if (cardFilter === 'read') return notice.readBy && notice.readBy.includes(currentUser?._id);
+            return true;
+        });
+
+        return (
+            <Box sx={{ p: 2 }}>
+                {/* Filter Toggle Buttons */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+                    <ToggleButtonGroup
+                        value={cardFilter}
+                        exclusive
+                        onChange={(event, newFilter) => {
+                            if (newFilter !== null) {
+                                setCardFilter(newFilter);
+                            }
+                        }}
+                        aria-label="notice filter"
+                    >
+                        <ToggleButton value="all" aria-label="all notices">
+                            All
+                        </ToggleButton>
+                        <ToggleButton value="unread" aria-label="unread notices">
+                            Unread
+                        </ToggleButton>
+                        <ToggleButton value="read" aria-label="read notices">
+                            Read
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+
+                <Grid container spacing={3}>
+                    {filteredNotices && filteredNotices.map((notice, index) => {
                     const date = new Date(notice.date);
                     const dateString = date.toString() !== "Invalid Date" ? date.toLocaleDateString('en-US', {
                         year: 'numeric',
@@ -152,17 +221,30 @@ const TeacherNotices = () => {
                                                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
                                                     {dateString}
                                                 </Typography>
+                                                {(!notice.readBy || !notice.readBy.includes(currentUser?._id)) && (
+                                                    <Box
+                                                        sx={{
+                                                            width: 8,
+                                                            height: 8,
+                                                            borderRadius: '50%',
+                                                            bgcolor: 'error.main',
+                                                            ml: 1
+                                                        }}
+                                                    />
+                                                )}
                                             </Box>
                                         </Box>
-                                        <Chip 
-                                            label="New" 
-                                            size="small" 
-                                            sx={{ 
-                                                bgcolor: 'rgba(255,255,255,0.2)', 
-                                                color: 'white',
-                                                fontWeight: 'bold'
-                                            }}
-                                        />
+                                        {(!notice.readBy || !notice.readBy.includes(currentUser?._id)) && (
+                                            <Chip 
+                                                label="New" 
+                                                size="small" 
+                                                sx={{ 
+                                                    bgcolor: 'error.main', 
+                                                    color: 'white',
+                                                    fontWeight: 'bold'
+                                                }}
+                                            />
+                                        )}
                                     </Box>
                                 </Box>
                                 <CardContent sx={{ flexGrow: 1, p: 3 }}>
@@ -187,10 +269,21 @@ const TeacherNotices = () => {
                                         size="small"
                                         variant="outlined"
                                         startIcon={<VisibilityIcon />}
-                                        onClick={() => setViewing({
-                                            ...notice,
-                                            date: dateString
-                                        })}
+                                        onClick={async () => {
+                                            // Mark notice as read
+                                            if (!notice.readBy || !notice.readBy.includes(currentUser?._id)) {
+                                                try {
+                                                    await dispatch(markNoticeAsRead(notice._id, currentUser._id));
+                                                } catch (error) {
+                                                    console.error('Failed to mark notice as read:', error);
+                                                }
+                                            }
+                                            // Open the view dialog
+                                            setViewing({
+                                                ...notice,
+                                                date: dateString
+                                            });
+                                        }}
                                         sx={{ textTransform: 'none' }}
                                     >
                                         View Details
@@ -203,6 +296,7 @@ const TeacherNotices = () => {
             </Grid>
         </Box>
     );
+    };
 
     if (loading) {
         return (

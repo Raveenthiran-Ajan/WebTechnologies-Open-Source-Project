@@ -5,7 +5,7 @@ import {
     getFailed,
     getError
 } from './noticeSlice';
-import { REMOVE_NOTICE } from './noticeSlice';
+import { REMOVE_NOTICE, MARK_NOTICE_READ } from './noticeSlice';
 const REACT_APP_BASE_URL = "http://localhost:5000";
 
 export const getAllNotices = (id, address) => async (dispatch) => {
@@ -57,5 +57,21 @@ export const addNotice = (fields, schoolId) => async (dispatch) => {
     } catch (error) {
         const errorMessage = error.response ? error.response.data.message : error.message;
         dispatch(getError(errorMessage));
+    }
+}
+
+export const markNoticeAsRead = (noticeId, userId) => async (dispatch) => {
+    try {
+        const result = await axios.put(`${REACT_APP_BASE_URL}/NoticeRead`, {
+            noticeId,
+            userId
+        });
+        // Update local state immediately
+        dispatch(MARK_NOTICE_READ({ noticeId, userId }));
+        return result.data;
+    } catch (error) {
+        const errorMessage = error.response ? error.response.data.message : error.message;
+        console.error('Error marking notice as read:', errorMessage);
+        throw error;
     }
 }
