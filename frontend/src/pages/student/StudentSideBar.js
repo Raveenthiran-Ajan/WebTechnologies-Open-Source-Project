@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
+import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Badge } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 
 import HomeIcon from '@mui/icons-material/Home';
@@ -20,6 +20,12 @@ const StudentSideBar = () => {
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
+    const { noticesList } = useSelector((state) => state.notice);
+
+    // Count unread notices
+    const unreadNoticesCount = noticesList ? noticesList.filter(notice => 
+        !notice.readBy || !notice.readBy.includes(currentUser?._id)
+    ).length : 0;
 
 
 
@@ -106,7 +112,9 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <NotificationsIcon />
                     </ListItemIcon>
-                    <ListItemText primary="Notices" />
+                    <Badge badgeContent={unreadNoticesCount} color="error" max={99}>
+                        <ListItemText primary="Notices" />
+                    </Badge>
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 

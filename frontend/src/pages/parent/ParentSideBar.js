@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
+import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Badge } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 
 import HomeIcon from "@mui/icons-material/Home";
@@ -9,9 +9,17 @@ import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import { useSelector } from 'react-redux';
 
 const ParentSideBar = () => {
     const location = useLocation();
+    const { currentUser } = useSelector((state) => state.user);
+    const { noticesList } = useSelector((state) => state.notice);
+
+    // Count unread notices
+    const unreadNoticesCount = noticesList ? noticesList.filter(notice => 
+        !notice.readBy || !notice.readBy.includes(currentUser?._id)
+    ).length : 0;
     return (
         <>
             <React.Fragment>
@@ -46,7 +54,9 @@ const ParentSideBar = () => {
                     <ListItemIcon>
                         <NotificationsIcon color={location.pathname.startsWith("/Parent/notices") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
-                    <ListItemText primary="Notices" />
+                    <Badge badgeContent={unreadNoticesCount} color="error" max={99}>
+                        <ListItemText primary="Notices" />
+                    </Badge>
                 </ListItemButton>
                 <ListItemButton component={Link} to="/Parent/reports">
                     <ListItemIcon>
