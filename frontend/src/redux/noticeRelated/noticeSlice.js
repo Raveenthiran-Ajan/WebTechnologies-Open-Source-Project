@@ -28,6 +28,10 @@ const noticeSlice = createSlice({
         getError: (state, action) => {
             state.loading = false;
             state.error = action.payload;
+        },
+        REMOVE_NOTICE: (state, action) => {
+            state.noticesList = state.noticesList.filter(notice => notice._id !== action.payload);
+            state.loading = false;
         }
     },
 });
@@ -37,6 +41,7 @@ export const {
     getSuccess,
     getFailed,
     getError
+    , REMOVE_NOTICE
 } = noticeSlice.actions;
 
 export const noticeReducer = noticeSlice.reducer;

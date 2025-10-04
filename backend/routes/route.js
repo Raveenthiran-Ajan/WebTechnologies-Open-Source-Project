@@ -1,4 +1,6 @@
 const router = require('express').Router();
+const multer = require('multer');
+const path = require('path');
 
 const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChildDetails, addAnotherChild,deleteParent } = require('../controllers/parent-controller.js');
 const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
@@ -39,6 +41,18 @@ const {
   getSubmissionsByStudent,
   upload: submissionUpload,
 } = require("../controllers/submission-controller");
+
+// Configure multer for file uploads
+const noticeStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/notices/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    },
+});
+const noticeUpload = multer({ storage: noticeStorage });
+
 // Complaint Routes
 router.post('/ComplainAdd', complainCreate);
 router.get('/ComplainList/:id', complainList);
@@ -97,7 +111,7 @@ router.post('/TeacherAttendance/:id', teacherAttendance)
 router.put("/Teacher/password/:id", teacherChangePassword)
 
 // Notice
-router.post('/NoticeCreate', noticeCreate);
+router.post('/NoticeCreate', noticeUpload.single('file'), noticeCreate);
 router.get('/NoticeList/:id', noticeList);
 router.delete("/Notices/:id", deleteNotices)
 router.delete("/Notice/:id", deleteNotice)

@@ -5,6 +5,7 @@ import {
     getFailed,
     getError
 } from './noticeSlice';
+import { REMOVE_NOTICE } from './noticeSlice';
 const REACT_APP_BASE_URL = "http://localhost:5000";
 
 export const getAllNotices = (id, address) => async (dispatch) => {
@@ -24,17 +25,14 @@ export const getAllNotices = (id, address) => async (dispatch) => {
 
 export const deleteNotice = (id, schoolId) => async (dispatch) => {
     dispatch(getRequest());
-
     try {
         const result = await axios.delete(`${REACT_APP_BASE_URL}/Notice/${id}`);
         if (result.data.message && result.data.message.includes('successfully')) {
-            // After successful deletion, refresh the notices list
-            dispatch(getAllNotices(schoolId, "Notice"));
+            dispatch(REMOVE_NOTICE(id));
         } else if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
-            // If no specific message but deletion was successful, refresh the list
-            dispatch(getAllNotices(schoolId, "Notice"));
+            dispatch(getFailed("Unexpected error occurred during deletion"));
         }
     } catch (error) {
         const errorMessage = error.response ? error.response.data.message : error.message;
@@ -46,14 +44,14 @@ export const addNotice = (fields, schoolId) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.post(`${REACT_APP_BASE_URL}/Notice`, fields);
+        const result = await axios.post(`${REACT_APP_BASE_URL}/NoticeCreate`, fields, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
         if (result.data.message && result.data.message.includes('successfully')) {
-            // After successful addition, refresh the notices list
             dispatch(getAllNotices(schoolId, "Notice"));
         } else if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
-            // If no specific message but addition was successful, refresh the list
             dispatch(getAllNotices(schoolId, "Notice"));
         }
     } catch (error) {

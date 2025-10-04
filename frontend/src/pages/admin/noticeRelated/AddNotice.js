@@ -15,14 +15,21 @@ const AddNotice = () => {
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
   const [date, setDate] = useState('');
-  const adminID = currentUser._id
+  const [file, setFile] = useState(null);
+  const adminID = currentUser._id;
 
   const [loader, setLoader] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [message, setMessage] = useState("");
 
-  const fields = { title, details, date, adminID };
-  const address = "Notice"
+  const fields = new FormData();
+  fields.append('title', title);
+  fields.append('details', details);
+  fields.append('date', date);
+  fields.append('adminID', adminID);
+  if (file) fields.append('file', file);
+
+  const address = "Notice";
 
   const submitHandler = (event) => {
     event.preventDefault();
@@ -30,14 +37,18 @@ const AddNotice = () => {
     dispatch(addStuff(fields, address));
   };
 
+  const cancelHandler = () => {
+    navigate('/Admin/notices');
+  };
+
   useEffect(() => {
     if (status === 'added') {
       navigate('/Admin/notices');
-      dispatch(underControl())
+      dispatch(underControl());
     } else if (status === 'error') {
-      setMessage("Network Error")
-      setShowPopup(true)
-      setLoader(false)
+      setMessage("Network Error");
+      setShowPopup(true);
+      setLoader(false);
     }
   }, [status, navigate, error, response, dispatch]);
 
@@ -47,7 +58,7 @@ const AddNotice = () => {
         <Typography variant="h4" gutterBottom>
           Add New Notice
         </Typography>
-        <form onSubmit={submitHandler}>
+        <form onSubmit={submitHandler} encType="multipart/form-data">
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
@@ -86,6 +97,24 @@ const AddNotice = () => {
               />
             </Grid>
             <Grid item xs={12}>
+              <Button
+                variant="contained"
+                component="label"
+                color="primary"
+              >
+                Upload File
+                <input
+                  type="file"
+                  hidden
+                  onChange={(event) => setFile(event.target.files[0])}
+                />
+              </Button>
+              {file && <Typography variant="body2" sx={{ mt: 1 }}>{file.name}</Typography>}
+            </Grid>
+            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Button variant="outlined" color="secondary" onClick={cancelHandler}>
+                Cancel
+              </Button>
               <Button variant="contained" color="primary" type="submit" disabled={loader}>
                 {loader ? <CircularProgress size={24} color="inherit" /> : 'Add Notice'}
               </Button>
