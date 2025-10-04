@@ -15,7 +15,8 @@ import {
     DialogActions,
     Fab,
     Grid,
-    IconButton
+    IconButton,
+    Paper,
 } from '@mui/material';
 import {
     DataGrid,
@@ -30,6 +31,7 @@ import AddIcon from '@mui/icons-material/Add';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { addComplaint, deleteComplaint, getAllComplains } from '../../redux/complainRelated/complainHandle';
 
 const TeacherComplain = () => {
@@ -47,11 +49,28 @@ const TeacherComplain = () => {
     const [alertSeverity, setAlertSeverity] = useState('success');
     const [openViewDialog, setOpenViewDialog] = useState(false);
 
-    useEffect(() => {
+    // Function to fetch complaints
+    const fetchComplaints = React.useCallback(() => {
         if (currentUser && currentUser.school) {
+            console.log('Loading complaints for teacher:', {
+                teacherId: currentUser._id,
+                schoolId: currentUser.school._id
+            });
             dispatch(getAllComplains(currentUser.school._id, "Complain"));
         }
     }, [dispatch, currentUser]);
+
+    // Initial load
+    useEffect(() => {
+        fetchComplaints();
+    }, [fetchComplaints]);
+
+    // Refresh after status changes
+    useEffect(() => {
+        if (status === "added") {
+            fetchComplaints();
+        }
+    }, [status, fetchComplaints]);
 
     useEffect(() => {
         if (status === "added") {
@@ -144,11 +163,12 @@ const TeacherComplain = () => {
 
         console.log('Filtering complaints:', {
             totalComplaints: complainsList.length,
-            currentUserId: currentUser._id
+            currentUserId: currentUser._id,
+            userType: 'teacher'
         });
         
         try {
-            return complainsList.filter(complain => {
+            const filtered = complainsList.filter(complain => {
                 if (!complain || !complain.user) {
                     console.log('Invalid complaint structure:', complain);
                     return false;
@@ -159,15 +179,28 @@ const TeacherComplain = () => {
                     ? complain.user._id 
                     : complain.user;
                 
-                const matches = complainUserId === currentUser._id;
+                const isTeacherComplaint = complain.userType === 'teacher';
+                const isUserMatch = complainUserId === currentUser._id;
+                
                 console.log('Complaint check:', {
                     complainId: complain._id,
                     complainUserId,
                     currentUserId: currentUser._id,
-                    matches
+                    userType: complain.userType,
+                    isTeacherComplaint,
+                    isUserMatch,
+                    matches: isTeacherComplaint && isUserMatch
                 });
-                return matches;
+                
+                return isTeacherComplaint && isUserMatch;
             });
+
+            console.log('Filtered results:', {
+                totalFiltered: filtered.length,
+                complaints: filtered
+            });
+
+            return filtered;
         } catch (error) {
             console.error('Error filtering complaints:', error);
             return [];
@@ -401,23 +434,50 @@ const TeacherComplain = () => {
             </Fab>
 
             {/* View Dialog for full description */}
-            <Dialog open={!!viewing} onClose={() => setViewing(null)} maxWidth="md" fullWidth>
-                <DialogTitle sx={{ borderBottom: '1px solid #e0e0e0', mb: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <ReportProblemIcon color="primary" />
-                        <Typography variant="h6">Complaint Details</Typography>
+            <Dialog 
+                open={!!viewing} 
+                onClose={() => setViewing(null)} 
+                maxWidth="sm" 
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: 2,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                    }
+                }}
+            >
+                <DialogTitle 
+                    sx={{ 
+                        borderBottom: '1px solid #e0e0e0',
+                        background: 'linear-gradient(to right, #1976d2, #2196f3)',
+                        color: 'white',
+                        py: 2
+                    }}
+                >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <ReportProblemIcon sx={{ fontSize: 24 }} />
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            Complaint #{viewing?.id}
+                        </Typography>
                     </Box>
                 </DialogTitle>
-                <DialogContent>
+                <DialogContent sx={{ py: 3 }}>
                     {viewing && (
-                        <Grid container spacing={3}>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle2" color="textSecondary">Complaint Number</Typography>
-                                <Typography variant="body1" sx={{ mt: 1 }}>
-                                    #{viewing.id}
-                                </Typography>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <Box sx={{ mb: 2 }}>
+                                    <Typography variant="subtitle2" color="textSecondary">Status</Typography>
+                                    <Chip
+                                        label={viewing.status || 'Pending'}
+                                        size="small"
+                                        color={viewing.status === 'Actioned' ? 'success' : 'warning'}
+                                        variant="filled"
+                                        sx={{ mt: 1 }}
+                                    />
+                                </Box>
                             </Grid>
-                            <Grid item xs={12} sm={6}>
+                            
+                            <Grid item xs={12}>
                                 <Typography variant="subtitle2" color="textSecondary">Date Submitted</Typography>
                                 <Typography variant="body1" sx={{ mt: 1 }}>
                                     {new Date(viewing.date).toLocaleDateString('en-US', {
@@ -427,65 +487,65 @@ const TeacherComplain = () => {
                                     })}
                                 </Typography>
                             </Grid>
+
                             <Grid item xs={12}>
                                 <Typography variant="subtitle2" color="textSecondary">Title</Typography>
-                                <Typography variant="body1" sx={{ mt: 1 }}>
+                                <Typography variant="body1" sx={{ mt: 1, fontWeight: 500, color: '#1976d2' }}>
                                     {viewing.title}
                                 </Typography>
                             </Grid>
+
                             <Grid item xs={12}>
                                 <Typography variant="subtitle2" color="textSecondary">Description</Typography>
-                                <Box
+                                <Paper 
+                                    elevation={0}
                                     sx={{
                                         mt: 1,
                                         p: 2,
-                                        backgroundColor: '#f5f5f5',
-                                        borderRadius: 1,
+                                        backgroundColor: '#f8f9fa',
                                         border: '1px solid #e0e0e0',
-                                        '&:hover': {
-                                            backgroundColor: '#f0f0f0',
-                                        }
+                                        borderRadius: 1
                                     }}
                                 >
                                     <Typography 
                                         variant="body1" 
                                         sx={{ 
                                             whiteSpace: 'pre-wrap',
-                                            fontFamily: 'monospace',
-                                            color: '#333'
+                                            color: '#2c3e50',
+                                            lineHeight: 1.6
                                         }}
                                     >
                                         {viewing.description || viewing.complaint}
                                     </Typography>
-                                </Box>
+                                </Paper>
                             </Grid>
-                            <Grid item xs={12} sm={6}>
-                                <Typography variant="subtitle2" color="textSecondary">Status</Typography>
-                                <Chip
-                                    sx={{ mt: 1 }}
-                                    label={viewing.status || 'Pending'}
-                                    size="small"
-                                    color={viewing.status === 'Actioned' ? 'success' : 'warning'}
-                                    variant="filled"
-                                />
-                            </Grid>
+
                             {viewing.actionedDate && (
-                                <Grid item xs={12} sm={6}>
-                                    <Typography variant="subtitle2" color="textSecondary">Resolved On</Typography>
-                                    <Typography variant="body1" sx={{ mt: 1 }}>
-                                        {new Date(viewing.actionedDate).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}
-                                    </Typography>
+                                <Grid item xs={12}>
+                                    <Box sx={{ 
+                                        mt: 1,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                        color: 'success.main'
+                                    }}>
+                                        <CheckCircleIcon fontSize="small" />
+                                        <Typography variant="body2">
+                                            Resolved on {new Date(viewing.actionedDate).toLocaleDateString()}
+                                        </Typography>
+                                    </Box>
                                 </Grid>
                             )}
                         </Grid>
                     )}
                 </DialogContent>
                 <DialogActions sx={{ borderTop: '1px solid #e0e0e0', p: 2 }}>
-                    <Button variant="contained" onClick={() => setViewing(null)}>Close</Button>
+                    <Button 
+                        variant="contained" 
+                        onClick={() => setViewing(null)}
+                    >
+                        Close
+                    </Button>
                 </DialogActions>
             </Dialog>
 

@@ -15,7 +15,7 @@ export const getAllComplains = (id, address) => async (dispatch) => {
     console.log('Starting complaint fetch:', { id, address });
 
     try {
-        const url = `${REACT_APP_BASE_URL}/${address}List/${id}`;
+        const url = `${REACT_APP_BASE_URL}/ComplainList/${id}`;
         console.log('API request:', { method: 'GET', url });
         
         const result = await axios.get(url);
@@ -79,20 +79,25 @@ export const deleteComplaint = (complainId) => async (dispatch) => {
 
 export const addComplaint = (fields) => async (dispatch) => {
     dispatch(getRequest());
+    console.log('Adding complaint with fields:', fields);
 
     try {
         const result = await axios.post(`${REACT_APP_BASE_URL}/ComplainAdd`, fields);
-        if (result.data.success) {
-            // Get the updated list after adding
+        console.log('Add complaint response:', result.data);
+        
+        if (result.data) {  // Backend returns the saved complaint directly
+            // Get the updated list immediately after adding
             const updatedList = await axios.get(`${REACT_APP_BASE_URL}/ComplainList/${fields.school}`);
-            if (updatedList.data.success) {
-                dispatch(getSuccess(updatedList.data));
-                return { success: true, message: 'Complaint added successfully' };
-            }
+            console.log('Updated list response:', updatedList.data);
+            
+            dispatch(getSuccess(updatedList.data));
+            return { success: true, message: 'Complaint added successfully' };
         }
+        
         dispatch(getError('Failed to add complaint'));
         return { success: false, message: 'Failed to add complaint' };
     } catch (error) {
+        console.error('Error adding complaint:', error);
         dispatch(getError(error.response?.data?.message || error.message));
         return { success: false, message: error.response?.data?.message || error.message };
     }
