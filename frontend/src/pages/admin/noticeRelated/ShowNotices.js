@@ -7,12 +7,14 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
-import { Paper, Box, Typography, Button, IconButton, CircularProgress, Grid, Chip, Tooltip } from '@mui/material';
+import { Paper, Box, Typography, Button, IconButton, CircularProgress, Grid, Chip, Tooltip, Card, CardContent, CardActions, Switch, FormControlLabel, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import Delete from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import DownloadIcon from '@mui/icons-material/Download';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import { API_BASE_URL } from '../../../config';
 import { getAllNotices, deleteNotice } from '../../../redux/noticeRelated/noticeHandle';
 import {
@@ -36,6 +38,7 @@ const ShowNotices = () => {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
     const [viewing, setViewing] = useState(null);
+    const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
 
     useEffect(() => {
         dispatch(getAllNotices(currentUser._id, "Notice"));
@@ -148,6 +151,100 @@ const ShowNotices = () => {
         );
     }
 
+    const renderCardView = () => (
+        <Box sx={{ p: 2 }}>
+            <Grid container spacing={3}>
+                {localNoticesList && localNoticesList.map((notice, index) => {
+                    const date = new Date(notice.date);
+                    const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
+                    
+                    return (
+                        <Grid item xs={12} sm={6} md={4} key={notice._id}>
+                            <Card 
+                                sx={{ 
+                                    height: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    transition: 'transform 0.2s, box-shadow 0.2s',
+                                    '&:hover': {
+                                        transform: 'translateY(-4px)',
+                                        boxShadow: '0 8px 25px rgba(0,0,0,0.15)'
+                                    }
+                                }}
+                            >
+                                <CardContent sx={{ flexGrow: 1 }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                                        <Chip
+                                            label={`#${index + 1}`}
+                                            size="small"
+                                            color="primary"
+                                            variant="outlined"
+                                        />
+                                        <Typography variant="body2" color="textSecondary">
+                                            {dateString}
+                                        </Typography>
+                                    </Box>
+                                    
+                                    <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, color: '#1976d2' }}>
+                                        {notice.title}
+                                    </Typography>
+                                    
+                                    <Typography 
+                                        variant="body2" 
+                                        color="textSecondary"
+                                        sx={{ 
+                                            mb: 2,
+                                            display: '-webkit-box',
+                                            WebkitLineClamp: 3,
+                                            WebkitBoxOrient: 'vertical',
+                                            overflow: 'hidden',
+                                            lineHeight: 1.4
+                                        }}
+                                    >
+                                        {notice.details.length > 150 
+                                            ? `${notice.details.substring(0, 150)}...` 
+                                            : notice.details
+                                        }
+                                    </Typography>
+                                    
+                                    {notice.filePath && notice.filePath.length > 0 && (
+                                        <Box sx={{ mt: 2 }}>
+                                            <Typography variant="caption" color="textSecondary">
+                                                {notice.filePath.length} attachment{notice.filePath.length > 1 ? 's' : ''}
+                                            </Typography>
+                                        </Box>
+                                    )}
+                                </CardContent>
+                                
+                                <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+                                    <Button
+                                        size="small"
+                                        variant="outlined"
+                                        startIcon={<VisibilityIcon />}
+                                        onClick={() => setViewing({
+                                            ...notice,
+                                            date: dateString
+                                        })}
+                                        sx={{ textTransform: 'none' }}
+                                    >
+                                        View Details
+                                    </Button>
+                                    <IconButton
+                                        size="small"
+                                        color="error"
+                                        onClick={() => handleDeleteClick(notice._id)}
+                                    >
+                                        <Delete />
+                                    </IconButton>
+                                </CardActions>
+                            </Card>
+                        </Grid>
+                    );
+                })}
+            </Grid>
+        </Box>
+    );
+
     if (loading) {
         return <CircularProgress />;
     }
@@ -155,33 +252,59 @@ const ShowNotices = () => {
     return (
         <>
             <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                <Typography variant="h6" gutterBottom component="div" sx={{ p: 2 }}>
-                    All Notices
-                </Typography>
-                {loading ?
-                    <CircularProgress />
-                    :
-                    (Array.isArray(noticesList) && noticesList.length > 0 ?
-                    <Box sx={{ height: 400, width: '100%' }}>
-                        <DataGrid 
-                            rows={rows || []} 
-                            columns={columns} 
-                            slots={{ 
-                                toolbar: CustomToolbar 
-                            }}
-                            initialState={{
-                                pagination: {
-                                    paginationModel: {
-                                        pageSize: 10,
-                                    },
-                                },
-                            }}
-                            pageSizeOptions={[5, 10, 25]}
-                            disableRowSelectionOnClick
-                        />
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2 }}>
+                    <Typography variant="h6" component="div">
+                        All Notices
+                    </Typography>
+                    <ToggleButtonGroup
+                        value={viewMode}
+                        exclusive
+                        onChange={(event, newView) => {
+                            if (newView !== null) {
+                                setViewMode(newView);
+                            }
+                        }}
+                        aria-label="view mode"
+                        size="small"
+                    >
+                        <ToggleButton value="table" aria-label="table view">
+                            <ViewListIcon />
+                        </ToggleButton>
+                        <ToggleButton value="card" aria-label="card view">
+                            <ViewModuleIcon />
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                </Box>
+                
+                {loading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                        <CircularProgress />
                     </Box>
-                    :
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+                ) : Array.isArray(noticesList) && noticesList.length > 0 ? (
+                    viewMode === 'table' ? (
+                        <Box sx={{ height: 400, width: '100%' }}>
+                            <DataGrid 
+                                rows={rows || []} 
+                                columns={columns} 
+                                slots={{ 
+                                    toolbar: CustomToolbar 
+                                }}
+                                initialState={{
+                                    pagination: {
+                                        paginationModel: {
+                                            pageSize: 10,
+                                        },
+                                    },
+                                }}
+                                pageSizeOptions={[5, 10, 25]}
+                                disableRowSelectionOnClick
+                            />
+                        </Box>
+                    ) : (
+                        renderCardView()
+                    )
+                ) : (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', p: 4 }}>
                         <Typography variant="h5" gutterBottom>
                             No notices found
                         </Typography>
@@ -193,8 +316,7 @@ const ShowNotices = () => {
                             Add a Notice
                         </Button>
                     </Box>
-                    )
-                }
+                )}
             </Paper>
             <Dialog
                 open={confirmOpen}
