@@ -14,7 +14,8 @@ import {
     DialogContent,
     DialogActions,
     Fab,
-    Grid
+    Grid,
+    IconButton
 } from '@mui/material';
 import {
     DataGrid,
@@ -29,8 +30,7 @@ import AddIcon from '@mui/icons-material/Add';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { addStuff } from '../../redux/userRelated/userHandle';
-import { getAllComplains } from '../../redux/complainRelated/complainHandle';
+import { addComplaint, deleteComplaint, getAllComplains } from '../../redux/complainRelated/complainHandle';
 
 const TeacherComplain = () => {
     const dispatch = useDispatch();
@@ -40,11 +40,12 @@ const TeacherComplain = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [complaint, setComplaint] = useState('');
     const [title, setTitle] = useState('');
-    const [viewing, setViewing] = useState(null); // stores currently viewed complaint object
+    const [viewing, setViewing] = useState(null);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [submitLoading, setSubmitLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [alertSeverity, setAlertSeverity] = useState('success');
+    const [openViewDialog, setOpenViewDialog] = useState(false);
 
     useEffect(() => {
         if (currentUser && currentUser.school) {
@@ -72,10 +73,29 @@ const TeacherComplain = () => {
         }
     }, [status, userError, dispatch, currentUser]);
 
-    const handleSubmit = (event) => {
+    const handleDelete = async (row) => {
+        console.log('Deleting complaint:', row);
+        if (window.confirm('Are you sure you want to delete this complaint?')) {
+            try {
+                await dispatch(deleteComplaint(row.originalId));
+                setMessage('Complaint deleted successfully');
+                setAlertSeverity('success');
+                // Refresh complaints list after deletion
+                if (currentUser && currentUser.school) {
+                    await dispatch(getAllComplains(currentUser.school._id, "Complain"));
+                }
+            } catch (error) {
+                console.error('Error deleting complaint:', error);
+                setMessage('Failed to delete complaint. Please try again.');
+                setAlertSeverity('error');
+            }
+        }
+    };
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
-        if (!complaint.trim()) {
-            setMessage("Please enter a complaint description.");
+        if (!complaint.trim() || !title.trim()) {
+            setMessage("Please enter both title and description.");
             setAlertSeverity('warning');
             return;
         }
@@ -85,26 +105,74 @@ const TeacherComplain = () => {
             user: currentUser._id,
             userType: 'teacher',
             date,
-            title: title.trim() || (complaint.trim().substring(0, 80)),
+            title: title.trim(),
             description: complaint.trim(),
-            // keep legacy field too
             complaint: complaint.trim(),
             school: currentUser.school._id,
         };
-        dispatch(addStuff(fields, "Complain"));
+
+        try {
+            const result = await dispatch(addComplaint(fields));
+            if (result.success) {
+                setMessage("Complaint submitted successfully!");
+                setAlertSeverity('success');
+                setOpenDialog(false);
+                setComplaint('');
+                setTitle('');
+                setDate(new Date().toISOString().split('T')[0]);
+            } else {
+                setMessage(result.message || "Error submitting complaint.");
+                setAlertSeverity('error');
+            }
+        } catch (error) {
+            setMessage("Error submitting complaint. Please try again.");
+            setAlertSeverity('error');
+        } finally {
+            setSubmitLoading(false);
+        }
     };
 
     // Filter complaints by current user
-    const userComplaints = complainsList ? complainsList.filter(complain => {
-        if (!complain.user) return false;
+    const userComplaints = React.useMemo(() => {
+        if (!Array.isArray(complainsList) || !currentUser) {
+            console.log('Invalid complaints list or no current user:', {
+                isArray: Array.isArray(complainsList),
+                hasCurrentUser: Boolean(currentUser)
+            });
+            return [];
+        }
+
+        console.log('Filtering complaints:', {
+            totalComplaints: complainsList.length,
+            currentUserId: currentUser._id
+        });
         
-        // Handle both string and object user references
-        const complainUserId = typeof complain.user === 'string' 
-            ? complain.user 
-            : complain.user._id;
-            
-        return complainUserId === currentUser._id;
-    }) : [];
+        try {
+            return complainsList.filter(complain => {
+                if (!complain || !complain.user) {
+                    console.log('Invalid complaint structure:', complain);
+                    return false;
+                }
+                
+                // Handle both string and object user references
+                const complainUserId = typeof complain.user === 'object' 
+                    ? complain.user._id 
+                    : complain.user;
+                
+                const matches = complainUserId === currentUser._id;
+                console.log('Complaint check:', {
+                    complainId: complain._id,
+                    complainUserId,
+                    currentUserId: currentUser._id,
+                    matches
+                });
+                return matches;
+            });
+        } catch (error) {
+            console.error('Error filtering complaints:', error);
+            return [];
+        }
+    }, [complainsList, currentUser]);
 
     const CustomToolbar = () => {
         return (
@@ -134,18 +202,6 @@ const TeacherComplain = () => {
             ),
         },
         {
-            field: 'date',
-            headerName: 'Date Submitted',
-            width: 150,
-            renderCell: (params) => (
-                new Date(params.value).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                })
-            ),
-        },
-        {
             field: 'title',
             headerName: 'Title',
             width: 250,
@@ -162,6 +218,24 @@ const TeacherComplain = () => {
                         {params.value}
                     </Typography>
                 </Box>
+            ),
+        },
+        {
+            field: 'description',
+            headerName: 'Description',
+            width: 150,
+            headerAlign: 'center',
+            align: 'center',
+            renderCell: (params) => (
+                <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<VisibilityIcon />}
+                    onClick={() => setViewing(params.row)}
+                    sx={{ textTransform: 'none' }}
+                >
+                    View
+                </Button>
             ),
         },
         {
@@ -182,22 +256,17 @@ const TeacherComplain = () => {
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 150,
+            width: 100,
             headerAlign: 'center',
             align: 'center',
             sortable: false,
             renderCell: (params) => (
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<VisibilityIcon />}
-                        onClick={() => setViewing(params.row)}
-                        sx={{ textTransform: 'none' }}
-                    >
-                        View
-                    </Button>
-                </Box>
+                <IconButton
+                    color="error"
+                    onClick={() => handleDelete(params.row)}
+                >
+                    <DeleteIcon />
+                </IconButton>
             ),
         },
     ];
@@ -319,17 +388,70 @@ const TeacherComplain = () => {
 
             {/* View Dialog for full description */}
             <Dialog open={!!viewing} onClose={() => setViewing(null)} maxWidth="md" fullWidth>
-                <DialogTitle>Complaint Details</DialogTitle>
-                <DialogContent dividers>
+                <DialogTitle sx={{ borderBottom: '1px solid #e0e0e0', mb: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <ReportProblemIcon color="primary" />
+                        <Typography variant="h6">Complaint Details</Typography>
+                    </Box>
+                </DialogTitle>
+                <DialogContent>
                     {viewing && (
-                        <Box>
-                            <Typography variant="h6" gutterBottom>{viewing.title || viewing.complaint}</Typography>
-                            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>{viewing.description || viewing.complaint}</Typography>
-                        </Box>
+                        <Grid container spacing={3}>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="subtitle2" color="textSecondary">Complaint Number</Typography>
+                                <Typography variant="body1" sx={{ mt: 1 }}>
+                                    #{viewing.id}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="subtitle2" color="textSecondary">Date Submitted</Typography>
+                                <Typography variant="body1" sx={{ mt: 1 }}>
+                                    {new Date(viewing.date).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    })}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" color="textSecondary">Title</Typography>
+                                <Typography variant="body1" sx={{ mt: 1 }}>
+                                    {viewing.title}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" color="textSecondary">Description</Typography>
+                                <Typography variant="body1" sx={{ mt: 1, whiteSpace: 'pre-wrap' }}>
+                                    {viewing.description || viewing.complaint}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <Typography variant="subtitle2" color="textSecondary">Status</Typography>
+                                <Chip
+                                    sx={{ mt: 1 }}
+                                    label={viewing.status || 'Pending'}
+                                    size="small"
+                                    color={viewing.status === 'Actioned' ? 'success' : 'warning'}
+                                    variant="filled"
+                                />
+                            </Grid>
+                            {viewing.actionedDate && (
+                                <Grid item xs={12} sm={6}>
+                                    <Typography variant="subtitle2" color="textSecondary">Resolved On</Typography>
+                                    <Typography variant="body1" sx={{ mt: 1 }}>
+                                        {new Date(viewing.actionedDate).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        })}
+                                    </Typography>
+                                </Grid>
+                            )}
+                        </Grid>
                     )}
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setViewing(null)}>Close</Button>
+                <DialogActions sx={{ borderTop: '1px solid #e0e0e0', p: 2 }}>
+                    <Button variant="contained" onClick={() => setViewing(null)}>Close</Button>
                 </DialogActions>
             </Dialog>
 
@@ -364,6 +486,16 @@ const TeacherComplain = () => {
                                     InputLabelProps={{
                                         shrink: true,
                                     }}
+                                    required
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <TextField
+                                    fullWidth
+                                    label="Title"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    placeholder="Enter a brief title for your complaint..."
                                     required
                                 />
                             </Grid>

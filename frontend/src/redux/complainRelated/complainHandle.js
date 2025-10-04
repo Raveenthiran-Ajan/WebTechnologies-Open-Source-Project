@@ -83,14 +83,17 @@ export const addComplaint = (fields) => async (dispatch) => {
     try {
         const result = await axios.post(`${REACT_APP_BASE_URL}/ComplainAdd`, fields);
         if (result.data.success) {
-            // Dispatch an action to update the state with the new complaint
-            dispatch(getSuccess(result.data.data));
-        } else {
-            dispatch(getError('Failed to add complaint'));
-            throw new Error('Failed to add complaint');
+            // Get the updated list after adding
+            const updatedList = await axios.get(`${REACT_APP_BASE_URL}/ComplainList/${fields.school}`);
+            if (updatedList.data.success) {
+                dispatch(getSuccess(updatedList.data));
+                return { success: true, message: 'Complaint added successfully' };
+            }
         }
+        dispatch(getError('Failed to add complaint'));
+        return { success: false, message: 'Failed to add complaint' };
     } catch (error) {
         dispatch(getError(error.response?.data?.message || error.message));
-        throw error;
+        return { success: false, message: error.response?.data?.message || error.message };
     }
 };
