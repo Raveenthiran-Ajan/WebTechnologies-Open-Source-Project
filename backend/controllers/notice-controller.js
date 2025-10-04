@@ -3,31 +3,31 @@ const Notice = require('../models/noticeSchema.js');
 const noticeCreate = async (req, res) => {
     try {
         const { title, details, date, adminID } = req.body;
-        const file = req.file;
+        const files = req.files || [];
 
-        let fileType = 'text';
-        let filePath = null;
+        const fileTypes = [];
+        const filePaths = [];
 
-        if (file) {
-            filePath = file.path;
+        files.forEach(file => {
+            let fileType = 'text';
             if (file.mimetype.startsWith('image/')) {
                 fileType = 'image';
             } else if (file.mimetype === 'application/pdf') {
                 fileType = 'pdf';
             } else if (file.mimetype.startsWith('video/')) {
                 fileType = 'video';
-            } else {
-                fileType = 'text';
             }
-        }
+            fileTypes.push(fileType);
+            filePaths.push(file.path);
+        });
 
         const notice = new Notice({
             title,
             details,
             date,
             school: adminID,
-            fileType,
-            filePath
+            fileType: fileTypes,
+            filePath: filePaths
         });
 
         const result = await notice.save();

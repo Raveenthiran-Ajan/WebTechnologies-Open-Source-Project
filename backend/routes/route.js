@@ -48,10 +48,25 @@ const noticeStorage = multer.diskStorage({
         cb(null, 'uploads/notices/');
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
+        cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
     },
 });
-const noticeUpload = multer({ storage: noticeStorage });
+const noticeUpload = multer({ 
+    storage: noticeStorage,
+    limits: {
+        fileSize: 30 * 1024 * 1024, // 30MB
+    },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|gif|pdf|mp4|avi|mov/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Invalid file type'));
+        }
+    }
+});
 
 // Complaint Routes
 router.post('/ComplainAdd', complainCreate);
@@ -111,7 +126,7 @@ router.post('/TeacherAttendance/:id', teacherAttendance)
 router.put("/Teacher/password/:id", teacherChangePassword)
 
 // Notice
-router.post('/NoticeCreate', noticeUpload.single('file'), noticeCreate);
+router.post('/NoticeCreate', noticeUpload.array('files', 5), noticeCreate);
 router.get('/NoticeList/:id', noticeList);
 router.delete("/Notices/:id", deleteNotices)
 router.delete("/Notice/:id", deleteNotice)

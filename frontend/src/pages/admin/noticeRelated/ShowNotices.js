@@ -125,8 +125,8 @@ const ShowNotices = () => {
             details: notice.details,
             date: dateString,
             originalId: notice._id,
-            fileType: notice.fileType,
-            filePath: notice.filePath,
+            fileType: notice.fileType || [],
+            filePath: notice.filePath || [],
         };
     });
 
@@ -281,50 +281,53 @@ const ShowNotices = () => {
                                 </Paper>
                             </Grid>
 
-                            {viewing.filePath && (
+                            {viewing.filePath && viewing.filePath.length > 0 && (
                                 <Grid item xs={12}>
                                     <Typography variant="subtitle2" color="textSecondary">Attachments</Typography>
-                                    <Paper 
-                                        elevation={0}
-                                        sx={{
-                                            mt: 1,
-                                            p: 2,
-                                            backgroundColor: '#f8f9fa',
-                                            border: '1px solid #e0e0e0',
-                                            borderRadius: 1
-                                        }}
-                                    >
-                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                                    {viewing.fileType ? viewing.fileType.toUpperCase() : 'FILE'}
-                                                </Typography>
-                                                <Typography variant="body2" color="primary">
-                                                    {viewing.filePath.split('/').pop()}
-                                                </Typography>
+                                    {viewing.filePath.map((path, index) => (
+                                        <Paper 
+                                            key={index}
+                                            elevation={0}
+                                            sx={{
+                                                mt: 1,
+                                                p: 2,
+                                                backgroundColor: '#f8f9fa',
+                                                border: '1px solid #e0e0e0',
+                                                borderRadius: 1
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                        {viewing.fileType[index] ? viewing.fileType[index].toUpperCase() : 'FILE'}
+                                                    </Typography>
+                                                    <Typography variant="body2" color="primary">
+                                                        {path.split(/[/\\]/).pop()}
+                                                    </Typography>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                                    <Tooltip title="Preview">
+                                                        <IconButton
+                                                            size="small"
+                                                            onClick={() => window.open(`${API_BASE_URL}/${path}`, '_blank')}
+                                                        >
+                                                            <OpenInNewIcon />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title="Download">
+                                                        <IconButton
+                                                            size="small"
+                                                            component="a"
+                                                            href={`${API_BASE_URL}/download/notice/${path.split(/[/\\]/).pop()}`}
+                                                            download
+                                                        >
+                                                            <DownloadIcon />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Box>
                                             </Box>
-                                            <Box sx={{ display: 'flex', gap: 1 }}>
-                                                <Tooltip title="Preview">
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => window.open(`${API_BASE_URL}/${viewing.filePath}`, '_blank')}
-                                                    >
-                                                        <OpenInNewIcon />
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="Download">
-                                                    <IconButton
-                                                        size="small"
-                                                        component="a"
-                                                        href={`${API_BASE_URL}/download/notice/${viewing.filePath.split(/[/\\]/).pop()}`}
-                                                        download
-                                                    >
-                                                        <DownloadIcon />
-                                                    </IconButton>
-                                                </Tooltip>
-                                            </Box>
-                                        </Box>
-                                    </Paper>
+                                        </Paper>
+                                    ))}
                                 </Grid>
                             )}
                         </Grid>

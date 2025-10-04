@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
-import { CircularProgress, TextField, Button, Container, Box, Typography, Grid } from '@mui/material';
+import { CircularProgress, TextField, Button, Container, Box, Typography, Grid, Tooltip } from '@mui/material';
 import Popup from '../../../components/Popup';
 
 const AddNotice = () => {
@@ -15,7 +15,7 @@ const AddNotice = () => {
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
   const [date, setDate] = useState('');
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState([]);
   const adminID = currentUser._id;
 
   const [loader, setLoader] = useState(false);
@@ -27,7 +27,7 @@ const AddNotice = () => {
   fields.append('details', details);
   fields.append('date', date);
   fields.append('adminID', adminID);
-  if (file) fields.append('file', file);
+  file.forEach(f => fields.append('files', f));
 
   const address = "Notice";
 
@@ -97,19 +97,23 @@ const AddNotice = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <Button
-                variant="contained"
-                component="label"
-                color="primary"
-              >
-                Upload File
-                <input
-                  type="file"
-                  hidden
-                  onChange={(event) => setFile(event.target.files[0])}
-                />
-              </Button>
-              {file && <Typography variant="body2" sx={{ mt: 1 }}>{file.name}</Typography>}
+              <Tooltip title="Max 5 files (150MB total). Supported: JPEG, PNG, GIF, PDF, MP4, AVI, MOV">
+                <Button
+                  variant="contained"
+                  component="label"
+                  color="primary"
+                >
+                  Upload Files
+                  <input
+                    type="file"
+                    hidden
+                    multiple
+                    accept=".jpg,.jpeg,.png,.gif,.pdf,.mp4,.avi,.mov"
+                    onChange={(event) => setFile(Array.from(event.target.files))}
+                  />
+                </Button>
+              </Tooltip>
+              {file.length > 0 && <Typography variant="body2" sx={{ mt: 1 }}>{file.length} file(s) selected</Typography>}
             </Grid>
             <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Button variant="outlined" color="secondary" onClick={cancelHandler}>
