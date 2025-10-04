@@ -15,6 +15,7 @@ import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
@@ -63,6 +64,14 @@ const TeacherSideBar = () => {
                         />
                     </ListItemIcon>
                     <ListItemText primary="Timetable" />
+                </ListItemButton>
+                <ListItemButton component={Link} to="/teacher/notices">
+                    <ListItemIcon>
+                        <NotificationsIcon
+                            color={location.pathname.startsWith("/teacher/notices") ? "primary" : "inherit"}
+                        />
+                    </ListItemIcon>
+                    <ListItemText primary="Notices" />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/complain">
                     <ListItemIcon>

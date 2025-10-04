@@ -9,6 +9,7 @@ import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -95,6 +96,17 @@ const StudentSideBar = () => {
                         <AssignmentIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_grades') || 'Grades'} />
+                </ListItemButton>
+                <ListItemButton 
+                    component={Link} 
+                    to="/Student/notices"
+                    selected={location.pathname.startsWith("/Student/notices")}
+                    sx={selectedItemStyles}
+                >
+                    <ListItemIcon>
+                        <NotificationsIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Notices" />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
