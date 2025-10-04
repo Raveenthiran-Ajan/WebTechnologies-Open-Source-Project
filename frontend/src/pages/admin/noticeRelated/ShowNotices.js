@@ -7,9 +7,10 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
-import { Paper, Box, Typography, Button, IconButton, CircularProgress } from '@mui/material';
+import { Paper, Box, Typography, Button, IconButton, CircularProgress, Grid, Chip } from '@mui/material';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import Delete from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { getAllNotices, deleteNotice } from '../../../redux/noticeRelated/noticeHandle';
 import {
     DataGrid,
@@ -31,6 +32,7 @@ const ShowNotices = () => {
     const [popupMessage, setPopupMessage] = useState("");
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+    const [viewing, setViewing] = useState(null);
 
     useEffect(() => {
         dispatch(getAllNotices(currentUser._id, "Notice"));
@@ -62,9 +64,39 @@ const ShowNotices = () => {
     };
 
     const columns = [
-        { field: 'title', headerName: 'Notice Title', width: 250 },
-        { field: 'details', headerName: 'Details', width: 350 },
+        {
+            field: 'id',
+            headerName: 'Notice #',
+            width: 120,
+            headerAlign: 'center',
+            align: 'center',
+            renderCell: (params) => (
+                <Chip
+                    label={`#${params.value}`}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                />
+            ),
+        },
+        { field: 'title', headerName: 'Title', width: 250 },
         { field: 'date', headerName: 'Date', width: 150 },
+        { 
+            field: 'details', 
+            headerName: 'Details', 
+            width: 350,
+            renderCell: (params) => (
+                <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<VisibilityIcon />}
+                    onClick={() => setViewing(params.row)}
+                    sx={{ textTransform: 'none' }}
+                >
+                    View
+                </Button>
+            ),
+        },
         {
             field: 'actions',
             headerName: 'Actions',
@@ -72,7 +104,7 @@ const ShowNotices = () => {
             renderCell: (params) => {
                 return (
                     <IconButton
-                        onClick={() => handleDeleteClick(params.row.id)}
+                        onClick={() => handleDeleteClick(params.row.originalId)}
                     >
                         <Delete color="error" />
                     </IconButton>
@@ -81,14 +113,17 @@ const ShowNotices = () => {
         },
     ];
 
-    const rows = localNoticesList && localNoticesList.map((notice) => {
+    const rows = localNoticesList && localNoticesList.map((notice, index) => {
         const date = new Date(notice.date);
         const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
         return {
-            id: notice._id,
+            id: index + 1,
             title: notice.title,
             details: notice.details,
             date: dateString,
+            originalId: notice._id,
+            fileType: notice.fileType,
+            filePath: notice.filePath,
         };
     });
 
@@ -174,6 +209,108 @@ const ShowNotices = () => {
                     </Button>
                     <Button onClick={handleConfirmDelete} color="error">
                         Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog 
+                open={!!viewing} 
+                onClose={() => setViewing(null)} 
+                maxWidth="sm" 
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: 2,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                    }
+                }}
+            >
+                <DialogTitle 
+                    sx={{ 
+                        borderBottom: '1px solid #e0e0e0',
+                        background: 'linear-gradient(to right, #1976d2, #2196f3)',
+                        color: 'white',
+                        py: 2
+                    }}
+                >
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        Notice Details
+                    </Typography>
+                </DialogTitle>
+                <DialogContent sx={{ py: 3 }}>
+                    {viewing && (
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" color="textSecondary">Date</Typography>
+                                <Typography variant="body1" sx={{ mt: 1 }}>
+                                    {viewing.date}
+                                </Typography>
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" color="textSecondary">Title</Typography>
+                                <Typography variant="body1" sx={{ mt: 1, fontWeight: 500, color: '#1976d2' }}>
+                                    {viewing.title}
+                                </Typography>
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" color="textSecondary">Details</Typography>
+                                <Paper 
+                                    elevation={0}
+                                    sx={{
+                                        mt: 1,
+                                        p: 2,
+                                        backgroundColor: '#f8f9fa',
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: 1
+                                    }}
+                                >
+                                    <Typography 
+                                        variant="body1" 
+                                        sx={{ 
+                                            whiteSpace: 'pre-wrap',
+                                            color: '#2c3e50',
+                                            lineHeight: 1.6
+                                        }}
+                                    >
+                                        {viewing.details}
+                                    </Typography>
+                                </Paper>
+                            </Grid>
+
+                            {viewing.filePath && (
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle2" color="textSecondary">Attachments</Typography>
+                                    <Paper 
+                                        elevation={0}
+                                        sx={{
+                                            mt: 1,
+                                            p: 2,
+                                            backgroundColor: '#f8f9fa',
+                                            border: '1px solid #e0e0e0',
+                                            borderRadius: 1
+                                        }}
+                                    >
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                {viewing.fileType ? viewing.fileType.toUpperCase() : 'FILE'}
+                                            </Typography>
+                                            <Typography variant="body2" color="primary">
+                                                {viewing.filePath}
+                                            </Typography>
+                                        </Box>
+                                    </Paper>
+                                </Grid>
+                            )}
+                        </Grid>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ borderTop: '1px solid #e0e0e0', p: 2 }}>
+                    <Button 
+                        variant="contained" 
+                        onClick={() => setViewing(null)}
+                    >
+                        Close
                     </Button>
                 </DialogActions>
             </Dialog>
