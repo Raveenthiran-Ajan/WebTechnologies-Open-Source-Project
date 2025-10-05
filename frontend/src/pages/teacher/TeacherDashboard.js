@@ -26,7 +26,7 @@ import TeacherViewStudent from './TeacherViewStudent';
 import SimpleTermAttendance from './SimpleTermAttendance';
 import TeacherUploadAssignment from './TeacherUploadAssignment';
 import TeacherTimetable from './TeacherTimetable';
-import TeacherNotices from './TeacherNotices';
+import TeacherNotices from './TeacherNotices.js';
 
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);

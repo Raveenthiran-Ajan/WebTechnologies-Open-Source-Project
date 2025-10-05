@@ -15,17 +15,17 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import StudentHomePage from './StudentHomePage';
 import StudentProfile from './StudentProfile';
 import StudentSubjects from './StudentSubjects';
-import StudentAttendanceDashboard from './StudentAttendanceDashboard';
-import TermAttendanceReport from './TermAttendanceReport';
-import SimpleAttendanceReport from './SimpleAttendanceReport';
-import StudentComplain from './StudentComplain';
-import StudentTimetable from './StudentTimetable';
-import Logout from '../Logout'
-import AccountMenu from '../../components/AccountMenu';
-import { AppBar, Drawer } from '../../components/styles';
-import StudentGrades from './StudentGrades';
-import StudentNotices from './StudentNotices';
-import StudentTermReport from './StudentTermReport';
+import StudentAttendanceDashboard from './StudentAttendanceDashboard.js';
+import TermAttendanceReport from './TermAttendanceReport.js';
+import SimpleAttendanceReport from './SimpleAttendanceReport.js';
+import StudentComplain from './StudentComplain.js';
+import StudentTimetable from './StudentTimetable.js';
+import Logout from '../Logout.js'
+import AccountMenu from '../../components/AccountMenu.js';
+import { AppBar, Drawer } from '../../components/styles.js';
+import StudentGrades from './StudentGrades.js';
+import StudentNotices from './StudentNotices.js';
+import StudentTermReport from './StudentTermReport.js';
 
 const StudentDashboard = () => {
     const [open, setOpen] = useState(true);
