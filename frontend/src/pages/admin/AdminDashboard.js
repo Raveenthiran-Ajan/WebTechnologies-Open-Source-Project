@@ -19,6 +19,7 @@ import AdminProfile from './AdminProfile';
 import AdminHomePage from './AdminHomePage';
 
 import AddStudent from './studentRelated/AddStudent';
+import AddStudentsBySection from './studentRelated/AddStudentsBySection';
 import SeeComplains from './studentRelated/SeeComplains';
 import ShowStudents from './studentRelated/ShowStudents';
 import ViewStudent from './studentRelated/ViewStudent';
@@ -46,6 +47,7 @@ import TeacherClassesView from './teacherRelated/TeacherClassesView';
 import AddClass from './classRelated/AddClass';
 import ClassDetails from './classRelated/ClassDetails';
 import ShowClasses from './classRelated/ShowClasses';
+import AddSection from './classRelated/AddSection';
 import AccountMenu from '../../components/AccountMenu';
 
 import AddParent from './parentRelated/AddParent';
@@ -131,7 +133,8 @@ const AdminDashboard = () => {
                         <Route path="/Admin/addclass" element={<AddClass />} />
                         <Route path="/Admin/classes" element={<ShowClasses />} />
                         <Route path="/Admin/classes/class/:id" element={<ClassDetails />} />
-                        <Route path="/Admin/class/addstudents/:id" element={<AddStudent situation="Class" />} />
+                        <Route path="/Admin/class/addstudents/:id" element={<AddStudentsBySection />} />
+                        <Route path="/Admin/class/addsection/:id" element={<AddSection />} />
 
                         {/* Student */}
                         <Route path="/Admin/addstudents" element={<AddStudent situation="Student" />} />

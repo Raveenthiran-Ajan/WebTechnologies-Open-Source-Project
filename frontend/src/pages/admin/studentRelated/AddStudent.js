@@ -20,6 +20,7 @@ const AddStudent = ({ situation }) => {
     const [rollNum, setRollNum] = useState('');
     const [password, setPassword] = useState('')
     const [sclassName, setSclassName] = useState('')
+    const [sectionName, setSectionName] = useState('')
 
     const adminID = currentUser._id
     const role = "Student"
@@ -28,6 +29,18 @@ const AddStudent = ({ situation }) => {
     useEffect(() => {
         if (situation === "Class") {
             setSclassName(params.id || '');
+        }
+
+        // Check for query parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const sclassParam = urlParams.get('sclass');
+        const sectionParam = urlParams.get('section');
+
+        if (sclassParam) {
+            setSclassName(sclassParam);
+        }
+        if (sectionParam) {
+            setSectionName(sectionParam);
         }
     }, [params.id, situation]);
 
@@ -42,12 +55,14 @@ const AddStudent = ({ situation }) => {
     const changeHandler = (event) => {
         if (event.target.value === '' || event.target.value === 'Select Class') {
             setSclassName('');
+            setSectionName('');
         } else {
             setSclassName(event.target.value);
+            setSectionName('');
         }
     }
 
-    const fields = { name, rollNum, password, sclassName, adminID, role, attendance }
+    const fields = { name, rollNum, password, sclassName, sectionName, adminID, role, attendance }
 
     const submitHandler = (event) => {
         event.preventDefault()
@@ -56,8 +71,15 @@ const AddStudent = ({ situation }) => {
             setShowPopup(true)
         }
         else {
-            setLoader(true)
-            dispatch(registerUser(fields, role))
+            const selectedClass = sclassesList.find(sclass => sclass._id === sclassName);
+            if (selectedClass && selectedClass.sections && selectedClass.sections.length > 0 && sectionName === "") {
+                setMessage("Please select a section")
+                setShowPopup(true)
+            }
+            else {
+                setLoader(true)
+                dispatch(registerUser(fields, role))
+            }
         }
     }
 
@@ -126,6 +148,33 @@ const AddStudent = ({ situation }) => {
                                 ))}
                             </TextField>
                         </Grid>
+                        {sclassName && sclassesList && (() => {
+                            const selectedClass = sclassesList.find(sclass => sclass._id === sclassName);
+                            return selectedClass && selectedClass.sections && selectedClass.sections.length > 0 ? (
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        select
+                                        fullWidth
+                                        label="Select Section"
+                                        variant="outlined"
+                                        value={sectionName}
+                                        onChange={(event) => setSectionName(event.target.value)}
+                                        required
+                                        InputLabelProps={{ shrink: true }}
+                                        SelectProps={{
+                                            native: true,
+                                        }}
+                                    >
+                                        <option value="">Select Section</option>
+                                        {selectedClass.sections.map((section, index) => (
+                                            <option key={index} value={section.sectionName}>
+                                                {section.sectionName}
+                                            </option>
+                                        ))}
+                                    </TextField>
+                                </Grid>
+                            ) : null;
+                        })()}
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 fullWidth

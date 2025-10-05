@@ -11,6 +11,7 @@ const studentRegister = async (req, res) => {
             rollNum: req.body.rollNum,
             school: req.body.adminID,
             sclassName: req.body.sclassName,
+            sectionName: req.body.sectionName || null,
         });
 
         if (existingStudent) {

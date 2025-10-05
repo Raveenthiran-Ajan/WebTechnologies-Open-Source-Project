@@ -7,6 +7,8 @@ import { clearStudentsList } from '../../../redux/studentRelated/studentSlice';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import { Paper, Box, Typography, Button, IconButton, CircularProgress, Tooltip, Grid, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Delete from '@mui/icons-material/Delete';
 import PeopleOutlineIcon from '@mui/icons-material/PeopleOutline';
@@ -37,9 +39,25 @@ const ShowStudents = () => {
     const [selectedClass, setSelectedClass] = useState(() => {
         return location.state?.sclass || null;
     });
+    const [selectedSection, setSelectedSection] = useState(() => {
+        const urlParams = new URLSearchParams(location.search);
+        return urlParams.get('section') || '';
+    });
     const [viewMode, setViewMode] = useState(() => {
         return localStorage.getItem('studentClassViewMode') || 'box';
     });
+
+    useEffect(() => {
+        // Check for class parameter in URL
+        const urlParams = new URLSearchParams(location.search);
+        const classParam = urlParams.get('class');
+        if (classParam && sclassesList) {
+            const classObj = sclassesList.find(sclass => sclass._id === classParam);
+            if (classObj) {
+                setSelectedClass(classObj);
+            }
+        }
+    }, [location.search, sclassesList]);
 
     useEffect(() => {
         dispatch(getAllSclasses(currentUser._id, "Sclass"));
@@ -87,12 +105,24 @@ const ShowStudents = () => {
             headerName: 'Actions',
             width: 200,
             renderCell: (params) => (
-                <Button
-                    variant="contained"
-                    onClick={() => setSelectedClass(params.row)}
-                >
-                    View Students
-                </Button>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<VisibilityIcon />}
+                        onClick={() => setSelectedClass(params.row)}
+                    >
+                        View
+                    </Button>
+                    <Tooltip title="Add Student">
+                        <IconButton
+                            color="primary"
+                            onClick={() => navigate(`/Admin/class/addstudents/${params.row.id}`)}
+                        >
+                            <PersonAddIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
             ),
         },
     ];
@@ -139,7 +169,14 @@ const ShowStudents = () => {
                             </Tooltip>
                         </IconButton>
                         <Button
-                            variant="contained" sx={{ ml: 1 }}
+                            variant="outlined"
+                            size="small"
+                            sx={{ 
+                                borderRadius: '8px', 
+                                fontWeight: 'bold',
+                                minWidth: 'auto',
+                                px: 2
+                            }}
                             onClick={() => navigate("/Admin/students/student/" + params.row.id)}>
                             View
                         </Button>
@@ -149,7 +186,11 @@ const ShowStudents = () => {
         },
     ];
 
-    const filteredStudents = selectedClass ? studentsList.filter(student => student.sclassName?._id === selectedClass._id) : [];
+    const filteredStudents = selectedClass ? studentsList.filter(student => {
+        const matchesClass = student.sclassName?._id === selectedClass._id;
+        const matchesSection = !selectedSection || student.sectionName === selectedSection;
+        return matchesClass && matchesSection;
+    }) : [];
 
     const rows = filteredStudents.map((student) => ({
         id: student._id,
@@ -190,7 +231,7 @@ const ShowStudents = () => {
                         </Tooltip>
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ ml: 2 }}>
-                        Students in {selectedClass.sclassName}
+                        Students in {selectedClass.sclassName}{selectedSection ? ` - Section ${selectedSection}` : ''}
                     </Typography>
                 </Box>
                 {loading ?
@@ -270,14 +311,15 @@ const ShowStudents = () => {
                             {classRows.map((item) => (
                                 <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
                                     <Paper
-                                        elevation={3}
-                                        variant="outlined"
+                                        elevation={0}
                                         sx={{
                                             p: 3,
                                             textAlign: 'center',
                                             borderRadius: '12px',
                                             transition: 'all 0.3s ease',
-                                            backgroundColor: '#fff',
+                                            backgroundColor: 'white',
+                                            border: '2px solid',
+                                            borderColor: 'primary.main',
                                             '&:hover': {
                                                 transform: 'translateY(-5px)',
                                                 boxShadow: '0 6px 16px rgba(0,0,0,0.1)',
@@ -300,14 +342,38 @@ const ShowStudents = () => {
                                                 {item.studentCount} {item.studentCount === 1 ? 'Student' : 'Students'}
                                             </Typography>
                                         </Box>
-                                        <Button
-                                            variant="contained"
-                                            fullWidth
-                                            onClick={() => setSelectedClass(item)}
-                                            sx={{ mt: 3, py: 1.5, borderRadius: '8px', fontWeight: 'bold', boxShadow: 'none', '&:hover': { boxShadow: '0 2px 8px rgba(33, 150, 243, 0.4)' } }}
-                                        >
-                                            View Students
-                                        </Button>
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 3 }}>
+                                            <Button
+                                                variant="outlined"
+                                                size="small"
+                                                onClick={() => setSelectedClass(item)}
+                                                sx={{ 
+                                                    borderRadius: '8px', 
+                                                    fontWeight: 'bold',
+                                                    minWidth: 'auto',
+                                                    px: 2
+                                                }}
+                                            >
+                                                View
+                                            </Button>
+                                            <Tooltip title="Add Student">
+                                                <IconButton
+                                                    color="primary"
+                                                    onClick={() => navigate(`/Admin/class/addstudents/${item.id}`)}
+                                                    sx={{ 
+                                                        border: '1px solid',
+                                                        borderColor: 'primary.main',
+                                                        borderRadius: '8px',
+                                                        '&:hover': { 
+                                                            backgroundColor: 'primary.main', 
+                                                            color: 'white' 
+                                                        }
+                                                    }}
+                                                >
+                                                    <PersonAddAlt1Icon />
+                                                </IconButton>
+                                            </Tooltip>
+                                        </Box>
                                     </Paper>
                                 </Grid>
                             ))}

@@ -5,7 +5,7 @@ import { getClassDetails, getClassStudents, getClassTeachers, getSubjectList } f
 import { resetSubjects } from '../../../redux/sclassRelated/sclassSlice';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import {
-    Box, Container, Typography, Tab, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, CircularProgress
+    Box, Container, Typography, Tab, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, CircularProgress, Grid
 } from '@mui/material';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -23,6 +23,7 @@ import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import Popup from "../../../components/Popup";
 import Delete from "@mui/icons-material/Delete";
 import PostAddIcon from '@mui/icons-material/PostAdd';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import axios from 'axios';
 import { API_BASE_URL } from '../../../config';
 import Timetable from './Timetable';
@@ -116,8 +117,9 @@ const ClassDetails = () => {
                             <Delete color="error" />
                         </IconButton>
                         <Button
-                            variant="contained" sx={{ ml: 1 }}
+                            variant="outlined" 
                             size="small"
+                            startIcon={<VisibilityIcon />}
                             onClick={() => navigate(`/Admin/class/subject/${classID}/${params.row.id}`)}
                         >
                             View
@@ -202,8 +204,9 @@ const ClassDetails = () => {
                             <PersonRemoveIcon color="error" />
                         </IconButton>
                         <Button
-                            variant="contained" sx={{ ml: 1 }}
+                            variant="outlined" 
                             size="small"
+                            startIcon={<VisibilityIcon />}
                             onClick={() => navigate("/Admin/students/student/" + params.row.id)}
                         >
                             View
@@ -288,8 +291,9 @@ const ClassDetails = () => {
                             <Delete color="error" />
                         </IconButton>
                         <Button
-                            variant="contained" sx={{ ml: 1 }}
+                            variant="outlined" 
                             size="small"
+                            startIcon={<VisibilityIcon />}
                             onClick={() => navigate(`/Admin/teachers/teacher/${params.row.id}`)}
                         >
                             View
@@ -359,13 +363,84 @@ const ClassDetails = () => {
         )
     }
 
+    const ClassSectionsSection = () => {
+        // Calculate students per section
+        const studentsBySection = (sclassStudents || []).reduce((acc, student) => {
+            const sectionName = student.sectionName || '';
+            if (!acc[sectionName]) {
+                acc[sectionName] = [];
+            }
+            acc[sectionName].push(student);
+            return acc;
+        }, {});
+
+        return (
+            <Container maxWidth="md">
+                <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                    <Typography variant="h5" gutterBottom color="primary" sx={{ fontWeight: 'bold', mb: 3 }}>
+                        📚 Class Sections
+                    </Typography>
+
+                    {sclassDetails?.sections && sclassDetails.sections.length > 0 ? (
+                        <Box>
+                            <Typography variant="h6" gutterBottom>
+                                Sections Overview ({sclassDetails.sections.length} sections)
+                            </Typography>
+                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 2, mt: 2 }}>
+                                {sclassDetails.sections.map((section, index) => {
+                                    const sectionStudents = studentsBySection[section.sectionName] || [];
+                                    return (
+                                        <Paper
+                                            key={index}
+                                            elevation={0}
+                                            sx={{
+                                                p: 3,
+                                                textAlign: 'center',
+                                                borderRadius: 2,
+                                                backgroundColor: 'white',
+                                                color: 'primary.main',
+                                                border: '2px solid',
+                                                borderColor: 'primary.main',
+                                                transition: 'transform 0.2s',
+                                                '&:hover': {
+                                                    transform: 'translateY(-2px)',
+                                                    boxShadow: 4
+                                                }
+                                            }}
+                                        >
+                                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                                {section.sectionName}
+                                            </Typography>
+                                            <Typography variant="body1">
+                                                {sectionStudents.length} {sectionStudents.length === 1 ? 'Student' : 'Students'}
+                                            </Typography>
+                                        </Paper>
+                                    );
+                                })}
+                            </Box>
+                        </Box>
+                    ) : (
+                        <Box sx={{ textAlign: 'center', py: 6 }}>
+                            <Typography variant="h6" color="text.secondary" gutterBottom>
+                                No sections found
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                This class doesn't have any sections yet. Students are not divided into sections.
+                            </Typography>
+                        </Box>
+                    )}
+                </Box>
+            </Container>
+        );
+    };
+
     const ClassDetailsSection = () => {
         const numberOfSubjects = subjectsList.length;
         const numberOfStudents = sclassDetails?.students?.length || sclassStudents.length;
 
         return (
             <Container maxWidth="md">
-                <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, border: '2px solid', borderColor: 'primary.main', mb: 3 }}>
                     <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
                         Class Details
                     </Typography>
@@ -413,12 +488,43 @@ const ClassDetails = () => {
                             </Box>
                         </Box>
                         
-                        {/* Actions Section */}
+                        {/* Sections Information */}
                         <Box sx={{ mt: 4 }}>
                             <Typography variant="h6" gutterBottom color="text.secondary">
-                                Actions
+                                Sections ({sclassDetails?.sections?.length || 0})
                             </Typography>
-                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 2 }}>
+                            {sclassDetails?.sections && sclassDetails.sections.length > 0 ? (
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                                    {sclassDetails.sections.map((section, index) => (
+                                        <Paper
+                                            key={index}
+                                            elevation={1}
+                                            sx={{
+                                                px: 2,
+                                                py: 1,
+                                                borderRadius: 2,
+                                                backgroundColor: 'white',
+                                                color: 'primary.main',
+                                                border: '1px solid',
+                                                borderColor: 'primary.main',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 'medium'
+                                            }}
+                                        >
+                                            {section.sectionName}
+                                        </Paper>
+                                    ))}
+                                </Box>
+                            ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                    No sections defined for this class
+                                </Typography>
+                            )}
+                        </Box>
+                        
+                        {/* Actions Section */}
+                        <Box sx={{ mt: 4 }}>
+                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
                                 {getresponse &&
                                     <Button
                                         variant="contained"
@@ -459,10 +565,11 @@ const ClassDetails = () => {
                             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                                 <TabList onChange={handleChange} sx={{ position: 'fixed', width: '100%', bgcolor: 'background.paper', zIndex: 1 }}>
                                     <Tab label="Details" value="1" />
-                                    <Tab label="Subjects" value="2" />
-                                    <Tab label="Students" value="3" />
-                                    <Tab label="Teachers" value="4" />
-                                    <Tab label="Timetable" value="5" />
+                                    <Tab label="Sections" value="2" />
+                                    <Tab label="Subjects" value="3" />
+                                    <Tab label="Students" value="4" />
+                                    <Tab label="Teachers" value="5" />
+                                    <Tab label="Timetable" value="6" />
                                 </TabList>
                             </Box>
                             <Container sx={{ marginTop: "3rem", marginBottom: "4rem" }}>
@@ -470,15 +577,18 @@ const ClassDetails = () => {
                                     <ClassDetailsSection />
                                 </TabPanel>
                                 <TabPanel value="2">
-                                    <ClassSubjectsSection />
+                                    <ClassSectionsSection />
                                 </TabPanel>
                                 <TabPanel value="3">
-                                    <ClassStudentsSection />
+                                    <ClassSubjectsSection />
                                 </TabPanel>
                                 <TabPanel value="4">
-                                    <ClassTeachersSection />
+                                    <ClassStudentsSection />
                                 </TabPanel>
                                 <TabPanel value="5">
+                                    <ClassTeachersSection />
+                                </TabPanel>
+                                <TabPanel value="6">
                                     <Timetable classID={classID} />
                                 </TabPanel>
                             </Container>

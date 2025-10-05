@@ -8,6 +8,7 @@ const sclassCreate = async (req, res) => {
         const sclass = new Sclass({
             sclassName: req.body.sclassName,
             school: req.body.adminID,
+            sections: req.body.sections || [],
             timetable: []
         });
 
@@ -208,5 +209,37 @@ const getAvailableTeachers = async (req, res) => {
     }
 }
 
+const addSection = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { sectionName } = req.body;
 
-module.exports = { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers };
+        if (!sectionName || !sectionName.trim()) {
+            return res.status(400).send({ message: 'Section name is required' });
+        }
+
+        const sclass = await Sclass.findById(id);
+        if (!sclass) {
+            return res.status(404).send({ message: 'Class not found' });
+        }
+
+        // Check if section name already exists in this class
+        const existingSection = sclass.sections.find(section =>
+            section.sectionName.toLowerCase() === sectionName.trim().toLowerCase()
+        );
+
+        if (existingSection) {
+            return res.status(400).send({ message: 'Section name already exists in this class' });
+        }
+
+        // Add new section
+        sclass.sections.push({ sectionName: sectionName.trim() });
+        const result = await sclass.save();
+
+        res.send(result);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
+module.exports = { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers, addSection };

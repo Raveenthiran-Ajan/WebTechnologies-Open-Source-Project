@@ -9,7 +9,15 @@ const sclassSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin'
     },
+    sections: [{
+        sectionName: {
+            type: String,
+            required: true
+        }
+    }],
     timetable: [{
+
+
         day: {
             type: String,
             enum: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],

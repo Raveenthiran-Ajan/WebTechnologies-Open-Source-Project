@@ -8,6 +8,7 @@ import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
 import Delete from '@mui/icons-material/Delete';
 import Edit from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -167,7 +168,9 @@ const ShowTeachers = () => {
                             <Delete color="error" />
                         </IconButton>
                         <Button
-                            variant="contained"
+                            size="small"
+                            variant="outlined"
+                            startIcon={<VisibilityIcon />}
                             onClick={() => navigate(`/Admin/teachers/teacher/${params.row.id}`)}>
                             View
                         </Button>

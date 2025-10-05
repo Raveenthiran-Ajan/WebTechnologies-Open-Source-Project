@@ -6,6 +6,7 @@ import { deleteUser } from '../../../redux/userRelated/userHandle';
 import { Paper, Box, Typography, Button, IconButton, CircularProgress } from '@mui/material';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import Delete from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -54,7 +55,9 @@ const ShowSubjects = () => {
                             <Delete color="error" />
                         </IconButton>
                         <Button
-                            variant="contained" sx={{ ml: 1 }}
+                            size="small"
+                            variant="outlined"
+                            startIcon={<VisibilityIcon />}
                             disabled={!params.row.sclassID}
                             onClick={() => params.row.sclassID && navigate(`/Admin/subjects/subject/${params.row.sclassID}/${params.row.id}`)}>
                             View

@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { CircularProgress, TextField, Button, Container, Box, Typography, Grid } from "@mui/material";
+import { CircularProgress, TextField, Button, Container, Box, Typography, Grid, IconButton } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
 import Popup from "../../../components/Popup";
 import Classroom from "../../../assets/classroom.png";
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 
 const AddClass = () => {
     const [sclassName, setSclassName] = useState("");
+    const [sections, setSections] = useState([]);
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -23,9 +26,22 @@ const AddClass = () => {
     const [message, setMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
 
+    const addSection = () => {
+        setSections([...sections, ""]);
+    };
+
+    const removeSection = (index) => {
+        setSections(sections.filter((_, i) => i !== index));
+    };
+
+    const updateSection = (index, value) => {
+        setSections(sections.map((s, i) => i === index ? value : s));
+    };
+
     const fields = {
         sclassName,
         adminID,
+        sections: sections.filter(s => s.trim()).map(s => ({ sectionName: s }))
     };
 
     const submitHandler = (event) => {
@@ -75,6 +91,33 @@ const AddClass = () => {
                                 onChange={(event) => setSclassName(event.target.value)}
                                 required
                             />
+                        </Grid>
+                        <Grid item xs={12}>
+                            <Typography variant="h6" gutterBottom>
+                                Sections (Optional)
+                            </Typography>
+                            {sections.map((section, index) => (
+                                <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                    <TextField
+                                        fullWidth
+                                        label={`Section ${index + 1}`}
+                                        variant="outlined"
+                                        value={section}
+                                        onChange={(e) => updateSection(index, e.target.value)}
+                                    />
+                                    <IconButton onClick={() => removeSection(index)} color="error">
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </Box>
+                            ))}
+                            <Button
+                                variant="outlined"
+                                startIcon={<AddIcon />}
+                                onClick={addSection}
+                                sx={{ mt: 1 }}
+                            >
+                                Add Section
+                            </Button>
                         </Grid>
                         <Grid item xs={12}>
                             <Button variant="contained" color="primary" type="submit" disabled={loader} sx={{ mr: 2 }}>
