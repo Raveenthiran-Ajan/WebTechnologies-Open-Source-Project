@@ -105,6 +105,17 @@ const StudentSideBar = () => {
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
+                    to="/Student/term-report"
+                    selected={location.pathname.startsWith("/Student/term-report")}
+                    sx={selectedItemStyles}
+                >
+                    <ListItemIcon>
+                        <AssignmentIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={'Term Report'} />
+                </ListItemButton>
+                <ListItemButton 
+                    component={Link} 
                     to="/Student/notices"
                     selected={location.pathname.startsWith("/Student/notices")}
                     sx={selectedItemStyles}

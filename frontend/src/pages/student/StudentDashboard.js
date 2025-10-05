@@ -25,6 +25,7 @@ import AccountMenu from '../../components/AccountMenu';
 import { AppBar, Drawer } from '../../components/styles';
 import StudentGrades from './StudentGrades';
 import StudentNotices from './StudentNotices';
+import StudentTermReport from './StudentTermReport';
 
 const StudentDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -88,6 +89,7 @@ const StudentDashboard = () => {
                         <Route path="/Student/complain" element={<StudentComplain />} />
                         <Route path="/Student/timetable" element={<StudentTimetable />} />
                         <Route path="/Student/grades" element={<StudentGrades />} />
+                        <Route path="/Student/term-report" element={<StudentTermReport />} />
                         <Route path="/Student/notices" element={<StudentNotices />} />
 
                         <Route path="/logout" element={<Logout />} />
