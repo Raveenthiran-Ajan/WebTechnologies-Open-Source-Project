@@ -90,13 +90,53 @@ const StudentAttendanceDashboard = () => {
 
     // Calculate summary statistics
     const calculateSummary = () => {
-        const present = filteredAttendance.filter(record => record.status === 'Present').length;
-        const absent = filteredAttendance.filter(record => record.status === 'Absent').length;
-        const holidays = filteredAttendance.filter(record => record.status === 'Holiday').length;
-        const totalDays = filteredAttendance.length;
-        const attendancePercentage = totalDays > 0 ? ((present / totalDays) * 100).toFixed(1) : 0;
+        // Group attendance by unique dates to match the overall calculation
+        const attendanceByDate = {};
 
-        return { present, absent, holidays, attendancePercentage };
+        filteredAttendance.forEach((record) => {
+            const dateKey = new Date(record.date).toDateString();
+
+            if (!attendanceByDate[dateKey]) {
+                attendanceByDate[dateKey] = {
+                    statuses: [],
+                    hasPresent: false,
+                    hasAbsent: false,
+                    hasHoliday: false
+                };
+            }
+
+            attendanceByDate[dateKey].statuses.push(record.status);
+
+            if (record.status === "Present") {
+                attendanceByDate[dateKey].hasPresent = true;
+            } else if (record.status === "Absent") {
+                attendanceByDate[dateKey].hasAbsent = true;
+            } else if (record.status === "Holiday") {
+                attendanceByDate[dateKey].hasHoliday = true;
+            }
+        });
+
+        // Count unique days for each status
+        let presentDays = 0;
+        let absentDays = 0;
+        let holidayDays = 0;
+        const totalDays = Object.keys(attendanceByDate).length;
+
+        Object.values(attendanceByDate).forEach((dayData) => {
+            if (dayData.hasPresent) {
+                presentDays++;
+            }
+            if (dayData.hasAbsent) {
+                absentDays++;
+            }
+            if (dayData.hasHoliday) {
+                holidayDays++;
+            }
+        });
+
+        const attendancePercentage = totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(1) : 0;
+
+        return { present: presentDays, absent: absentDays, holidays: holidayDays, attendancePercentage };
     };
 
     const summary = calculateSummary();
@@ -104,17 +144,43 @@ const StudentAttendanceDashboard = () => {
     // Prepare chart data
     const prepareMonthlyChartData = () => {
         const monthlyData = {};
+
+        // Group by unique dates first
+        const attendanceByDate = {};
         filteredAttendance.forEach(record => {
-            const date = new Date(record.date);
-            const monthKey = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+            const dateKey = new Date(record.date).toDateString();
+            if (!attendanceByDate[dateKey]) {
+                attendanceByDate[dateKey] = {
+                    date: new Date(record.date),
+                    statuses: [],
+                    hasPresent: false,
+                    hasAbsent: false,
+                    hasHoliday: false
+                };
+            }
+
+            attendanceByDate[dateKey].statuses.push(record.status);
+
+            if (record.status === "Present") {
+                attendanceByDate[dateKey].hasPresent = true;
+            } else if (record.status === "Absent") {
+                attendanceByDate[dateKey].hasAbsent = true;
+            } else if (record.status === "Holiday") {
+                attendanceByDate[dateKey].hasHoliday = true;
+            }
+        });
+
+        // Now group by month
+        Object.values(attendanceByDate).forEach((dayData) => {
+            const monthKey = dayData.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
             if (!monthlyData[monthKey]) {
                 monthlyData[monthKey] = { month: monthKey, present: 0, absent: 0, holiday: 0 };
             }
 
-            if (record.status === 'Present') monthlyData[monthKey].present++;
-            else if (record.status === 'Absent') monthlyData[monthKey].absent++;
-            else if (record.status === 'Holiday') monthlyData[monthKey].holiday++;
+            if (dayData.hasPresent) monthlyData[monthKey].present++;
+            if (dayData.hasAbsent) monthlyData[monthKey].absent++;
+            if (dayData.hasHoliday) monthlyData[monthKey].holiday++;
         });
 
         return Object.values(monthlyData);
@@ -124,9 +190,28 @@ const StudentAttendanceDashboard = () => {
         const termData = { 'Term 1': 0, 'Term 2': 0, 'Term 3': 0 };
         const termCounts = { 'Term 1': 0, 'Term 2': 0, 'Term 3': 0 };
 
+        // Group by unique dates first
+        const attendanceByDate = {};
         filteredAttendance.forEach(record => {
-            const date = new Date(record.date);
-            const month = date.getMonth() + 1;
+            const dateKey = new Date(record.date).toDateString();
+            if (!attendanceByDate[dateKey]) {
+                attendanceByDate[dateKey] = {
+                    date: new Date(record.date),
+                    statuses: [],
+                    hasPresent: false
+                };
+            }
+
+            attendanceByDate[dateKey].statuses.push(record.status);
+
+            if (record.status === "Present") {
+                attendanceByDate[dateKey].hasPresent = true;
+            }
+        });
+
+        // Now group by term
+        Object.values(attendanceByDate).forEach((dayData) => {
+            const month = dayData.date.getMonth() + 1;
             let termKey;
 
             if (month >= 1 && month <= 4) termKey = 'Term 1';
@@ -134,7 +219,7 @@ const StudentAttendanceDashboard = () => {
             else termKey = 'Term 3';
 
             termCounts[termKey]++;
-            if (record.status === 'Present') {
+            if (dayData.hasPresent) {
                 termData[termKey]++;
             }
         });
