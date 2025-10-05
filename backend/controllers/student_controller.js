@@ -269,7 +269,7 @@ const studentAttendance = async (req, res) => {
                     date, 
                     status, 
                     subName: null, // Explicitly set to null for daily attendance
-                    isDailyAttendance: true 
+                    isTermAttendance: false // This is daily attendance, not term attendance
                 });
             } else {
                 // For subject-specific attendance, check session limits
@@ -502,6 +502,43 @@ const getStudentTermReport = async (req, res) => {
     }
 };
 
+// Check if attendance has been taken for a specific section today
+const checkSectionAttendanceStatus = async (req, res) => {
+    try {
+        const { sclassId, sectionName } = req.params;
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+        // Find all students in this class and section
+        const students = await Student.find({
+            sclassName: sclassId,
+            sectionName: sectionName
+        });
+
+        if (students.length === 0) {
+            return res.json({ attendanceTaken: false, message: 'No students found in this section' });
+        }
+
+        // Check if attendance has been taken for today (daily attendance)
+        // We'll check if at least one student has attendance recorded for today
+        const attendanceTaken = students.some(student => 
+            student.attendance.some(att => {
+                const isToday = att.date.toISOString().split('T')[0] === today;
+                const isDaily = att.isTermAttendance === false || att.isTermAttendance === undefined;
+                return isToday && isDaily;
+            })
+        );
+
+        res.json({ 
+            attendanceTaken,
+            totalStudents: students.length,
+            date: today
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Error checking attendance status', error: error.message });
+    }
+};
+
 module.exports = {
     studentRegister,
     studentLogIn,
@@ -521,4 +558,5 @@ module.exports = {
     removeStudentAttendance,
     changePassword,
     getStudentTermReport,
+    checkSectionAttendanceStatus,
 };

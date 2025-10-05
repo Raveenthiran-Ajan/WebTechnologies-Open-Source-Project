@@ -158,6 +158,29 @@ const getTeacherDetail = async (req, res) => {
             const teacherDoc = teacher.toObject();
             teacherDoc.password = undefined;
 
+            // Add student counts for each section
+            const Student = require('../models/studentSchema.js');
+            
+            if (teacherDoc.teachSections && teacherDoc.teachSections.length > 0) {
+                for (let section of teacherDoc.teachSections) {
+                    const studentCount = await Student.countDocuments({
+                        sclassName: section.sclassName._id,
+                        sectionName: section.sectionName
+                    });
+                    section.studentCount = studentCount;
+                }
+            }
+
+            if (teacherDoc.attendanceSections && teacherDoc.attendanceSections.length > 0) {
+                for (let section of teacherDoc.attendanceSections) {
+                    const studentCount = await Student.countDocuments({
+                        sclassName: section.sclassName._id,
+                        sectionName: section.sectionName
+                    });
+                    section.studentCount = studentCount;
+                }
+            }
+
             // Clean up the data
             if (!teacherDoc.teachSubjects?.length) delete teacherDoc.teachSubjects;
             if (!teacherDoc.teachSclasses?.length) delete teacherDoc.teachSclasses;

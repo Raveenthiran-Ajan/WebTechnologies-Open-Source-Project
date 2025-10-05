@@ -1,17 +1,31 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { getTeacherDetails } from '../../redux/teacherRelated/teacherHandle';
 import { getAllSclasses } from '../../redux/sclassRelated/sclassHandle';
+import { API_BASE_URL } from '../../config';
 import { 
     Container, 
     Box, 
     Typography, 
     Button, 
-    Chip
+    Chip,
+    Card,
+    CardContent,
+    CardActions,
+    ToggleButton,
+    ToggleButtonGroup,
+    Grid,
+    IconButton,
+    Badge
 } from '@mui/material';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
+import ClassIcon from '@mui/icons-material/Class';
+import PeopleIcon from '@mui/icons-material/People';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -27,6 +41,54 @@ const TeacherClasses = () => {
     const { currentUser } = useSelector((state) => state.user);
     const { teacherDetails, loading, error } = useSelector((state) => state.teacher);
     const { sclassesList } = useSelector((state) => state.sclass);
+    const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
+    const [selectedClass, setSelectedClass] = useState(null); // For card view class selection
+    const [attendanceStatus, setAttendanceStatus] = useState({}); // Track attendance status per section
+    
+    // Use teacherDetails if available, otherwise fall back to currentUser
+    const teacherData = teacherDetails || currentUser;
+    
+    const handleViewChange = (event, newView) => {
+        if (newView !== null) {
+            setViewMode(newView);
+            setSelectedClass(null); // Reset selected class when switching views
+        }
+    };
+
+    const handleClassSelect = (classItem) => {
+        setSelectedClass(classItem);
+    };
+
+    const handleBackToClasses = () => {
+        setSelectedClass(null);
+    };
+
+    // Check attendance status for sections with attendance responsibility
+    const checkAttendanceStatus = async () => {
+        if (!teacherData?.attendanceSections?.length) return;
+
+        const statusUpdates = {};
+
+        for (const section of teacherData.attendanceSections) {
+            const sclassId = typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName;
+            try {
+                const response = await fetch(`${API_BASE_URL}/CheckSectionAttendance/${sclassId}/${section.sectionName}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusUpdates[`${sclassId}-${section.sectionId}`] = data.attendanceTaken;
+                } else {
+                    console.error('Error checking attendance status:', data.message);
+                    statusUpdates[`${sclassId}-${section.sectionId}`] = false;
+                }
+            } catch (error) {
+                console.error('Error checking attendance status:', error);
+                statusUpdates[`${sclassId}-${section.sectionId}`] = false;
+            }
+        }
+
+        setAttendanceStatus(statusUpdates);
+    };
     
     useEffect(() => {
         if (currentUser?._id) {
@@ -34,9 +96,50 @@ const TeacherClasses = () => {
             dispatch(getAllSclasses(currentUser._id, "Sclass"));
         }
     }, [dispatch, currentUser?._id]);
-    
-    // Use teacherDetails if available, otherwise fall back to currentUser
-    const teacherData = teacherDetails || currentUser;
+
+    useEffect(() => {
+        if (teacherData) {
+            checkAttendanceStatus();
+        }
+    }, [teacherData]);
+
+    // Refresh attendance status when window regains focus or page becomes visible (user returns from attendance page)
+    useEffect(() => {
+        const handleFocus = () => {
+            checkAttendanceStatus();
+        };
+
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                checkAttendanceStatus();
+            }
+        };
+
+        window.addEventListener('focus', handleFocus);
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        
+        return () => {
+            window.removeEventListener('focus', handleFocus);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
+
+    // Refresh attendance status when selectedClass changes
+    useEffect(() => {
+        if (selectedClass) {
+            checkAttendanceStatus();
+        }
+    }, [selectedClass]);
+
+    // Refresh attendance status when window regains focus (user returns from attendance page)
+    useEffect(() => {
+        const handleFocus = () => {
+            checkAttendanceStatus();
+        };
+
+        window.addEventListener('focus', handleFocus);
+        return () => window.removeEventListener('focus', handleFocus);
+    }, []);
     
     // Teaching sections (multiple) - get from teachSections array
     const teachingSections = teacherData?.teachSections || [];
@@ -196,6 +299,26 @@ const TeacherClasses = () => {
     
     const processedSections = Array.from(sectionMap.values());
 
+    // Group sections by class for card view
+    const sectionsByClass = processedSections.reduce((acc, section) => {
+        const sclassId = typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName;
+        const className = section.sclassName && typeof section.sclassName === 'object' && section.sclassName.sclassName 
+            ? section.sclassName.sclassName 
+            : (sclassesList?.find(c => c._id === sclassId)?.sclassName || 'Unknown Class');
+        
+        if (!acc[sclassId]) {
+            acc[sclassId] = {
+                sclassId,
+                className,
+                sections: []
+            };
+        }
+        acc[sclassId].sections.push(section);
+        return acc;
+    }, {});
+
+    const classesList = Object.values(sectionsByClass);
+
     const rows = processedSections.map((section) => {
         // Get the class name from the section's sclassName reference
         // Handle both populated object and ID cases
@@ -248,51 +371,209 @@ const TeacherClasses = () => {
         <Container maxWidth="lg">
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Typography variant="h4" component="h1" color="primary">
-                        My Classes
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        {selectedClass && viewMode === 'card' && (
+                            <IconButton onClick={handleBackToClasses} sx={{ mr: 2 }}>
+                                <ArrowBackIcon />
+                            </IconButton>
+                        )}
+                        <Typography variant="h4" component="h1" color="primary">
+                            {selectedClass && viewMode === 'card' 
+                                ? `${selectedClass.className} - Sections` 
+                                : 'My Classes'
+                            }
+                        </Typography>
+                    </Box>
+                    <ToggleButtonGroup
+                        value={viewMode}
+                        exclusive
+                        onChange={handleViewChange}
+                        aria-label="view mode"
+                        size="small"
+                    >
+                        <ToggleButton value="table" aria-label="table view">
+                            <ViewListIcon />
+                        </ToggleButton>
+                        <ToggleButton value="card" aria-label="card view">
+                            <ViewModuleIcon />
+                        </ToggleButton>
+                    </ToggleButtonGroup>
                 </Box>
 
-                <Box sx={{ height: 400, width: '100%' }}>
-                    <DataGrid
-                        rows={rows}
-                        columns={columns}
-                        initialState={{
-                            pagination: {
-                                paginationModel: {
-                                    pageSize: 10,
+                {viewMode === 'table' ? (
+                    <Box sx={{ height: 400, width: '100%' }}>
+                        <DataGrid
+                            rows={rows}
+                            columns={columns}
+                            initialState={{
+                                pagination: {
+                                    paginationModel: {
+                                        pageSize: 10,
+                                    },
                                 },
-                            },
-                        }}
-                        pageSizeOptions={[5, 10, 25]}
-                        checkboxSelection={false}
-                        disableRowSelectionOnClick
-                        slots={{
-                            toolbar: CustomToolbar,
-                        }}
-                        sx={{
-                            '& .MuiDataGrid-root': {
-                                border: 'none',
-                            },
-                            '& .MuiDataGrid-cell': {
-                                borderBottom: '1px solid #f0f0f0',
-                            },
-                            '& .MuiDataGrid-columnHeaders': {
-                                backgroundColor: '#f5f5f5',
-                                borderBottom: '1px solid #e0e0e0',
-                            },
-                            '& .MuiDataGrid-virtualScroller': {
-                                backgroundColor: '#fafafa',
-                            },
-                            '& .MuiDataGrid-overlay': {
-                                backgroundColor: '#ffffff',
-                            },
-                        }}
-                        localeText={{
-                            noRowsLabel: 'No sections assigned yet.',
-                        }}
-                    />
-                </Box>
+                            }}
+                            pageSizeOptions={[5, 10, 25]}
+                            checkboxSelection={false}
+                            disableRowSelectionOnClick
+                            slots={{
+                                toolbar: CustomToolbar,
+                            }}
+                            sx={{
+                                '& .MuiDataGrid-root': {
+                                    border: 'none',
+                                },
+                                '& .MuiDataGrid-cell': {
+                                    borderBottom: '1px solid #f0f0f0',
+                                },
+                                '& .MuiDataGrid-columnHeaders': {
+                                    backgroundColor: '#f5f5f5',
+                                    borderBottom: '1px solid #e0e0e0',
+                                },
+                                '& .MuiDataGrid-virtualScroller': {
+                                    backgroundColor: '#fafafa',
+                                },
+                                '& .MuiDataGrid-overlay': {
+                                    backgroundColor: '#ffffff',
+                                },
+                            }}
+                            localeText={{
+                                noRowsLabel: 'No sections assigned yet.',
+                            }}
+                        />
+                    </Box>
+                ) : (
+                    <Box sx={{ width: '100%' }}>
+                        {!selectedClass ? (
+                            // Show class cards
+                            <Grid container spacing={3}>
+                                {classesList.map((classItem) => (
+                                    <Grid item xs={12} md={6} lg={4} key={classItem.sclassId}>
+                                        <Card 
+                                            sx={{ 
+                                                height: '100%', 
+                                                display: 'flex', 
+                                                flexDirection: 'column',
+                                                cursor: 'pointer',
+                                                '&:hover': {
+                                                    boxShadow: 6,
+                                                    transform: 'translateY(-2px)',
+                                                    transition: 'all 0.2s ease-in-out'
+                                                }
+                                            }}
+                                            onClick={() => handleClassSelect(classItem)}
+                                        >
+                                            <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
+                                                <ClassIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+                                                <Typography variant="h6" component="h2" color="primary" gutterBottom>
+                                                    {classItem.className}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {classItem.sections.length} section{classItem.sections.length !== 1 ? 's' : ''}
+                                                </Typography>
+                                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 1 }}>
+                                                    <Chip 
+                                                        label={`${classItem.sections.filter(s => s.hasAttendance).length} Attendance`}
+                                                        size="small"
+                                                        color="primary"
+                                                        variant="outlined"
+                                                    />
+                                                </Box>
+                                            </CardContent>
+                                        </Card>
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        ) : (
+                            // Show sections for selected class
+                            <Grid container spacing={3}>
+                                {selectedClass.sections.map((section) => (
+                                    <Grid item xs={12} md={6} lg={4} key={`${selectedClass.sclassId}-${section.sectionId}`}>
+                                        <Card 
+                                            sx={{ 
+                                                height: '100%', 
+                                                display: 'flex', 
+                                                flexDirection: 'column',
+                                                cursor: 'pointer',
+                                                '&:hover': {
+                                                    boxShadow: 6,
+                                                    transform: 'translateY(-2px)',
+                                                    transition: 'all 0.2s ease-in-out'
+                                                }
+                                            }}
+                                            onClick={() => navigate(`/Teacher/class/${selectedClass.sclassId}`)}
+                                        >
+                                            <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                                                    <Badge 
+                                                        badgeContent={
+                                                            section.hasAttendance && 
+                                                            !attendanceStatus[`${typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName}-${section.sectionId}`] 
+                                                            ? "!" : 0
+                                                        } 
+                                                        color="error"
+                                                        sx={{
+                                                            '& .MuiBadge-badge': {
+                                                                backgroundColor: '#f44336',
+                                                                color: 'white',
+                                                                fontSize: '0.75rem',
+                                                                fontWeight: 'bold',
+                                                                minWidth: '20px',
+                                                                height: '20px',
+                                                                borderRadius: '50%'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <ClassIcon sx={{ fontSize: 48, color: 'primary.main' }} />
+                                                    </Badge>
+                                                </Box>
+                                                <Typography variant="h6" component="h2" color="primary" gutterBottom>
+                                                    {section.sectionName}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary">
+                                                    {section.hasAttendance ? 'Teaching + Attendance' : 'Teaching Only'}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                                    {section.studentCount || 0} students
+                                                </Typography>
+                                                <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                                    {section.hasAttendance && (
+                                                        <IconButton
+                                                            size="medium"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigate(`/Teacher/class/${selectedClass.sclassId}/attendance`);
+                                                            }}
+                                                            sx={{ 
+                                                                color: 'secondary.main',
+                                                                backgroundColor: 'rgba(156, 39, 176, 0.1)',
+                                                                '&:hover': { 
+                                                                    backgroundColor: 'secondary.main', 
+                                                                    color: 'white',
+                                                                    transform: 'scale(1.1)'
+                                                                },
+                                                                transition: 'all 0.2s ease-in-out'
+                                                            }}
+                                                            title="Take Attendance"
+                                                        >
+                                                            <EventAvailableIcon />
+                                                        </IconButton>
+                                                    )}
+                                                </Box>
+                                            </CardContent>
+                                        </Card>
+                                    </Grid>
+                                ))}
+                            </Grid>
+                        )}
+                        {classesList.length === 0 && (
+                            <Box sx={{ textAlign: 'center', py: 4 }}>
+                                <Typography variant="body1" color="text.secondary">
+                                    No classes assigned yet.
+                                </Typography>
+                            </Box>
+                        )}
+                    </Box>
+                )}
 
                 {/* Summary Information */}
                 <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
