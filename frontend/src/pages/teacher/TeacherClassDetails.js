@@ -5,8 +5,10 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getClassStudents } from "../../redux/sclassRelated/sclassHandle";
 import { Paper, Box, Typography, Container, Button, Grid, Chip, TextField, Alert, FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
 import { updateStudentTermMarks } from '../../redux/studentRelated/studentHandle';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { updateStudentTermMarks } from '../../redux/studentRelated/studentHandle';
 import { underStudentControl } from '../../redux/studentRelated/studentSlice';
-import { 
+
     DataGrid,
     GridToolbarContainer,
     GridToolbarColumnsButton,
@@ -56,6 +58,13 @@ const TeacherClassDetails = () => {
         dispatch(getClassStudents(classID));
     }, [dispatch, classID])
 
+    if (error) {
+        console.log(error)
+    }    if (error) {
+        console.log(error)
+    }
+
+    const dataGridColumns = [
     useEffect(() => {
         if (sclassStudents.length > 0 && currentUser.teachSubject) {
             const initialMarks = {};

@@ -33,6 +33,7 @@ export const groupAttendanceBySubject = (subjectAttendance) => {
             attendanceBySubject[subName] = {
                 present: 0,
                 absent: 0,
+                holiday: 0,
                 sessions: sessions,
                 allData: [],
                 subId: subId
@@ -43,6 +44,8 @@ export const groupAttendanceBySubject = (subjectAttendance) => {
             attendanceBySubject[subName].present++;
         } else if (attendance.status === "Absent") {
             attendanceBySubject[subName].absent++;
+        } else if (attendance.status === "Holiday") {
+            attendanceBySubject[subName].holiday++;
         }
         
         attendanceBySubject[subName].allData.push({
@@ -58,31 +61,49 @@ export const calculateOverallAttendancePercentage = (subjectAttendance) => {
         return 0;
     }
 
-    let totalSessionsSum = 0;
-    let presentCountSum = 0;
-    const uniqueSubIds = [];
+    // Group attendance by unique dates
+    const attendanceByDate = {};
 
     subjectAttendance.forEach((attendance) => {
-        // Handle null or undefined subName (for simple daily attendance)
-        if (!attendance.subName || !attendance.subName._id) {
-            // For simple daily attendance without subject info, count as 1 session per day
-            presentCountSum += attendance.status === "Present" ? 1 : 0;
-            totalSessionsSum += 1; // Each attendance record counts as 1 session
-            return;
+        const dateKey = new Date(attendance.date).toDateString();
+
+        if (!attendanceByDate[dateKey]) {
+            attendanceByDate[dateKey] = {
+                statuses: [],
+                hasPresent: false,
+                hasAbsent: false,
+                hasHoliday: false
+            };
         }
 
-        const subId = attendance.subName._id;
-        if (!uniqueSubIds.includes(subId)) {
-            const sessions = parseInt(attendance.subName.sessions) || 1;
-            totalSessionsSum += sessions;
-            uniqueSubIds.push(subId);
+        attendanceByDate[dateKey].statuses.push(attendance.status);
+
+        if (attendance.status === "Present") {
+            attendanceByDate[dateKey].hasPresent = true;
+        } else if (attendance.status === "Absent") {
+            attendanceByDate[dateKey].hasAbsent = true;
+        } else if (attendance.status === "Holiday") {
+            attendanceByDate[dateKey].hasHoliday = true;
         }
-        presentCountSum += attendance.status === "Present" ? 1 : 0;
     });
 
-    if (totalSessionsSum === 0) {
+    // Count days where student was present (at least one present record for that day)
+    // Exclude holiday days from total count
+    let presentDays = 0;
+    let totalDays = 0;
+
+    Object.values(attendanceByDate).forEach((dayData) => {
+        if (!dayData.hasHoliday) {
+            totalDays++;
+            if (dayData.hasPresent) {
+                presentDays++;
+            }
+        }
+    });
+
+    if (totalDays === 0) {
         return 0;
     }
 
-    return (presentCountSum / totalSessionsSum) * 100;
+    return (presentDays / totalDays) * 100;
 };

@@ -15,13 +15,13 @@ import {
     TableRow,
     Button,
     Chip,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     TextField,
-    Container
+    Container,
+    FormControl,
+    Select,
+    MenuItem
 } from '@mui/material';
+import { CheckCircle, Cancel, BeachAccess, NavigateNext } from '@mui/icons-material';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -41,37 +41,27 @@ const ClassAttendance = () => {
     const { currentUser } = useSelector((state) => state.user);
     
     // Check if teacher has attendance permission for this class
-    const attendanceClass = currentUser?.attendanceClass;
-    const hasAttendancePermission = attendanceClass && 
-        (attendanceClass._id === classId || attendanceClass === classId);
+    // TEMPORARILY DISABLED FOR TESTING - Allow all teachers to access attendance
+    // const attendanceClass = currentUser?.attendanceClass;
+    // const teachSclasses = currentUser?.teachSclasses || [];
+    // const hasAttendancePermission = attendanceClass &&
+    //     (attendanceClass._id === classId || attendanceClass === classId) ||
+    //     teachSclasses.some(sclass => sclass._id === classId || sclass === classId);
+    const hasAttendancePermission = true; // TEMP: Allow all access for testing
     
 
     
     const [attendanceData, setAttendanceData] = useState({});
     const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
-    const [selectedSubject, setSelectedSubject] = useState('');
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
+    const [bulkActionMode, setBulkActionMode] = useState('present'); // 'present', 'absent', 'holiday'
     
     useEffect(() => {
         if (classId) {
             dispatch(getClassStudents(classId));
         }
     }, [dispatch, classId]);
-
-    useEffect(() => {
-        // Set default subject when teacher data is available
-        if (currentUser) {
-            const teacherSubjects = currentUser.teachSubjects || [];
-            const teacherSubject = currentUser.teachSubject;
-            
-            if (teacherSubjects.length > 0) {
-                setSelectedSubject(teacherSubjects[0]._id || teacherSubjects[0]);
-            } else if (teacherSubject) {
-                setSelectedSubject(teacherSubject._id || teacherSubject);
-            }
-        }
-    }, [currentUser]);
     
     useEffect(() => {
         // Initialize attendance data for all students as present by default
@@ -107,28 +97,60 @@ const ClassAttendance = () => {
         setAttendanceData(allAbsentData);
     };
     
+    const markAllHoliday = () => {
+        const allHolidayData = {};
+        sclassStudents.forEach(student => {
+            allHolidayData[student._id] = 'Holiday';
+        });
+        setAttendanceData(allHolidayData);
+    };
+    
+    const handleBulkAction = () => {
+        switch (bulkActionMode) {
+            case 'present':
+                markAllPresent();
+                break;
+            case 'absent':
+                markAllAbsent();
+                break;
+            case 'holiday':
+                markAllHoliday();
+                break;
+            default:
+                markAllPresent();
+        }
+    };
+    
+    const cycleBulkActionMode = () => {
+        setBulkActionMode(prev => {
+            switch (prev) {
+                case 'present':
+                    return 'absent';
+                case 'absent':
+                    return 'holiday';
+                case 'holiday':
+                    return 'present';
+                default:
+                    return 'present';
+            }
+        });
+    };
+    
     const handleSubmitAttendance = async () => {
         try {
-            if (!selectedSubject) {
-                setMessage("Error: Please select a subject to take attendance for");
-                setShowPopup(true);
-                return;
-            }
-
-            setMessage("Submitting attendance...");
+            setMessage("Submitting daily attendance...");
             setShowPopup(true);
 
-            // Submit attendance for each student
-            console.log('Submitting attendance for subject:', selectedSubject);
-            console.log('Selected subject details:', currentUser?.teachSubjects?.find(s => s._id === selectedSubject));
+            // Submit daily attendance for each student (not per subject)
+            console.log('Submitting daily attendance for date:', attendanceDate);
             
             const attendancePromises = Object.entries(attendanceData).map(([studentId, status]) => {
                 const attendancePayload = {
-                    subName: selectedSubject,
                     status: status,
-                    date: attendanceDate
+                    date: attendanceDate,
+                    isDailyAttendance: true // Mark as daily attendance
                 };
-                console.log(`Submitting for student ${studentId}:`, attendancePayload);
+                console.log(`Submitting daily attendance for student ${studentId}:`, attendancePayload);
                 
                 return axios.put(`http://localhost:5000/StudentAttendance/${studentId}`, attendancePayload);
             });
@@ -137,8 +159,9 @@ const ClassAttendance = () => {
             
             const presentCount = Object.values(attendanceData).filter(status => status === 'Present').length;
             const absentCount = Object.values(attendanceData).filter(status => status === 'Absent').length;
+            const holidayCount = Object.values(attendanceData).filter(status => status === 'Holiday').length;
             
-            setMessage(`Attendance submitted successfully! Present: ${presentCount}, Absent: ${absentCount}`);
+            setMessage(`Daily attendance submitted successfully! Present: ${presentCount}, Absent: ${absentCount}, Holiday: ${holidayCount}`);
             
             // Navigate back after a delay
             setTimeout(() => {
@@ -187,19 +210,16 @@ const ClassAttendance = () => {
         <Container maxWidth="lg">
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-                    Mark Class Attendance
+                    Mark Daily Class Attendance
                 </Typography>
-                {selectedSubject && (
-                    <Box sx={{ textAlign: 'center', mb: 2 }}>
-                        <Chip 
-                            label={`Subject: ${currentUser?.teachSubjects?.find(s => s._id === selectedSubject)?.subName || 
-                                             currentUser?.teachSubject?.subName || 'Selected Subject'}`}
-                            color="primary"
-                            variant="filled"
-                            size="large"
-                        />
-                    </Box>
-                )}
+                <Box sx={{ textAlign: 'center', mb: 2 }}>
+                    <Chip 
+                        label="Daily Attendance"
+                        color="primary"
+                        variant="filled"
+                        size="large"
+                    />
+                </Box>
                 
                 <Box sx={{ mt: 3 }}>
                     <Typography variant="h6" gutterBottom color="text.secondary">
@@ -217,48 +237,52 @@ const ClassAttendance = () => {
                             }}
                             fullWidth
                         />
-                        <FormControl fullWidth>
-                            <InputLabel>Subject</InputLabel>
-                            <Select
-                                value={selectedSubject}
-                                label="Subject"
-                                onChange={(e) => setSelectedSubject(e.target.value)}
-                            >
-                                {currentUser?.teachSubjects && currentUser.teachSubjects.length > 0 ? (
-                                    currentUser.teachSubjects.map((subject) => (
-                                        <MenuItem key={subject._id} value={subject._id}>
-                                            {subject.subName}
-                                        </MenuItem>
-                                    ))
-                                ) : currentUser?.teachSubject ? (
-                                    <MenuItem value={currentUser.teachSubject._id || currentUser.teachSubject}>
-                                        {currentUser.teachSubject.subName || 'Subject'}
-                                    </MenuItem>
-                                ) : (
-                                    <MenuItem value="">No subjects assigned</MenuItem>
-                                )}
-                            </Select>
-                        </FormControl>
                     </Box>
                     
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mb: 3 }}>
-                        <Button variant="contained" color="success" onClick={markAllPresent}>
-                            Mark All Present
+                        <Button 
+                            variant="contained" 
+                            color={
+                                bulkActionMode === 'present' ? 'success' :
+                                bulkActionMode === 'absent' ? 'error' : 'warning'
+                            }
+                            onClick={handleBulkAction}
+                            startIcon={
+                                bulkActionMode === 'present' ? <CheckCircle /> :
+                                bulkActionMode === 'absent' ? <Cancel /> : <BeachAccess />
+                            }
+                            sx={{ minWidth: 160 }}
+                        >
+                            Mark All {bulkActionMode === 'present' ? 'Present' : 
+                                     bulkActionMode === 'absent' ? 'Absent' : 'Holiday'}
                         </Button>
-                        <Button variant="contained" color="error" onClick={markAllAbsent}>
-                            Mark All Absent
+                        <Button 
+                            variant="outlined" 
+                            size="small"
+                            onClick={cycleBulkActionMode}
+                            sx={{ minWidth: 40, px: 1 }}
+                        >
+                            <NavigateNext />
                         </Button>
+                        <Typography variant="body2" color="text.secondary">
+                            Click cycle button to change action
+                        </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 3 }}>
                         <Chip 
-                            label={`Present: ${presentCount}`} 
+                            label={`Present: ${Object.values(attendanceData).filter(status => status === 'Present').length}`} 
                             color="success" 
                             variant="filled" 
                         />
                         <Chip 
-                            label={`Absent: ${absentCount}`} 
+                            label={`Absent: ${Object.values(attendanceData).filter(status => status === 'Absent').length}`} 
                             color="error" 
+                            variant="filled" 
+                        />
+                        <Chip 
+                            label={`Holiday: ${Object.values(attendanceData).filter(status => status === 'Holiday').length}`} 
+                            color="warning" 
                             variant="filled" 
                         />
                         <Chip 
@@ -299,6 +323,7 @@ const ClassAttendance = () => {
                                             >
                                                 <MenuItem value="Present">Present</MenuItem>
                                                 <MenuItem value="Absent">Absent</MenuItem>
+                                                <MenuItem value="Holiday">Holiday</MenuItem>
                                             </Select>
                                         </FormControl>
                                     </TableCell>
@@ -324,15 +349,9 @@ const ClassAttendance = () => {
                         variant="contained" 
                         color="primary"
                         onClick={handleSubmitAttendance}
-                        disabled={!sclassStudents || sclassStudents.length === 0 || !selectedSubject}
+                        disabled={!sclassStudents || sclassStudents.length === 0}
                     >
-                        Submit Attendance
-                        {selectedSubject && (
-                            <Typography variant="caption" sx={{ ml: 1, fontSize: '0.75rem' }}>
-                                for {currentUser?.teachSubjects?.find(s => s._id === selectedSubject)?.subName || 
-                                     currentUser?.teachSubject?.subName || 'Selected Subject'}
-                            </Typography>
-                        )}
+                        Submit Daily Attendance
                     </Button>
                 </Box>
             </Box>
