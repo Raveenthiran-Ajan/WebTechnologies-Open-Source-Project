@@ -42,7 +42,7 @@ const AdminHomePage = () => {
                         <StyledPaper>
                             <img src={Students} alt="Students" />
                             <Title>
-                                {t('totalStudents')}
+                                {t('adminHome.totalStudents')}
                             </Title>
                             <Data start={0} end={numberOfStudents} duration={2.5} />
                         </StyledPaper>
@@ -51,7 +51,7 @@ const AdminHomePage = () => {
                         <StyledPaper>
                             <img src={Classes} alt="Classes" />
                             <Title>
-                                {t('totalClasses')}
+                                {t('adminHome.totalClasses')}
                             </Title>
                             <Data start={0} end={numberOfClasses} duration={5} />
                         </StyledPaper>
@@ -60,7 +60,7 @@ const AdminHomePage = () => {
                         <StyledPaper>
                             <img src={Teachers} alt="Teachers" />
                             <Title>
-                                {t('totalTeachers')}
+                                {t('adminHome.totalTeachers')}
                             </Title>
                             <Data start={0} end={numberOfTeachers} duration={2.5} />
                         </StyledPaper>
@@ -69,7 +69,7 @@ const AdminHomePage = () => {
                         <StyledPaper>
                             <img src={Fees} alt="Fees" />
                             <Title>
-                                {t('feesCollection')}
+                                {t('adminHome.feesCollection')}
                             </Title>
                             <Data start={0} end={0} duration={2.5} prefix="$" />                        </StyledPaper>
                     </Grid>
