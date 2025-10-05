@@ -38,6 +38,7 @@ import AddTeacher from './teacherRelated/AddTeacher';
 import AddTeacherMultiple from './teacherRelated/AddTeacherMultiple';
 import AddTeacherModern from './teacherRelated/AddTeacherModern';
 import ChooseClass from './teacherRelated/ChooseClass';
+import ChooseSection from './teacherRelated/ChooseSection';
 import ChooseSubject from './teacherRelated/ChooseSubject';
 import ShowTeachers from './teacherRelated/ShowTeachers';
 import TeacherDetails from './teacherRelated/TeacherDetails';
@@ -151,9 +152,9 @@ const AdminDashboard = () => {
                         <Route path="/Admin/teachers/edit-assignments/:id" element={<EditTeacherAssignments />} />
                         <Route path="/Admin/teachers/add-multiple" element={<AddTeacherMultiple />} />
                         <Route path="/Admin/teachers/chooseclass" element={<ChooseClass situation="Teacher" />} />
-                        <Route path="/Admin/teachers/choosesubject/:id" element={<ChooseSubject situation="Norm" />} />
-                        <Route path="/Admin/teachers/choosesubject/:classID/:teacherID" element={<ChooseSubject situation="Teacher" />} />
-                        <Route path="/Admin/teachers/addteacher/:id" element={<AddTeacher />} />
+                        <Route path="/Admin/teachers/choosesection/:id" element={<ChooseSection situation="Teacher" />} />
+                        <Route path="/Admin/teachers/choosesubject/:classID/:sectionNames" element={<ChooseSubject situation="Teacher" />} />
+                        <Route path="/Admin/teachers/addteacher/:subjectID/:sectionNames" element={<AddTeacher />} />
 
                         {/* Parent */}
                         <Route path="/Admin/addparent" element={<AddParent />} />

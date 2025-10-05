@@ -33,6 +33,13 @@ const teacherSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'sclass',
     }],
+    teachSections: [{
+        type: String, // Section names
+    }],
+    // Sections responsible for attendance (subset of teachSections or separate)
+    attendanceSections: [{
+        type: String, // Section names for attendance responsibility
+    }],
     // Single class for attendance responsibility
     attendanceClass: {
         type: mongoose.Schema.Types.ObjectId,

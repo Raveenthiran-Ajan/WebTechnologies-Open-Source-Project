@@ -67,12 +67,21 @@ const ClassAttendance = () => {
         // Initialize attendance data for all students as present by default
         if (sclassStudents && sclassStudents.length > 0) {
             const initialData = {};
-            sclassStudents.forEach(student => {
+            
+            // Filter students by teacher's attendance responsibility sections
+            const teacherAttendanceSections = currentUser?.attendanceSections || [];
+            const filteredStudents = teacherAttendanceSections.length > 0 
+                ? sclassStudents.filter(student => 
+                    teacherAttendanceSections.includes(student.sectionName)
+                  )
+                : sclassStudents; // If no sections assigned, show all (for backward compatibility)
+            
+            filteredStudents.forEach(student => {
                 initialData[student._id] = 'Present';
             });
             setAttendanceData(initialData);
         }
-    }, [sclassStudents]);
+    }, [sclassStudents, currentUser]);
     
     const handleAttendanceChange = (studentId, status) => {
         setAttendanceData(prev => ({
@@ -185,20 +194,20 @@ const ClassAttendance = () => {
     if (!hasAttendancePermission) {
         return (
             <Container maxWidth="md">
-                <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3, textAlign: 'center' }}>
-                    <Typography variant="h4" component="h1" color="error" gutterBottom>
+                <Paper elevation={0} sx={{ p: 4, borderRadius: 2, backgroundColor: 'white', border: '2px solid', borderColor: 'primary.main', mb: 3, textAlign: 'center' }}>
+                    <Typography variant="h5" component="h1" color="error" gutterBottom sx={{ fontWeight: 'bold' }}>
                         Access Denied
                     </Typography>
                     <Typography variant="body1" sx={{ mb: 2 }}>
                         You don't have permission to take attendance for this class.
                     </Typography>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                        You can only take attendance for your assigned attendance class.
+                        You can only take attendance for your assigned sections.
                     </Typography>
                     <Button variant="outlined" onClick={() => navigate(-1)}>
                         Go Back
                     </Button>
-                </Box>
+                </Paper>
             </Container>
         );
     }
@@ -208,9 +217,9 @@ const ClassAttendance = () => {
     
     return (
         <Container maxWidth="lg">
-            <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
-                <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-                    Mark Daily Class Attendance
+            <Paper elevation={0} sx={{ p: 4, borderRadius: 2, backgroundColor: 'white', border: '2px solid', borderColor: 'primary.main', mb: 3 }}>
+                <Typography variant="h5" component="h1" gutterBottom align="center" color="primary" sx={{ fontWeight: 'bold' }}>
+                    Mark Daily Section Attendance
                 </Typography>
                 <Box sx={{ textAlign: 'center', mb: 2 }}>
                     <Chip 
@@ -286,15 +295,23 @@ const ClassAttendance = () => {
                             variant="filled" 
                         />
                         <Chip 
-                            label={`Total: ${sclassStudents?.length || 0}`} 
+                            label={`Total: ${(() => {
+                                const teacherAttendanceSections = currentUser?.attendanceSections || [];
+                                const filteredStudents = teacherAttendanceSections.length > 0 
+                                    ? sclassStudents.filter(student => 
+                                        teacherAttendanceSections.includes(student.sectionName)
+                                      )
+                                    : sclassStudents;
+                                return filteredStudents?.length || 0;
+                            })()}`} 
                             color="info" 
                             variant="filled" 
                         />
                     </Box>
                 </Box>
-            </Box>
+            </Paper>
             
-            <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: 2, backgroundColor: 'white', border: '2px solid', borderColor: 'primary.main', mb: 3 }}>
                 <Typography variant="h6" gutterBottom color="text.secondary">
                     Student Attendance List
                 </Typography>
@@ -310,31 +327,41 @@ const ClassAttendance = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {sclassStudents && sclassStudents.map((student) => (
-                                <TableRow key={student._id}>
-                                    <TableCell>{student.rollNum}</TableCell>
-                                    <TableCell>{student.name}</TableCell>
-                                    <TableCell>{student.email || 'N/A'}</TableCell>
-                                    <TableCell>
-                                        <FormControl size="small" sx={{ minWidth: 120 }}>
-                                            <Select
-                                                value={attendanceData[student._id] || 'Present'}
-                                                onChange={(e) => handleAttendanceChange(student._id, e.target.value)}
-                                            >
-                                                <MenuItem value="Present">Present</MenuItem>
-                                                <MenuItem value="Absent">Absent</MenuItem>
-                                                <MenuItem value="Holiday">Holiday</MenuItem>
-                                            </Select>
-                                        </FormControl>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            {(() => {
+                                // Filter students by teacher's attendance responsibility sections
+                                const teacherAttendanceSections = currentUser?.attendanceSections || [];
+                                const filteredStudents = teacherAttendanceSections.length > 0 
+                                    ? sclassStudents.filter(student => 
+                                        teacherAttendanceSections.includes(student.sectionName)
+                                      )
+                                    : sclassStudents; // If no sections assigned, show all (for backward compatibility)
+                                
+                                return filteredStudents && filteredStudents.map((student) => (
+                                    <TableRow key={student._id}>
+                                        <TableCell>{student.rollNum}</TableCell>
+                                        <TableCell>{student.name}</TableCell>
+                                        <TableCell>{student.email || 'N/A'}</TableCell>
+                                        <TableCell>
+                                            <FormControl size="small" sx={{ minWidth: 120 }}>
+                                                <Select
+                                                    value={attendanceData[student._id] || 'Present'}
+                                                    onChange={(e) => handleAttendanceChange(student._id, e.target.value)}
+                                                >
+                                                    <MenuItem value="Present">Present</MenuItem>
+                                                    <MenuItem value="Absent">Absent</MenuItem>
+                                                    <MenuItem value="Holiday">Holiday</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </TableCell>
+                                    </TableRow>
+                                ));
+                            })()}
                         </TableBody>
                     </Table>
                 </TableContainer>
-            </Box>
+            </Paper>
             
-            <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+            <Paper elevation={0} sx={{ p: 4, borderRadius: 2, backgroundColor: 'white', border: '2px solid', borderColor: 'primary.main', mb: 3 }}>
                 <Typography variant="h6" gutterBottom color="text.secondary">
                     Actions
                 </Typography>
@@ -354,7 +381,7 @@ const ClassAttendance = () => {
                         Submit Daily Attendance
                     </Button>
                 </Box>
-            </Box>
+            </Paper>
             
             <Popup 
                 message={message} 

@@ -3,16 +3,18 @@ const Teacher = require('../models/teacherSchema.js');
 const Subject = require('../models/subjectSchema.js');
 
 const teacherRegister = async (req, res) => {
-    const { name, email, password, role, school, teachSubject, teachSclass, attendanceClass } = req.body;
+    const { name, email, password, role, school, teachSubject, teachSclass, teachSections, attendanceSections } = req.body;
     try {
         const salt = await bcrypt.genSalt(10);
         const hashedPass = await bcrypt.hash(password, salt);
 
-        // Only check for existing attendance teacher if attendance class is explicitly set
-        if (attendanceClass) {
-            const existingAttendanceTeacher = await Teacher.findOne({ attendanceClass });
+        // Check for existing attendance responsibility in the same sections
+        if (attendanceSections && attendanceSections.length > 0) {
+            const existingAttendanceTeacher = await Teacher.findOne({
+                attendanceSections: { $in: attendanceSections }
+            });
             if (existingAttendanceTeacher) {
-                return res.send({ message: 'Another teacher is already assigned for attendance in this class' });
+                return res.send({ message: 'Another teacher is already assigned for attendance in one or more of these sections' });
             }
         }
 
@@ -23,13 +25,11 @@ const teacherRegister = async (req, res) => {
             role, 
             school, 
             teachSubject, 
-            teachSclass
+            teachSclass,
+            teachSections,
+            attendanceSections
         };
-
-        // Only add attendanceClass if it's explicitly provided
-        if (attendanceClass) {
-            teacherData.attendanceClass = attendanceClass;
-        }
+        console.log('Saving teacher with data:', teacherData);
 
         const teacher = new Teacher(teacherData);
 
@@ -77,15 +77,14 @@ const getTeachers = async (req, res) => {
             .populate("teachSubject", "subName")
             .populate("teachSclass", "sclassName")
             .populate("teachSubjects", "subName")
-            .populate("teachSclasses", "sclassName")
-            .populate("attendanceClass", "sclassName");
+            .populate("teachSclasses", "sclassName");
+        console.log('Teachers found:', teachers.length);
+        teachers.forEach((teacher, index) => {
+            console.log(`Teacher ${index}: ${teacher.name}, teachSections:`, teacher.teachSections, 'attendanceSections:', teacher.attendanceSections);
+        });
         if (teachers.length > 0) {
             let modifiedTeachers = teachers.map((teacher) => {
                 const teacherDoc = { ...teacher._doc, password: undefined };
-                // Only include attendanceClass if it's explicitly set
-                if (!teacherDoc.attendanceClass) {
-                    delete teacherDoc.attendanceClass;
-                }
                 return teacherDoc;
             });
             res.send(modifiedTeachers);

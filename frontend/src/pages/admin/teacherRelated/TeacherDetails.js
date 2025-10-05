@@ -79,8 +79,8 @@ const TeacherDetails = () => {
                 </Container>
             ) : (
                 <Container maxWidth="md">
-                    <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
-                        <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
+                    <Paper elevation={0} sx={{ p: 4, borderRadius: 2, backgroundColor: 'white', border: '2px solid', borderColor: 'primary.main', mb: 3 }}>
+                        <Typography variant="h5" component="h1" gutterBottom align="center" color="primary" sx={{ fontWeight: 'bold' }}>
                             Teacher Details
                         </Typography>
                         
@@ -165,6 +165,24 @@ const TeacherDetails = () => {
                                     </Box>
                                     
                                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                        Teaching Sections
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+                                        {teacherDetails?.teachSections && teacherDetails.teachSections.length > 0 ? (
+                                            teacherDetails.teachSections.map((section, index) => (
+                                                <Chip 
+                                                    key={index} 
+                                                    label={section} 
+                                                    color="info" 
+                                                    variant="outlined" 
+                                                />
+                                            ))
+                                        ) : (
+                                            <Typography color="text.secondary">No sections assigned</Typography>
+                                        )}
+                                    </Box>
+                                    
+                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                         Attendance Responsibility
                                     </Typography>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -217,7 +235,7 @@ const TeacherDetails = () => {
                                 </Box>
                             </Box>
                         </Box>
-                    </Box>
+                    </Paper>
                 </Container>
             )}
         </>

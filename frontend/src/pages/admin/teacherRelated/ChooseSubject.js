@@ -23,6 +23,7 @@ const ChooseSubject = ({ situation }) => {
     const dispatch = useDispatch();
 
     const [classID, setClassID] = useState("");
+    const [sectionNames, setSectionNames] = useState([]);
     const [teacherID, setTeacherID] = useState("");
     const [loader, setLoader] = useState(false)
 
@@ -35,9 +36,9 @@ const ChooseSubject = ({ situation }) => {
             dispatch(getSubjectList(classID, "ClassSubjects"));
         }
         else if (situation === "Teacher") {
-            const { classID, teacherID } = params
+            const { classID, sectionNames: sectionsParam } = params
             setClassID(classID);
-            setTeacherID(teacherID);
+            setSectionNames(sectionsParam ? sectionsParam.split(',') : []);
             dispatch(getSubjectList(classID, "ClassSubjects"));
         }
     }, [situation, dispatch, params]);
@@ -114,7 +115,7 @@ const ChooseSubject = ({ situation }) => {
                             color={hasTeacher ? "success" : "success"}
                             startIcon={<PersonAddIcon />}
                             disabled={hasTeacher}
-                            onClick={() => navigate(`/Admin/teachers/addteacher/${params.row.id}`)}
+                            onClick={() => navigate(`/Admin/teachers/addteacher/${params.row.id}/${sectionNames.join(',')}`)}
                             sx={{
                                 borderColor: "#4CAF50",
                                 color: "#FFFFFF",
