@@ -506,4 +506,5 @@ const StudentNotices = () => {
             </Dialog>
         </>
     );
-};export default StudentNotices;
+};
+export default StudentNotices;
