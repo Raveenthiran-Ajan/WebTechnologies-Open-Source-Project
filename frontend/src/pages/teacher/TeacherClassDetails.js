@@ -1,14 +1,11 @@
-import { useEffect, useState } from "react";
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom';
 import { getClassStudents } from "../../redux/sclassRelated/sclassHandle";
-import { Paper, Box, Typography, Container, Button, Grid, Chip, TextField, Alert, FormControl, InputLabel, Select, MenuItem, CircularProgress } from '@mui/material';
-import { updateStudentTermMarks } from '../../redux/studentRelated/studentHandle';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { Paper, Box, Typography, Container, Button, Grid, TextField, Alert, CircularProgress } from '@mui/material';
 import { updateStudentTermMarks } from '../../redux/studentRelated/studentHandle';
 import { underStudentControl } from '../../redux/studentRelated/studentSlice';
-
+import {
     DataGrid,
     GridToolbarContainer,
     GridToolbarColumnsButton,
@@ -16,7 +13,6 @@ import { underStudentControl } from '../../redux/studentRelated/studentSlice';
     GridToolbarDensitySelector,
     GridToolbarExport
 } from '@mui/x-data-grid';
-
 const getGradeFromMarks = (marks) => {
     if (marks >= 85) return 'A+';
     if (marks >= 75) return 'A';
@@ -29,7 +25,7 @@ const getGradeFromMarks = (marks) => {
 };
 
 const TeacherClassDetails = () => {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const dispatch = useDispatch();
     const { sclassStudents, loading, error: classError, getresponse } = useSelector((state) => state.sclass);
     const { classId } = useParams();
@@ -39,37 +35,21 @@ const TeacherClassDetails = () => {
     const [message, setMessage] = useState('');
     const [alertSeverity, setAlertSeverity] = useState('success');
     const [marksMode, setMarksMode] = useState(false);
-
-
     const { currentUser } = useSelector((state) => state.user);
     // Use classId from params if available, otherwise fallback to current user's class
     const classID = classId || currentUser.teachSclass?._id
-    const subjectID = currentUser.teachSubject?._id
-    
-    // Check if this class is the attendance-assigned class
-    const attendanceClass = currentUser?.attendanceClass;
-    const canTakeAttendance = attendanceClass && 
-        (attendanceClass._id === classID || attendanceClass._id === classId ||
-         attendanceClass === classID || attendanceClass === classId);
-    
-
 
     useEffect(() => {
-        dispatch(getClassStudents(classID));
-    }, [dispatch, classID])
+        if (classID) {
+            dispatch(getClassStudents(classID));
+        }
+    }, [dispatch, classID]);
 
-    if (error) {
-        console.log(error)
-    }    if (error) {
-        console.log(error)
-    }
-
-    const dataGridColumns = [
     useEffect(() => {
-        if (sclassStudents.length > 0 && currentUser.teachSubject) {
+        if (sclassStudents && sclassStudents.length > 0 && currentUser.teachSubject) {
             const initialMarks = {};
             sclassStudents.forEach(student => {
-                const getMarkForTerm = (term) => student.examResult?.find(res => res.subName._id === currentUser.teachSubject._id && res.term === term);
+                const getMarkForTerm = (term) => student.examResult?.find(res => res.subName?._id === currentUser.teachSubject._id && res.term === term);
                 initialMarks[student._id] = {
                     TERM_1: { grade: getMarkForTerm('TERM_1')?.grade || '', marksObtained: getMarkForTerm('TERM_1')?.marksObtained ?? '' },
                     TERM_2: { grade: getMarkForTerm('TERM_2')?.grade || '', marksObtained: getMarkForTerm('TERM_2')?.marksObtained ?? '' },
@@ -79,7 +59,6 @@ const TeacherClassDetails = () => {
             setMarks(initialMarks);
         }
     }, [sclassStudents, currentUser.teachSubject]);
-
     const handleMarksChange = (studentId, term, value) => {
         const newMarks = value;
         const newGrade = getGradeFromMarks(newMarks);
@@ -91,7 +70,6 @@ const TeacherClassDetails = () => {
             }
         }));
     };
-
     const handleSave = (studentId) => {
         const studentMarks = marks[studentId];
         const terms = ['TERM_1', 'TERM_2', 'TERM_3'];
@@ -105,7 +83,6 @@ const TeacherClassDetails = () => {
         };
         dispatch(updateStudentTermMarks(studentId, fields));
     };
-
     useEffect(() => {
         if (statestatus === 'added') {
             setMessage('Marks updated successfully!');
@@ -117,11 +94,9 @@ const TeacherClassDetails = () => {
             dispatch(underStudentControl());
         }
     }, [statestatus, response, dispatch, classID]);
-
-    if (classError) {
-        console.log(classError)
+    if (classError || studentError) {
+        console.log(classError || studentError);
     }
-
     const marksColumns = [
         { 
             field: 'rollNum', 
@@ -165,7 +140,7 @@ const TeacherClassDetails = () => {
             headerAlign: 'center',
             align: 'center',
             sortable: false,
-            renderCell: (params) => (
+            renderCell: (params) => ( 
                 <Box sx={{ display: 'flex', gap:0.5 }}>
                     <Button
                         variant="contained"
@@ -179,7 +154,6 @@ const TeacherClassDetails = () => {
             ),
         },
     ];
-
     const simpleColumns = [
         {
             field: 'rollNum',
@@ -202,11 +176,10 @@ const TeacherClassDetails = () => {
             align: 'right',
             sortable: false,
             renderCell: (params) => (
-                <></>
+                <Button variant="contained" onClick={() => navigate(`/teacher/class/student/${params.row.id}`)}>View</Button>
             )
         }
     ];
-
     const studentRows = sclassStudents.map((student) => {
         return {
             rollNum: student.rollNum,
@@ -214,7 +187,6 @@ const TeacherClassDetails = () => {
             id: student._id,
         };
     });
-
     const CustomToolbar = () => {
         return (
             <GridToolbarContainer>
@@ -225,9 +197,6 @@ const TeacherClassDetails = () => {
             </GridToolbarContainer>
         );
     };
-
-
-
     return (
         <Container maxWidth="lg">
             {loading ? (
@@ -243,7 +212,7 @@ const TeacherClassDetails = () => {
                         </Typography>
                         
                         <Grid container spacing={2} sx={{ mt: 2 }}>
-                            <Grid item xs={12} md={6}>
+                            <Grid item xs={12} md={6}> 
                                 <Typography variant="h6" color="text.secondary">Class Information</Typography>
                                 <Typography variant="body1">Class ID: {classID}</Typography>
                                 <Typography variant="body1">Subject: {currentUser.teachSubject?.subName}</Typography>
