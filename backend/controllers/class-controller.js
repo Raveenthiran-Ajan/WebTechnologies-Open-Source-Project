@@ -242,4 +242,44 @@ const addSection = async (req, res) => {
     }
 };
 
-module.exports = { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers, addSection };
+const deleteSection = async (req, res) => {
+    try {
+        const { id, sectionName } = req.params;
+
+        const sclass = await Sclass.findById(id);
+        if (!sclass) {
+            return res.status(404).send({ message: 'Class not found' });
+        }
+
+        // Find the section to delete
+        const sectionIndex = sclass.sections.findIndex(section =>
+            section.sectionName.toLowerCase() === sectionName.toLowerCase()
+        );
+
+        if (sectionIndex === -1) {
+            return res.status(404).send({ message: 'Section not found in this class' });
+        }
+
+        // Check if there are students in this section
+        const studentsInSection = await Student.countDocuments({
+            sclassName: id,
+            sectionName: sectionName
+        });
+
+        if (studentsInSection > 0) {
+            return res.status(400).send({
+                message: `Cannot delete section "${sectionName}" because it contains ${studentsInSection} student(s). Please move or remove students from this section first.`
+            });
+        }
+
+        // Remove the section
+        sclass.sections.splice(sectionIndex, 1);
+        const result = await sclass.save();
+
+        res.send(result);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
+module.exports = { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers, addSection, deleteSection };

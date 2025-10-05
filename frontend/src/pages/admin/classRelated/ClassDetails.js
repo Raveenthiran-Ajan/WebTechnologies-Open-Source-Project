@@ -73,22 +73,36 @@ const ClassDetails = () => {
         } else if (address === 'Student') {
             confirmMessage = 'Are you sure you want to remove this student from the class? This will remove their attendance, grades, and assignments for this class. This action cannot be undone.';
             successMessage = '👨‍🎓 Student has been successfully removed from the class';
+        } else if (address === 'Section') {
+            confirmMessage = 'Are you sure you want to delete this section? This will permanently remove the section from the class. Students in this section will need to be reassigned.';
+            successMessage = '📝 Section has been successfully deleted from the class';
         }
         
         const confirmDelete = window.confirm(confirmMessage);
         
         if (confirmDelete) {
             try {
-                console.log('Deleting', address, 'with ID:', deleteID);
-                await dispatch(deleteUser(deleteID, address));
-                console.log(address, 'deleted successfully, refreshing data...');
-                
-                // Refresh appropriate data based on what was deleted
-                if (address === 'Subject') {
-                    dispatch(resetSubjects());
-                    dispatch(getSubjectList(classID, "ClassSubjects"));
-                } else if (address === 'Student') {
-                    dispatch(getClassStudents(classID));
+                if (address === 'Section') {
+                    // Handle section deletion with API call
+                    console.log('Deleting section:', deleteID);
+                    const response = await axios.delete(`${API_BASE_URL}/Sclass/${classID}/deleteSection/${deleteID}`);
+                    console.log('Section deleted successfully, refreshing data...');
+                    
+                    // Refresh class details to update sections
+                    dispatch(getClassDetails(classID, "Sclass"));
+                } else {
+                    // Handle subject/student deletion
+                    console.log('Deleting', address, 'with ID:', deleteID);
+                    await dispatch(deleteUser(deleteID, address));
+                    console.log(address, 'deleted successfully, refreshing data...');
+                    
+                    // Refresh appropriate data based on what was deleted
+                    if (address === 'Subject') {
+                        dispatch(resetSubjects());
+                        dispatch(getSubjectList(classID, "ClassSubjects"));
+                    } else if (address === 'Student') {
+                        dispatch(getClassStudents(classID));
+                    }
                 }
                 
                 setMessage(successMessage);
@@ -96,7 +110,8 @@ const ClassDetails = () => {
                 
             } catch (error) {
                 console.error('Delete error:', error);
-                setMessage('❌ Unable to delete ' + address.toLowerCase() + ': ' + (error.message || 'Please try again or contact support'));
+                const errorMessage = error.response?.data?.message || error.message || 'Please try again or contact support';
+                setMessage('❌ Unable to delete ' + address.toLowerCase() + ': ' + errorMessage);
                 setShowPopup(true);
             }
         }
@@ -402,12 +417,22 @@ const ClassDetails = () => {
                                                 border: '2px solid',
                                                 borderColor: 'primary.main',
                                                 transition: 'transform 0.2s',
+                                                position: 'relative',
                                                 '&:hover': {
                                                     transform: 'translateY(-2px)',
                                                     boxShadow: 4
                                                 }
                                             }}
                                         >
+                                            <Box sx={{ position: 'absolute', top: 8, right: 8 }}>
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => deleteHandler(section.sectionName, "Section")}
+                                                    sx={{ color: 'error.main' }}
+                                                >
+                                                    <Delete fontSize="small" />
+                                                </IconButton>
+                                            </Box>
                                             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
                                                 {section.sectionName}
                                             </Typography>
