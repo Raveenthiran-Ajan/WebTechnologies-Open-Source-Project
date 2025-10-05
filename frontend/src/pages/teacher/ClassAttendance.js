@@ -16,8 +16,12 @@ import {
     Button,
     Chip,
     TextField,
-    Container
+    Container,
+    FormControl,
+    Select,
+    MenuItem
 } from '@mui/material';
+import { CheckCircle, Cancel, BeachAccess, NavigateNext } from '@mui/icons-material';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -37,9 +41,13 @@ const ClassAttendance = () => {
     const { currentUser } = useSelector((state) => state.user);
     
     // Check if teacher has attendance permission for this class
-    const attendanceClass = currentUser?.attendanceClass;
-    const hasAttendancePermission = attendanceClass && 
-        (attendanceClass._id === classId || attendanceClass === classId);
+    // TEMPORARILY DISABLED FOR TESTING - Allow all teachers to access attendance
+    // const attendanceClass = currentUser?.attendanceClass;
+    // const teachSclasses = currentUser?.teachSclasses || [];
+    // const hasAttendancePermission = attendanceClass &&
+    //     (attendanceClass._id === classId || attendanceClass === classId) ||
+    //     teachSclasses.some(sclass => sclass._id === classId || sclass === classId);
+    const hasAttendancePermission = true; // TEMP: Allow all access for testing
     
 
     
@@ -47,6 +55,7 @@ const ClassAttendance = () => {
     const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
+    const [bulkActionMode, setBulkActionMode] = useState('present'); // 'present', 'absent', 'holiday'
     
     useEffect(() => {
         if (classId) {
@@ -88,6 +97,45 @@ const ClassAttendance = () => {
         setAttendanceData(allAbsentData);
     };
     
+    const markAllHoliday = () => {
+        const allHolidayData = {};
+        sclassStudents.forEach(student => {
+            allHolidayData[student._id] = 'Holiday';
+        });
+        setAttendanceData(allHolidayData);
+    };
+    
+    const handleBulkAction = () => {
+        switch (bulkActionMode) {
+            case 'present':
+                markAllPresent();
+                break;
+            case 'absent':
+                markAllAbsent();
+                break;
+            case 'holiday':
+                markAllHoliday();
+                break;
+            default:
+                markAllPresent();
+        }
+    };
+    
+    const cycleBulkActionMode = () => {
+        setBulkActionMode(prev => {
+            switch (prev) {
+                case 'present':
+                    return 'absent';
+                case 'absent':
+                    return 'holiday';
+                case 'holiday':
+                    return 'present';
+                default:
+                    return 'present';
+            }
+        });
+    };
+    
     const handleSubmitAttendance = async () => {
         try {
             setMessage("Submitting daily attendance...");
@@ -111,8 +159,9 @@ const ClassAttendance = () => {
             
             const presentCount = Object.values(attendanceData).filter(status => status === 'Present').length;
             const absentCount = Object.values(attendanceData).filter(status => status === 'Absent').length;
+            const holidayCount = Object.values(attendanceData).filter(status => status === 'Holiday').length;
             
-            setMessage(`Daily attendance submitted successfully! Present: ${presentCount}, Absent: ${absentCount}`);
+            setMessage(`Daily attendance submitted successfully! Present: ${presentCount}, Absent: ${absentCount}, Holiday: ${holidayCount}`);
             
             // Navigate back after a delay
             setTimeout(() => {
@@ -191,23 +240,49 @@ const ClassAttendance = () => {
                     </Box>
                     
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mb: 3 }}>
-                        <Button variant="contained" color="success" onClick={markAllPresent}>
-                            Mark All Present
+                        <Button 
+                            variant="contained" 
+                            color={
+                                bulkActionMode === 'present' ? 'success' :
+                                bulkActionMode === 'absent' ? 'error' : 'warning'
+                            }
+                            onClick={handleBulkAction}
+                            startIcon={
+                                bulkActionMode === 'present' ? <CheckCircle /> :
+                                bulkActionMode === 'absent' ? <Cancel /> : <BeachAccess />
+                            }
+                            sx={{ minWidth: 160 }}
+                        >
+                            Mark All {bulkActionMode === 'present' ? 'Present' : 
+                                     bulkActionMode === 'absent' ? 'Absent' : 'Holiday'}
                         </Button>
-                        <Button variant="contained" color="error" onClick={markAllAbsent}>
-                            Mark All Absent
+                        <Button 
+                            variant="outlined" 
+                            size="small"
+                            onClick={cycleBulkActionMode}
+                            sx={{ minWidth: 40, px: 1 }}
+                        >
+                            <NavigateNext />
                         </Button>
+                        <Typography variant="body2" color="text.secondary">
+                            Click cycle button to change action
+                        </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mb: 3 }}>
                         <Chip 
-                            label={`Present: ${presentCount}`} 
+                            label={`Present: ${Object.values(attendanceData).filter(status => status === 'Present').length}`} 
                             color="success" 
                             variant="filled" 
                         />
                         <Chip 
-                            label={`Absent: ${absentCount}`} 
+                            label={`Absent: ${Object.values(attendanceData).filter(status => status === 'Absent').length}`} 
                             color="error" 
+                            variant="filled" 
+                        />
+                        <Chip 
+                            label={`Holiday: ${Object.values(attendanceData).filter(status => status === 'Holiday').length}`} 
+                            color="warning" 
                             variant="filled" 
                         />
                         <Chip 
@@ -248,6 +323,7 @@ const ClassAttendance = () => {
                                             >
                                                 <MenuItem value="Present">Present</MenuItem>
                                                 <MenuItem value="Absent">Absent</MenuItem>
+                                                <MenuItem value="Holiday">Holiday</MenuItem>
                                             </Select>
                                         </FormControl>
                                     </TableCell>

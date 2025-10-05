@@ -24,6 +24,7 @@ import {
     Select,
     MenuItem
 } from '@mui/material';
+import { CheckCircle, Cancel, BeachAccess, NavigateNext } from '@mui/icons-material';
 import Popup from '../../components/Popup';
 import axios from 'axios';
 
@@ -44,6 +45,7 @@ const SimpleTermAttendance = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isAlreadySubmitted, setIsAlreadySubmitted] = useState(false);
     const [checkingSubmission, setCheckingSubmission] = useState(false);
+    const [bulkActionMode, setBulkActionMode] = useState('present'); // 'present', 'absent', 'holiday'
     
     // Determine current term based on month
     useEffect(() => {
@@ -145,6 +147,45 @@ const SimpleTermAttendance = () => {
         setAttendanceData(allAbsentData);
     };
     
+    const markAllHoliday = () => {
+        const allHolidayData = {};
+        sclassStudents.forEach(student => {
+            allHolidayData[student._id] = 'Holiday';
+        });
+        setAttendanceData(allHolidayData);
+    };
+    
+    const handleBulkAction = () => {
+        switch (bulkActionMode) {
+            case 'present':
+                markAllPresent();
+                break;
+            case 'absent':
+                markAllAbsent();
+                break;
+            case 'holiday':
+                markAllHoliday();
+                break;
+            default:
+                markAllPresent();
+        }
+    };
+    
+    const cycleBulkActionMode = () => {
+        setBulkActionMode(prev => {
+            switch (prev) {
+                case 'present':
+                    return 'absent';
+                case 'absent':
+                    return 'holiday';
+                case 'holiday':
+                    return 'present';
+                default:
+                    return 'present';
+            }
+        });
+    };
+    
     const handleSubmitAttendance = async () => {
         if (isSubmitting) return;
         
@@ -175,8 +216,9 @@ const SimpleTermAttendance = () => {
             
             const presentCount = Object.values(attendanceData).filter(status => status === 'Present').length;
             const absentCount = Object.values(attendanceData).filter(status => status === 'Absent').length;
+            const holidayCount = Object.values(attendanceData).filter(status => status === 'Holiday').length;
             
-            setMessage(`Attendance submitted successfully! Present: ${presentCount}, Absent: ${absentCount}`);
+            setMessage(`Attendance submitted successfully! Present: ${presentCount}, Absent: ${absentCount}, Holiday: ${holidayCount}`);
             setIsAlreadySubmitted(true); // Mark as submitted
             
             setTimeout(() => {
@@ -210,6 +252,7 @@ const SimpleTermAttendance = () => {
     
     const presentCount = Object.values(attendanceData).filter(status => status === 'Present').length;
     const absentCount = Object.values(attendanceData).filter(status => status === 'Absent').length;
+    const holidayCount = Object.values(attendanceData).filter(status => status === 'Holiday').length;
     
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -241,6 +284,7 @@ const SimpleTermAttendance = () => {
                                 <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                                     <Chip label={`Present: ${presentCount}`} color="success" size="small" />
                                     <Chip label={`Absent: ${absentCount}`} color="error" size="small" />
+                                    <Chip label={`Holiday: ${holidayCount}`} color="warning" size="small" />
                                     <Chip label={`Total: ${sclassStudents?.length || 0}`} color="info" size="small" />
                                 </Box>
                             </CardContent>
@@ -280,23 +324,36 @@ const SimpleTermAttendance = () => {
                 </Box>
                 
                 {/* Bulk Actions */}
-                <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                <Box sx={{ display: 'flex', gap: 2, mb: 2, alignItems: 'center' }}>
                     <Button 
                         variant="contained" 
-                        color="success" 
-                        onClick={markAllPresent}
+                        color={
+                            bulkActionMode === 'present' ? 'success' :
+                            bulkActionMode === 'absent' ? 'error' : 'warning'
+                        }
+                        onClick={handleBulkAction}
                         disabled={isAlreadySubmitted || checkingSubmission}
+                        startIcon={
+                            bulkActionMode === 'present' ? <CheckCircle /> :
+                            bulkActionMode === 'absent' ? <Cancel /> : <BeachAccess />
+                        }
+                        sx={{ minWidth: 160 }}
                     >
-                        Mark All Present
+                        Mark All {bulkActionMode === 'present' ? 'Present' : 
+                                 bulkActionMode === 'absent' ? 'Absent' : 'Holiday'}
                     </Button>
                     <Button 
-                        variant="contained" 
-                        color="error" 
-                        onClick={markAllAbsent}
+                        variant="outlined" 
+                        size="small"
+                        onClick={cycleBulkActionMode}
                         disabled={isAlreadySubmitted || checkingSubmission}
+                        sx={{ minWidth: 40, px: 1 }}
                     >
-                        Mark All Absent
+                        <NavigateNext />
                     </Button>
+                    <Typography variant="body2" color="text.secondary">
+                        Click arrow button to change action
+                    </Typography>
                     {isAlreadySubmitted && (
                         <Chip 
                             label="✓ Attendance already taken for this date" 
@@ -336,6 +393,7 @@ const SimpleTermAttendance = () => {
                                             >
                                                 <MenuItem value="Present">Present</MenuItem>
                                                 <MenuItem value="Absent">Absent</MenuItem>
+                                                <MenuItem value="Holiday">Holiday</MenuItem>
                                             </Select>
                                         </FormControl>
                                     </TableCell>

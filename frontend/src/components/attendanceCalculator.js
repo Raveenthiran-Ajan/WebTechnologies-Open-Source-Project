@@ -33,6 +33,7 @@ export const groupAttendanceBySubject = (subjectAttendance) => {
             attendanceBySubject[subName] = {
                 present: 0,
                 absent: 0,
+                holiday: 0,
                 sessions: sessions,
                 allData: [],
                 subId: subId
@@ -43,6 +44,8 @@ export const groupAttendanceBySubject = (subjectAttendance) => {
             attendanceBySubject[subName].present++;
         } else if (attendance.status === "Absent") {
             attendanceBySubject[subName].absent++;
+        } else if (attendance.status === "Holiday") {
+            attendanceBySubject[subName].holiday++;
         }
         
         attendanceBySubject[subName].allData.push({
@@ -68,7 +71,8 @@ export const calculateOverallAttendancePercentage = (subjectAttendance) => {
             attendanceByDate[dateKey] = {
                 statuses: [],
                 hasPresent: false,
-                hasAbsent: false
+                hasAbsent: false,
+                hasHoliday: false
             };
         }
 
@@ -78,16 +82,22 @@ export const calculateOverallAttendancePercentage = (subjectAttendance) => {
             attendanceByDate[dateKey].hasPresent = true;
         } else if (attendance.status === "Absent") {
             attendanceByDate[dateKey].hasAbsent = true;
+        } else if (attendance.status === "Holiday") {
+            attendanceByDate[dateKey].hasHoliday = true;
         }
     });
 
     // Count days where student was present (at least one present record for that day)
+    // Exclude holiday days from total count
     let presentDays = 0;
-    const totalDays = Object.keys(attendanceByDate).length;
+    let totalDays = 0;
 
     Object.values(attendanceByDate).forEach((dayData) => {
-        if (dayData.hasPresent) {
-            presentDays++;
+        if (!dayData.hasHoliday) {
+            totalDays++;
+            if (dayData.hasPresent) {
+                presentDays++;
+            }
         }
     });
 
