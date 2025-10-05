@@ -134,7 +134,7 @@ const StudentAttendanceDashboard = () => {
             }
         });
 
-        const attendancePercentage = totalDays > 0 ? ((presentDays / totalDays) * 100).toFixed(1) : 0;
+        const attendancePercentage = totalDays > holidayDays ? ((presentDays / (totalDays - holidayDays)) * 100).toFixed(1) : 0;
 
         return { present: presentDays, absent: absentDays, holidays: holidayDays, attendancePercentage };
     };
@@ -189,6 +189,7 @@ const StudentAttendanceDashboard = () => {
     const prepareTermChartData = () => {
         const termData = { 'Term 1': 0, 'Term 2': 0, 'Term 3': 0 };
         const termCounts = { 'Term 1': 0, 'Term 2': 0, 'Term 3': 0 };
+        const termHolidays = { 'Term 1': 0, 'Term 2': 0, 'Term 3': 0 };
 
         // Group by unique dates first
         const attendanceByDate = {};
@@ -198,7 +199,8 @@ const StudentAttendanceDashboard = () => {
                 attendanceByDate[dateKey] = {
                     date: new Date(record.date),
                     statuses: [],
-                    hasPresent: false
+                    hasPresent: false,
+                    hasHoliday: false
                 };
             }
 
@@ -206,6 +208,8 @@ const StudentAttendanceDashboard = () => {
 
             if (record.status === "Present") {
                 attendanceByDate[dateKey].hasPresent = true;
+            } else if (record.status === "Holiday") {
+                attendanceByDate[dateKey].hasHoliday = true;
             }
         });
 
@@ -222,12 +226,20 @@ const StudentAttendanceDashboard = () => {
             if (dayData.hasPresent) {
                 termData[termKey]++;
             }
+            if (dayData.hasHoliday) {
+                termHolidays[termKey]++;
+            }
         });
 
-        return Object.entries(termData).map(([term, present]) => ({
-            term,
-            attendance: termCounts[term] > 0 ? ((present / termCounts[term]) * 100).toFixed(1) : 0
-        }));
+        return Object.entries(termData).map(([term, present]) => {
+            const totalDays = termCounts[term];
+            const holidays = termHolidays[term];
+            const workingDays = totalDays - holidays;
+            return {
+                term,
+                attendance: workingDays > 0 ? ((present / workingDays) * 100).toFixed(1) : 0
+            };
+        });
     };
 
     const monthlyChartData = prepareMonthlyChartData();
@@ -650,6 +662,7 @@ const StudentAttendanceDashboard = () => {
                             <TableCell align="center"><strong>Working Days</strong></TableCell>
                             <TableCell align="center"><strong>Present</strong></TableCell>
                             <TableCell align="center"><strong>Absent</strong></TableCell>
+                            <TableCell align="center"><strong>Holiday</strong></TableCell>
                             <TableCell align="center"><strong>Attendance %</strong></TableCell>
                         </TableRow>
                     </TableHead>
@@ -666,9 +679,11 @@ const StudentAttendanceDashboard = () => {
                                 return termMonths[termName]?.includes(month);
                             });
 
-                            const workingDays = termAttendance.length;
+                            const totalDays = termAttendance.length;
                             const present = termAttendance.filter(r => r.status === 'Present').length;
                             const absent = termAttendance.filter(r => r.status === 'Absent').length;
+                            const holiday = termAttendance.filter(r => r.status === 'Holiday').length;
+                            const workingDays = totalDays - holiday;
                             const percentage = workingDays > 0 ? ((present / workingDays) * 100).toFixed(1) : '0.0';
 
                             return (
@@ -677,6 +692,7 @@ const StudentAttendanceDashboard = () => {
                                     <TableCell align="center">{workingDays}</TableCell>
                                     <TableCell align="center">{present}</TableCell>
                                     <TableCell align="center">{absent}</TableCell>
+                                    <TableCell align="center">{holiday}</TableCell>
                                     <TableCell align="center">{percentage}%</TableCell>
                                 </TableRow>
                             );
