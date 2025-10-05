@@ -62,7 +62,7 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/teacher/classes") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary="Classes" />
+                    <ListItemText primary={t('menu_classes')} />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/timetable">
                     <ListItemIcon>
@@ -70,7 +70,7 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/teacher/timetable") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary="Timetable" />
+                    <ListItemText primary={t('menu_timetable')} />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/notices">
                     <ListItemIcon>
@@ -79,7 +79,7 @@ const TeacherSideBar = () => {
                         />
                     </ListItemIcon>
                     <Badge badgeContent={unreadNoticesCount} color="error" max={99}>
-                        <ListItemText primary="Notices" />
+                        <ListItemText primary={t('menu_notices')} />
                     </Badge>
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/complain">

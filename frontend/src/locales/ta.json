@@ -93,5 +93,14 @@
   "menu_complain": "புகார்",
   "menu_upload_assignments": "பணிகளை பதிவேற்றவும்",
   "menu_class_label": "வகுப்பு {{name}}",
+  "menu_home": "முகப்பு",
+  "menu_subjects": "பாடங்கள்",
+  "menu_classes": "வகுப்புகள்",
+  "menu_notices": "விவரங்கள்",
+  "menu_term_report": "செமஸ்டர் அறிக்கை",
+  "menu_user": "பயனர்",
+  "menu_profile": "சுயவிவரம்",
+  "menu_logout": "வெளியேறு",
+  "menu_grades": "தரநிலைகள்",
   "menu_timetable": "நேர அட்டவணை"
 }

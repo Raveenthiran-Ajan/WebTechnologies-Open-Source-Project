@@ -93,5 +93,14 @@
   "menu_complain": "පැමිණිල්ල",
   "menu_upload_assignments": "පැවරුම් උඩුගත කරන්න",
   "menu_class_label": "පන්ති {{name}}",
-  "menu_timetable": "කාලසටහන"
+  "menu_home": "මුල් පිටුව",
+  "menu_subjects": "විෂයයන්",
+  "menu_classes": "පන්ති",
+  "menu_notices": "දැන්වීම්",
+  "menu_term_report": "සමාපන වාර්තාව",
+  "menu_user": "පරිශීලක",
+  "menu_profile": "පැතිකඩ",
+  "menu_logout": "පිටවන්න",
+  "menu_grades": "ශ්‍රේණි",
+  "menu_timetable": "නියමිත කාලසටහන"
 }

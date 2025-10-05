@@ -112,7 +112,7 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <AssignmentIcon />
                     </ListItemIcon>
-                    <ListItemText primary={'Term Report'} />
+                    <ListItemText primary={t('menu_term_report')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -124,7 +124,7 @@ const StudentSideBar = () => {
                         <NotificationsIcon />
                     </ListItemIcon>
                     <Badge badgeContent={unreadNoticesCount} color="error" max={99}>
-                        <ListItemText primary="Notices" />
+                        <ListItemText primary={t('menu_notices')} />
                     </Badge>
                 </ListItemButton>
                 <ListItemButton 
