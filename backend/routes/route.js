@@ -21,10 +21,12 @@ const {
     deleteStudentsByClass,
     updateExamResult,
     clearAllStudentsAttendanceBySubject,
+    addTermMarks,
     clearAllStudentsAttendance,
     removeStudentAttendanceBySubject,
     removeStudentAttendance,
-    changePassword: studentChangePassword
+    changePassword: studentChangePassword,
+    getStudentTermReport
 } = require('../controllers/student_controller.js');
 const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects } = require('../controllers/subject-controller.js');
 const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, assignMultipleSubjects, testTeacherAssignment, teacherAttendance, changePassword: teacherChangePassword } = require('../controllers/teacher-controller.js');
@@ -103,6 +105,7 @@ router.delete("/StudentsClass/:id", deleteStudentsByClass)
 router.delete("/Student/:id", deleteStudent)
 router.put("/Student/:id", updateStudent)
 router.put('/UpdateExamResult/:id', updateExamResult)
+router.post('/Students/addTermMarks/:id', addTermMarks);
 router.put('/StudentAttendance/:id', studentAttendance)
 router.put('/TermAttendance/:id', termAttendance)
 router.put('/RemoveAllStudentsSubAtten/:id', clearAllStudentsAttendanceBySubject);
@@ -110,6 +113,7 @@ router.put('/RemoveAllStudentsAtten/:id', clearAllStudentsAttendance);
 router.put('/RemoveStudentSubAtten/:id', removeStudentAttendanceBySubject);
 router.put('/RemoveStudentAtten/:id', removeStudentAttendance)
 router.put("/Student/password/:id", studentChangePassword)
+router.get('/Student/termReport/:id', getStudentTermReport);
 
 // Teacher
 router.post('/TeacherReg', teacherRegister);
@@ -185,4 +189,3 @@ router.delete("/submissions/:submissionId", require("../controllers/submission-c
 router.put("/submissions/:submissionId/marking", require("../controllers/submission-controller").updateSubmissionMarking);
 
 module.exports = router;
-
