@@ -10,6 +10,8 @@ import {
     Button, 
     Chip
 } from '@mui/material';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -18,9 +20,6 @@ import {
     GridToolbarDensitySelector,
     GridToolbarExport
 } from '@mui/x-data-grid';
-import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 
 const TeacherClasses = () => {
     const navigate = useNavigate();
@@ -39,14 +38,11 @@ const TeacherClasses = () => {
     // Use teacherDetails if available, otherwise fall back to currentUser
     const teacherData = teacherDetails || currentUser;
     
-
+    // Teaching sections (multiple) - get from teachSections array
+    const teachingSections = teacherData?.teachSections || [];
     
-    // Teaching classes (multiple) - get from teachSclasses array or fallback to single teachSclass
-    const teachingClasses = teacherData?.teachSclasses || 
-        (teacherData?.teachSclass ? [teacherData.teachSclass] : []);
-    
-    // Attendance assigned class (single) - only use attendanceClass, no fallback
-    const attendanceClass = teacherData?.attendanceClass;
+    // Attendance sections (multiple) - get from attendanceSections array
+    const attendanceSections = teacherData?.attendanceSections || [];
 
     const CustomToolbar = () => {
         return (
@@ -62,41 +58,76 @@ const TeacherClasses = () => {
     const columns = [
         {
             field: 'className',
-            headerName: 'Class Name',
-            width: 200,
+            headerName: 'Class',
+            width: 150,
             flex: 1,
             renderCell: (params) => (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <ClassOutlinedIcon color="primary" />
-                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                        {params.value}
-                    </Typography>
-                </Box>
-            ),
+                <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                    {params.value}
+                </Typography>
+            )
+        },
+        {
+            field: 'sectionName',
+            headerName: 'Section',
+            width: 150,
+            flex: 1,
+            renderCell: (params) => (
+                <Typography variant="body2">
+                    {params.value}
+                </Typography>
+            )
         },
         {
             field: 'subject',
-            headerName: 'Subject',
-            width: 180,
+            headerName: 'Subjects',
+            width: 200,
             flex: 1,
+            renderCell: (params) => (
+                <Typography variant="body2">
+                    {params.value}
+                </Typography>
+            )
         },
         {
             field: 'role',
             headerName: 'Role',
-            width: 200,
+            width: 220,
             headerAlign: 'center',
             align: 'center',
             renderCell: (params) => {
-                const isAttendanceClass = params.row.canTakeAttendance;
+                const role = params.value || 'teaching'; // Fallback to 'teaching' if role is undefined
+                const getRoleLabel = (role) => {
+                    switch (role) {
+                        case 'teaching+attendance':
+                            return 'Teaching + Attendance';
+                        case 'teaching':
+                            return 'Teaching Only';
+                        default:
+                            return 'Unknown';
+                    }
+                };
+
+                const getRoleColor = (role) => {
+                    switch (role) {
+                        case 'teaching+attendance':
+                            return 'success';
+                        case 'teaching':
+                            return 'primary';
+                        default:
+                            return 'default';
+                    }
+                };
+
                 return (
                     <Chip
-                        label={isAttendanceClass ? 'Teaching + Attendance' : 'Teaching Only'}
-                        color={isAttendanceClass ? 'primary' : 'default'}
-                        variant={isAttendanceClass ? 'filled' : 'outlined'}
+                        label={getRoleLabel(role)}
+                        color={getRoleColor(role)}
+                        variant="outlined"
                         size="small"
                     />
                 );
-            },
+            }
         },
         {
             field: 'actions',
@@ -106,68 +137,100 @@ const TeacherClasses = () => {
             align: 'center',
             sortable: false,
             renderCell: (params) => (
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: 'center' }}>
                     <Button
-                        variant="contained"
+                        variant="outlined"
                         size="small"
                         startIcon={<VisibilityIcon />}
-                        onClick={() => navigate(`/teacher/class/${params.row.id}`)}
+                        onClick={() => navigate(`/Teacher/class/${params.row.sclassId}`)}
                         sx={{ textTransform: 'none' }}
                     >
-                        VIEW
+                        View
                     </Button>
-                    {params.row.canTakeAttendance && (
+                    {params.row.hasAttendance && (
                         <Button
                             variant="outlined"
                             size="small"
                             color="primary"
-                            startIcon={<AccessTimeIcon />}
-                            onClick={() => navigate(`/teacher/class/${params.row.id}/attendance`)}
-                            sx={{ textTransform: 'none' }}
+                            startIcon={<EventAvailableIcon />}
+                            onClick={() => navigate(`/Teacher/class/${params.row.sclassId}/attendance`)}
+                            sx={{ textTransform: 'none', minWidth: '100px' }}
                         >
                             Attendance
                         </Button>
                     )}
                 </Box>
-            ),
-        },
-    ];
+            )
+        }
+    ];    // Process sections to determine combined roles
+    const sectionMap = new Map();
+    
+    // First, add all teaching sections
+    teachingSections.forEach(section => {
+        const sclassId = typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName;
+        const sectionId = section.sectionId;
+        const key = `${sclassId}-${sectionId}`;
+        sectionMap.set(key, { 
+            ...section, 
+            hasTeaching: true, 
+            hasAttendance: false,
+            role: 'teaching'
+        });
+    });
+    
+    // Then, update sections that also have attendance responsibility
+    attendanceSections.forEach(section => {
+        const sclassId = typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName;
+        const sectionId = section.sectionId;
+        const key = `${sclassId}-${sectionId}`;
+        if (sectionMap.has(key)) {
+            // Section exists in teaching, now also has attendance
+            sectionMap.set(key, { 
+                ...sectionMap.get(key), 
+                hasAttendance: true,
+                role: 'teaching+attendance'
+            });
+        }
+        // Note: No attendance-only sections since system doesn't support attendance-only teachers
+    });
+    
+    const processedSections = Array.from(sectionMap.values());
 
-    const rows = teachingClasses.map((sclass, index) => {
-        // Check if this specific class ID matches the attendance class ID
-        const classId = sclass._id || sclass;
-        const isAttendanceClass = attendanceClass && 
-            (attendanceClass._id === classId || attendanceClass === classId);
-        
-        // Handle different data structures for class name
-        let className;
-        if (typeof sclass === 'object' && sclass.sclassName) {
-            className = sclass.sclassName;
-        } else if (typeof sclass === 'string') {
-            // If it's a string (ID), find the corresponding class name
-            const classInfo = sclassesList?.find(c => c._id === sclass);
-            if (classInfo) {
-                className = classInfo.sclassName;
-            } else {
-                // Fallback for when we can't find the class name
-                className = sclass.length > 10 ? `Class (${sclass.slice(-4)})` : sclass;
+    const rows = processedSections.map((section) => {
+        // Get the class name from the section's sclassName reference
+        // Handle both populated object and ID cases
+        let className = 'Unknown Class';
+        if (section.sclassName) {
+            if (typeof section.sclassName === 'object' && section.sclassName.sclassName) {
+                // Already populated
+                className = section.sclassName.sclassName;
+            } else if (typeof section.sclassName === 'string') {
+                // ID reference, find in sclassesList
+                const classInfo = sclassesList?.find(c => c._id === section.sclassName);
+                if (classInfo) {
+                    className = classInfo.sclassName;
+                }
             }
-        } else {
-            className = sclass?.name || sclass || `Class ${index + 1}`;
         }
         
-        // Handle different data structures for subject
-        const subject = teacherData?.teachSubject?.subName || 
-                       teacherData?.teachSubjects?.[0]?.subName || 
-                       'N/A';
-        
-
+        // Show subjects in a cleaner format - limit to 2 subjects with "more" indicator
+        const allSubjects = teacherData?.teachSubjects || [];
+        const subjectDisplay = allSubjects.length > 0 
+            ? allSubjects.length <= 2 
+                ? allSubjects.map(s => s.subName).join(', ')
+                : `${allSubjects.slice(0, 2).map(s => s.subName).join(', ')} +${allSubjects.length - 2} more`
+            : 'N/A';
         
         return {
-            id: sclass._id || `class-${index}`,
+            id: `${typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName}-${section.sectionId}`,
+            sectionName: section.sectionName,
             className: className,
-            subject: subject,
-            canTakeAttendance: isAttendanceClass,
+            subject: subjectDisplay,
+            role: section.role || 'teaching', // Ensure role is always defined
+            sclassId: typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName,
+            sectionId: section.sectionId,
+            hasTeaching: section.hasTeaching,
+            hasAttendance: section.hasAttendance,
         };
     });
 
@@ -226,7 +289,7 @@ const TeacherClasses = () => {
                             },
                         }}
                         localeText={{
-                            noRowsLabel: 'No classes assigned yet.',
+                            noRowsLabel: 'No sections assigned yet.',
                         }}
                     />
                 </Box>
@@ -234,9 +297,9 @@ const TeacherClasses = () => {
                 {/* Summary Information */}
                 <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                     <Typography variant="body2" color="text.secondary" align="center">
-                        Total Classes: {teachingClasses.length} | 
-                        Attendance Responsibility: {teachingClasses.filter(c => attendanceClass && c._id === attendanceClass._id).length} | 
-                        Teaching Only: {teachingClasses.filter(c => !attendanceClass || c._id !== attendanceClass._id).length}
+                        Total Sections: {processedSections.length} | 
+                        Teaching + Attendance: {processedSections.filter(s => s.role === 'teaching+attendance').length} | 
+                        Teaching Only: {processedSections.filter(s => s.role === 'teaching').length}
                     </Typography>
                 </Box>
             </Box>

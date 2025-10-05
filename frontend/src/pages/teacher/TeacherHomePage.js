@@ -7,6 +7,7 @@ import Lessons from "../../assets/subjects.svg";
 import Tests from "../../assets/assignment.svg";
 import Time from "../../assets/time.svg";
 import { getClassStudents, getSubjectDetails, getAllSclasses } from '../../redux/sclassRelated/sclassHandle';
+import { getTeacherDetails } from '../../redux/teacherRelated/teacherHandle';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import TeacherTimetable from './TeacherTimetable';
@@ -17,19 +18,31 @@ const TeacherHomePage = () => {
 
     const { currentUser } = useSelector((state) => state.user);
     const { subjectDetails, sclassStudents, sclassesList } = useSelector((state) => state.sclass);
+    const { teacherDetails } = useSelector((state) => state.teacher);
 
-    const classID = currentUser.teachSclass?._id
-    const subjectID = currentUser.teachSubject?._id
+    // Use teacherDetails if available, otherwise fall back to currentUser
+    const teacherData = teacherDetails || currentUser;
+
+    // Get teaching sections (multiple sections)
+    const teachingSections = teacherData?.teachSections || [];
+    
+    // Get attendance sections (multiple sections, subset of teaching sections)
+    const attendanceSections = teacherData?.attendanceSections || [];
 
     useEffect(() => {
-        dispatch(getSubjectDetails(subjectID, "Subject"));
-        dispatch(getClassStudents(classID));
-        // Fetch all classes to get proper class names
-        dispatch(getAllSclasses(currentUser._id, "Sclass"));
-    }, [dispatch, subjectID, classID, currentUser._id]);
+        // Fetch teacher details to get section information
+        if (currentUser?._id) {
+            dispatch(getTeacherDetails(currentUser._id));
+            // Fetch all classes to get proper class names for sections
+            dispatch(getAllSclasses(currentUser._id, "Sclass"));
+        }
+    }, [dispatch, currentUser?._id]);
 
-    const numberOfStudents = sclassStudents ? sclassStudents.length : 0;
-    const numberOfSessions = subjectDetails ? (subjectDetails.sessions || 0) : 0;
+    // Calculate totals from sections
+    const totalTeachingSections = teachingSections.length;
+    const totalAttendanceSections = attendanceSections.length;
+    const totalSubjects = teacherData?.teachSubjects?.length || 0;
+    const totalUniqueClasses = new Set([...teachingSections, ...attendanceSections].map(s => s.sclassName)).size;
 
     const { t } = useTranslation();
     return (
@@ -48,42 +61,68 @@ const TeacherHomePage = () => {
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3, mt: 2 }}>
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Teaching Classes
+                                Teaching Sections
                             </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                                {(() => {
-                                    const teachingClasses = currentUser?.teachSclasses || 
-                                        (currentUser?.teachSclass ? [currentUser.teachSclass] : []);
-                                    
-                                    if (teachingClasses.length === 0) return 'Not Assigned';
-                                    
-                                    return teachingClasses.map(cls => {
-                                        // Handle different data structures
-                                        if (typeof cls === 'object' && cls.sclassName) {
-                                            return cls.sclassName;
-                                        } else if (typeof cls === 'string') {
-                                            // If it's a string (ID), find the corresponding class name
-                                            const classInfo = sclassesList?.find(c => c._id === cls);
-                                            if (classInfo) {
-                                                return classInfo.sclassName;
+                            <Box sx={{ mt: 1 }}>
+                                {teachingSections.length > 0 ? (
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                        {teachingSections.slice(0, 3).map((section, index) => {
+                                            // Handle both populated object and ID cases for class name
+                                            let classDisplayName = 'Unknown';
+                                            if (section.sclassName) {
+                                                if (typeof section.sclassName === 'object' && section.sclassName.sclassName) {
+                                                    classDisplayName = section.sclassName.sclassName;
+                                                } else if (typeof section.sclassName === 'string') {
+                                                    const classInfo = sclassesList?.find(c => c._id === section.sclassName);
+                                                    if (classInfo) {
+                                                        classDisplayName = classInfo.sclassName;
+                                                    }
+                                                }
                                             }
-                                            // If we can't find it in the list, try to extract a readable name from ID
-                                            // This is a fallback - you might want to show just the last few characters
-                                            return cls.length > 10 ? `Class (${cls.slice(-4)})` : cls;
-                                        }
-                                        return cls;
-                                    }).join(', ');
-                                })()}
-                            </Typography>
+                                            return (
+                                                <Typography key={index} variant="body2" sx={{ fontWeight: 'medium' }}>
+                                                    • {section.sectionName} ({classDisplayName})
+                                                </Typography>
+                                            );
+                                        })}
+                                        {teachingSections.length > 3 && (
+                                            <Typography variant="body2" color="text.secondary">
+                                                +{teachingSections.length - 3} more sections
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                ) : (
+                                    <Typography variant="body2" color="text.secondary">
+                                        No sections assigned
+                                    </Typography>
+                                )}
+                            </Box>
                         </Box>
                         
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Teaching Subject
+                                Teaching Subjects
                             </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                                {currentUser?.teachSubject?.subName || currentUser?.teachSubjects?.[0]?.subName || 'Not Assigned'}
-                            </Typography>
+                            <Box sx={{ mt: 1 }}>
+                                {teacherData?.teachSubjects?.length > 0 ? (
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                        {teacherData.teachSubjects.slice(0, 3).map((subject, index) => (
+                                            <Typography key={index} variant="body2" sx={{ fontWeight: 'medium' }}>
+                                                • {subject.subName}
+                                            </Typography>
+                                        ))}
+                                        {teacherData.teachSubjects.length > 3 && (
+                                            <Typography variant="body2" color="text.secondary">
+                                                +{teacherData.teachSubjects.length - 3} more subjects
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                ) : (
+                                    <Typography variant="body2" color="text.secondary">
+                                        No subjects assigned
+                                    </Typography>
+                                )}
+                            </Box>
                         </Box>
                         
                         <Box>
@@ -97,34 +136,42 @@ const TeacherHomePage = () => {
                         
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Attendance Class
+                                Attendance Sections
                             </Typography>
-                            <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                                {(() => {
-                                    const attendanceClass = currentUser?.attendanceClass;
-                                    if (!attendanceClass) return 'Not Assigned';
-                                    
-                                    // If it's an object with sclassName, use it
-                                    if (typeof attendanceClass === 'object' && attendanceClass.sclassName) {
-                                        return attendanceClass.sclassName;
-                                    }
-                                    
-                                    // If it's a string (ID), find the corresponding class name
-                                    if (typeof attendanceClass === 'string') {
-                                        const classInfo = sclassesList?.find(c => c._id === attendanceClass);
-                                        if (classInfo) {
-                                            return classInfo.sclassName;
-                                        }
-                                        // If we can't find it, show a readable fallback
-                                        return attendanceClass.length > 10 ? `Class (${attendanceClass.slice(-4)})` : attendanceClass;
-                                    }
-                                    
-                                    return attendanceClass._id ? (
-                                        sclassesList?.find(c => c._id === attendanceClass._id)?.sclassName || 
-                                        `Class (${attendanceClass._id.slice(-4)})`
-                                    ) : 'Not Assigned';
-                                })()}
-                            </Typography>
+                            <Box sx={{ mt: 1 }}>
+                                {attendanceSections.length > 0 ? (
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                        {attendanceSections.slice(0, 3).map((section, index) => {
+                                            // Handle both populated object and ID cases for class name
+                                            let classDisplayName = 'Unknown';
+                                            if (section.sclassName) {
+                                                if (typeof section.sclassName === 'object' && section.sclassName.sclassName) {
+                                                    classDisplayName = section.sclassName.sclassName;
+                                                } else if (typeof section.sclassName === 'string') {
+                                                    const classInfo = sclassesList?.find(c => c._id === section.sclassName);
+                                                    if (classInfo) {
+                                                        classDisplayName = classInfo.sclassName;
+                                                    }
+                                                }
+                                            }
+                                            return (
+                                                <Typography key={index} variant="body2" sx={{ fontWeight: 'medium' }}>
+                                                    • {section.sectionName} ({classDisplayName})
+                                                </Typography>
+                                            );
+                                        })}
+                                        {attendanceSections.length > 3 && (
+                                            <Typography variant="body2" color="text.secondary">
+                                                +{attendanceSections.length - 3} more sections
+                                            </Typography>
+                                        )}
+                                    </Box>
+                                ) : (
+                                    <Typography variant="body2" color="text.secondary">
+                                        No attendance sections assigned
+                                    </Typography>
+                                )}
+                            </Box>
                         </Box>
                     </Box>
                 </Box>
@@ -133,44 +180,44 @@ const TeacherHomePage = () => {
             {/* Statistics Section */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom color="text.secondary">
-                    Class Statistics
+                    Teaching Statistics
                 </Typography>
                 
                 <Grid container spacing={3} sx={{ mt: 1 }}>
                     <Grid item xs={12} md={3}>
                         <StyledPaper>
-                            <img src={Students} alt="Students" />
+                            <img src={Students} alt="Sections" />
                             <Title>
-                                {t('class_students')}
+                                Teaching Sections
                             </Title>
-                            <Data><CountUp key={numberOfStudents} start={0} end={numberOfStudents} duration={2.5} /></Data>
+                            <Data><CountUp key={totalTeachingSections} start={0} end={totalTeachingSections} duration={2.5} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3}>
                         <StyledPaper>
-                            <img src={Lessons} alt="Lessons" />
+                            <img src={Lessons} alt="Attendance" />
                             <Title>
-                                {t('total_lessons')}
+                                Attendance Sections
                             </Title>
-                            <Data><CountUp key={numberOfSessions} start={0} end={numberOfSessions} duration={5} /></Data>
+                            <Data><CountUp key={totalAttendanceSections} start={0} end={totalAttendanceSections} duration={2.5} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3}>
                         <StyledPaper>
-                            <img src={Tests} alt="Tests" />
+                            <img src={Tests} alt="Subjects" />
                             <Title>
-                                {t('tests_taken')}
+                                Total Subjects
                             </Title>
-                            <Data><CountUp key="tests" start={0} end={24} duration={4} /></Data>
+                            <Data><CountUp key={totalSubjects} start={0} end={totalSubjects} duration={2.5} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3}>
                         <StyledPaper>
-                            <img src={Time} alt="Time" />
+                            <img src={Time} alt="Classes" />
                             <Title>
-                                {t('total_hours')}
+                                Total Classes
                             </Title>
-                            <Data><CountUp key="hours" start={0} end={30} duration={4} suffix={t('hours_suffix')} /></Data>
+                            <Data><CountUp key={totalTeachingSections} start={0} end={totalUniqueClasses} duration={2.5} /></Data>
                         </StyledPaper>
                     </Grid>
                 </Grid>
@@ -185,16 +232,16 @@ const TeacherHomePage = () => {
                     <Button 
                         variant="contained" 
                         color="primary"
-                        onClick={() => window.location.href = `/Teacher/class/${classID}/attendance`}
-                        disabled={!classID}
+                        onClick={() => attendanceSections.length > 0 ? window.location.href = `/Teacher/class/${attendanceSections[0].sclassName}/attendance` : null}
+                        disabled={attendanceSections.length === 0}
                     >
                         Take Attendance
                     </Button>
                     <Button 
                         variant="contained" 
                         color="secondary"
-                        onClick={() => window.location.href = `/Teacher/class/${classID}`}
-                        disabled={!classID}
+                        onClick={() => teachingSections.length > 0 ? window.location.href = `/Teacher/class/${teachingSections[0].sclassName}` : null}
+                        disabled={teachingSections.length === 0}
                     >
                         View Class Details
                     </Button>
