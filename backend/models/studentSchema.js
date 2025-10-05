@@ -37,6 +37,15 @@ const studentSchema = new mongoose.Schema({
             marksObtained: {
                 type: Number,
                 default: 0
+            },
+            grade: {
+                type: String,
+                required: false
+            },
+            term: {
+                type: String,
+                enum: ['TERM_1', 'TERM_2', 'TERM_3'],
+                required: false
             }
         }
     ],
