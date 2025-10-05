@@ -11,10 +11,6 @@ import Edit from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-import ListItemIcon from '@mui/material/ListItemIcon';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -33,7 +29,6 @@ const ShowTeachers = () => {
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
-    const [anchorEl, setAnchorEl] = useState({});
     const [view, setView] = useState('list');
 
     useEffect(() => {
@@ -44,14 +39,6 @@ const ShowTeachers = () => {
         dispatch(deleteUser(id, address)).then(() => {
             dispatch(getAllTeachers(currentUser._id));
         });
-    };
-
-    const handleMenuOpen = (event, id) => {
-        setAnchorEl({ ...anchorEl, [id]: event.currentTarget });
-    };
-
-    const handleMenuClose = (id) => {
-        setAnchorEl({ ...anchorEl, [id]: null });
     };
 
     const handleViewChange = (event, newView) => {
@@ -165,8 +152,8 @@ const ShowTeachers = () => {
                         {sections && sections.length > 0 ? (
                             sections.map((section, index) => (
                                 <Chip 
-                                    key={index} 
-                                    label={section} 
+                                    key={section.sectionId || index} 
+                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
                                     size="small" 
                                     color="info" 
                                     variant="outlined"
@@ -199,8 +186,8 @@ const ShowTeachers = () => {
                         {sections && sections.length > 0 ? (
                             sections.map((section, index) => (
                                 <Chip 
-                                    key={index} 
-                                    label={section} 
+                                    key={section.sectionId || index} 
+                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
                                     size="small" 
                                     color="success" 
                                     variant="filled"
@@ -221,11 +208,11 @@ const ShowTeachers = () => {
             headerName: 'Actions',
             flex: 1.2, headerAlign: 'center', align: 'center',
             renderCell: (params) => {
-                const isMenuOpen = Boolean(anchorEl[params.row.id]);
                 return (
                     <Box>
                         <IconButton
                             onClick={() => deleteHandler(params.row.id, "Teacher")}
+                            title="Delete Teacher"
                         >
                             <Delete color="error" />
                         </IconButton>
@@ -233,27 +220,17 @@ const ShowTeachers = () => {
                             size="small"
                             variant="outlined"
                             startIcon={<VisibilityIcon />}
-                            onClick={() => navigate(`/Admin/teachers/teacher/${params.row.id}`)}>
+                            onClick={() => navigate(`/Admin/teachers/teacher/${params.row.id}`)}
+                            sx={{ mx: 1 }}
+                        >
                             View
                         </Button>
                         <IconButton
-                            onClick={(e) => handleMenuOpen(e, params.row.id)}
+                            onClick={() => navigate(`/Admin/teachers/edit-assignments/${params.row.id}`)}
+                            title="Edit Assignments"
                         >
-                            <MoreVertIcon />
+                            <Edit color="primary" />
                         </IconButton>
-                        <Menu
-                            anchorEl={anchorEl[params.row.id]}
-                            open={isMenuOpen}
-                            onClose={() => handleMenuClose(params.row.id)}
-                        >
-                            <MenuItem onClick={() => {
-                                navigate(`/Admin/teachers/edit-assignments/${params.row.id}`);
-                                handleMenuClose(params.row.id);
-                            }}>
-                                <ListItemIcon><Edit /></ListItemIcon>
-                                Edit Assignments
-                            </MenuItem>
-                        </Menu>
                     </Box>
                 );
             },
@@ -312,7 +289,6 @@ const ShowTeachers = () => {
     const TeacherBoxes = () => (
         <Grid container spacing={3} sx={{ p: 2 }}>
             {teachersList.map((teacher) => {
-                const isMenuOpen = Boolean(anchorEl[teacher._id]);
                 const row = rows.find(r => r.id === teacher._id);
                 return (
                     <Grid item xs={12} sm={6} md={4} key={teacher._id}>
@@ -346,8 +322,8 @@ const ShowTeachers = () => {
                                             <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>Teaching:</Typography>
                                             {row.teachSections.slice(0, 3).map((section, index) => (
                                                 <Chip
-                                                    key={index}
-                                                    label={section}
+                                                    key={section.sectionId || index}
+                                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`}
                                                     size="small"
                                                     color="info"
                                                     variant="outlined"
@@ -366,8 +342,8 @@ const ShowTeachers = () => {
                                             <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>Attendance:</Typography>
                                             {row.attendanceSections.slice(0, 3).map((section, index) => (
                                                 <Chip
-                                                    key={index}
-                                                    label={section}
+                                                    key={section.sectionId || index}
+                                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`}
                                                     size="small"
                                                     color="success"
                                                     variant="filled"
@@ -388,25 +364,9 @@ const ShowTeachers = () => {
                                 <IconButton size="small" onClick={() => navigate(`/Admin/teachers/edit-assignments/${teacher._id}`)} title="Edit Assignments">
                                     <Edit />
                                 </IconButton>
-                                <IconButton size="small" onClick={() => deleteHandler(teacher._id, "Teacher")} color="error">
+                                <IconButton size="small" onClick={() => deleteHandler(teacher._id, "Teacher")} color="error" title="Delete Teacher">
                                     <Delete />
                                 </IconButton>
-                                <IconButton size="small" onClick={(e) => handleMenuOpen(e, teacher._id)}>
-                                    <MoreVertIcon />
-                                </IconButton>
-                                <Menu
-                                    anchorEl={anchorEl[teacher._id]}
-                                    open={isMenuOpen}
-                                    onClose={() => handleMenuClose(teacher._id)}
-                                >
-                                    <MenuItem onClick={() => {
-                                        navigate(`/Admin/teachers/edit-assignments/${teacher._id}`);
-                                        handleMenuClose(teacher._id);
-                                    }}>
-                                        <ListItemIcon><Edit /></ListItemIcon>
-                                        Edit Assignments
-                                    </MenuItem>
-                                </Menu>
                             </CardActions>
                         </Card>
                     </Grid>

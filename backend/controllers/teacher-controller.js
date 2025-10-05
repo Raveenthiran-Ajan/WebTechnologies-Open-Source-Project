@@ -11,10 +11,47 @@ const teacherRegister = async (req, res) => {
         // Check for existing attendance responsibility in the same sections
         if (attendanceSections && attendanceSections.length > 0) {
             const existingAttendanceTeacher = await Teacher.findOne({
-                attendanceSections: { $in: attendanceSections }
+                "attendanceSections.sectionId": { $in: attendanceSections }
             });
             if (existingAttendanceTeacher) {
                 return res.send({ message: 'Another teacher is already assigned for attendance in one or more of these sections' });
+            }
+        }
+
+        // Convert section IDs to proper objects
+        const Sclass = require('../models/sclassSchema.js');
+        const teachingSectionDetails = [];
+        const attendanceSectionDetails = [];
+
+        if (teachSections && teachSections.length > 0) {
+            for (const sectionId of teachSections) {
+                const section = await Sclass.findOne(
+                    { "sections._id": sectionId },
+                    { "sections.$": 1, sclassName: 1 }
+                );
+                if (section && section.sections && section.sections.length > 0) {
+                    teachingSectionDetails.push({
+                        sectionId: sectionId,
+                        sectionName: section.sections[0].sectionName,
+                        sclassName: section._id
+                    });
+                }
+            }
+        }
+
+        if (attendanceSections && attendanceSections.length > 0) {
+            for (const sectionId of attendanceSections) {
+                const section = await Sclass.findOne(
+                    { "sections._id": sectionId },
+                    { "sections.$": 1, sclassName: 1 }
+                );
+                if (section && section.sections && section.sections.length > 0) {
+                    attendanceSectionDetails.push({
+                        sectionId: sectionId,
+                        sectionName: section.sections[0].sectionName,
+                        sclassName: section._id
+                    });
+                }
             }
         }
 
@@ -26,8 +63,8 @@ const teacherRegister = async (req, res) => {
             school, 
             teachSubject, 
             teachSclass,
-            teachSections,
-            attendanceSections
+            teachSections: teachingSectionDetails,
+            attendanceSections: attendanceSectionDetails
         };
         console.log('Saving teacher with data:', teacherData);
 
@@ -77,7 +114,9 @@ const getTeachers = async (req, res) => {
             .populate("teachSubject", "subName")
             .populate("teachSclass", "sclassName")
             .populate("teachSubjects", "subName")
-            .populate("teachSclasses", "sclassName");
+            .populate("teachSclasses", "sclassName")
+            .populate("teachSections.sclassName", "sclassName")
+            .populate("attendanceSections.sclassName", "sclassName");
         console.log('Teachers found:', teachers.length);
         teachers.forEach((teacher, index) => {
             console.log(`Teacher ${index}: ${teacher.name}, teachSections:`, teacher.teachSections, 'attendanceSections:', teacher.attendanceSections);
@@ -112,6 +151,8 @@ const getTeacherDetail = async (req, res) => {
             })
             .populate("teachSclasses", "sclassName")
             .populate("attendanceClass", "sclassName")
+            .populate("teachSections.sclassName", "sclassName")
+            .populate("attendanceSections.sclassName", "sclassName")
 
         if (teacher) {
             const teacherDoc = teacher.toObject();
@@ -290,6 +331,135 @@ const assignMultipleSubjects = async (req, res) => {
         res.send(updatedTeacher);
     } catch (error) {
         console.error('Error assigning multiple subjects:', error);
+        res.status(500).json(error);
+    }
+};
+
+const updateTeacherAssignments = async (req, res) => {
+    const { teacherId, subjectIds, teachSections, attendanceSections, selectedClass } = req.body;
+    try {
+        console.log('=== UPDATE TEACHER ASSIGNMENTS ===');
+        console.log('Teacher ID:', teacherId);
+        console.log('Subject IDs:', subjectIds);
+        console.log('Teaching Sections:', teachSections);
+        console.log('Attendance Sections:', attendanceSections);
+        console.log('Selected Class:', selectedClass);
+
+        const teacher = await Teacher.findById(teacherId);
+        if (!teacher) {
+            return res.status(404).json({ message: "Teacher not found" });
+        }
+
+        // Get all subjects to validate they belong to the selected class
+        const subjects = await Subject.find({ _id: { $in: subjectIds } }).populate('sclassName');
+        if (subjects.length === 0) {
+            return res.status(404).json({ message: "No subjects found" });
+        }
+
+        // Validate that all subjects belong to the selected class
+        const invalidSubjects = subjects.filter(subject => subject.sclassName._id.toString() !== selectedClass);
+        if (invalidSubjects.length > 0) {
+            return res.status(400).json({
+                message: "All subjects must belong to the selected class"
+            });
+        }
+
+        console.log('Found subjects:', subjects.map(s => ({ name: s.subName, class: s.sclassName.sclassName })));
+
+        // Validate that attendance sections are subset of teaching sections (only if attendance sections are provided)
+        if (attendanceSections && attendanceSections.length > 0) {
+            const invalidSections = attendanceSections.filter(sectionId => 
+                !teachSections.includes(sectionId)
+            );
+            if (invalidSections.length > 0) {
+                return res.status(400).json({
+                    message: "Attendance sections must be a subset of teaching sections"
+                });
+            }
+
+            // Check if another teacher is already assigned for attendance in the selected sections
+            const existingAttendanceTeacher = await Teacher.findOne({
+                "attendanceSections.sectionId": { $in: attendanceSections },
+                _id: { $ne: teacherId } // Exclude current teacher
+            });
+            
+            if (existingAttendanceTeacher) {
+                return res.status(400).json({
+                    message: `Another teacher is already assigned for attendance in one or more of these sections`
+                });
+            }
+        }
+
+        // Get section details for population
+        const Sclass = require('../models/sclassSchema.js');
+        const teachingSectionDetails = [];
+        const attendanceSectionDetails = [];
+
+        for (const sectionId of teachSections) {
+            const section = await Sclass.findOne(
+                { "sections._id": sectionId },
+                { "sections.$": 1, sclassName: 1 }
+            );
+            if (section && section.sections && section.sections.length > 0) {
+                teachingSectionDetails.push({
+                    sectionId: sectionId,
+                    sectionName: section.sections[0].sectionName,
+                    sclassName: section._id
+                });
+            }
+        }
+
+        for (const sectionId of (attendanceSections || [])) {
+            const section = await Sclass.findOne(
+                { "sections._id": sectionId },
+                { "sections.$": 1, sclassName: 1 }
+            );
+            if (section && section.sections && section.sections.length > 0) {
+                attendanceSectionDetails.push({
+                    sectionId: sectionId,
+                    sectionName: section.sections[0].sectionName,
+                    sclassName: section._id
+                });
+            }
+        }
+
+        // Direct update - replace all arrays
+        const updateFields = {
+            teachSubjects: subjectIds,
+            teachSclasses: [selectedClass], // Single class
+            teachSections: teachingSectionDetails,
+            attendanceSections: attendanceSectionDetails
+        };
+
+        console.log('Update fields:', updateFields);
+
+        // Update teacher with explicit field replacement
+        const updatedTeacher = await Teacher.findByIdAndUpdate(
+            teacherId,
+            updateFields,
+            { new: true, runValidators: true }
+        ).populate("teachSubjects", "subName")
+         .populate("teachSclasses", "sclassName")
+         .populate("teachSections.sclassName", "sclassName")
+         .populate("attendanceSections.sclassName", "sclassName");
+
+        // Update all subjects to reference this teacher
+        await Subject.updateMany(
+            { _id: { $in: subjectIds } },
+            { teacher: updatedTeacher._id }
+        );
+
+        console.log('Updated teacher result:', {
+            name: updatedTeacher.name,
+            teachSubjects: updatedTeacher.teachSubjects,
+            teachSclasses: updatedTeacher.teachSclasses,
+            teachSections: updatedTeacher.teachSections,
+            attendanceSections: updatedTeacher.attendanceSections
+        });
+
+        res.send(updatedTeacher);
+    } catch (error) {
+        console.error('Error updating teacher assignments:', error);
         res.status(500).json(error);
     }
 };
@@ -535,6 +705,7 @@ module.exports = {
     getTeacherDetail,
     updateTeacherSubject,
     assignMultipleSubjects,
+    updateTeacherAssignments,
     testTeacherAssignment,
     deleteTeacher,
     deleteTeachers,

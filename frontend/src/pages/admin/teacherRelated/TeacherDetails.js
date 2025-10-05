@@ -171,8 +171,8 @@ const TeacherDetails = () => {
                                         {teacherDetails?.teachSections && teacherDetails.teachSections.length > 0 ? (
                                             teacherDetails.teachSections.map((section, index) => (
                                                 <Chip 
-                                                    key={index} 
-                                                    label={section} 
+                                                    key={section.sectionId || index} 
+                                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
                                                     color="info" 
                                                     variant="outlined" 
                                                 />
@@ -183,24 +183,20 @@ const TeacherDetails = () => {
                                     </Box>
                                     
                                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                        Attendance Responsibility
+                                        Attendance Sections
                                     </Typography>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        {attendanceClass ? (
-                                            <>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
+                                        {teacherDetails?.attendanceSections && teacherDetails.attendanceSections.length > 0 ? (
+                                            teacherDetails.attendanceSections.map((section, index) => (
                                                 <Chip 
-                                                    label={attendanceClass.sclassName} 
+                                                    key={section.sectionId || index} 
+                                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
                                                     color="success" 
-                                                    variant="filled"
+                                                    variant="filled" 
                                                 />
-                                                <Typography variant="caption" sx={{ color: 'success.main' }}>
-                                                    ✓ Assigned for attendance
-                                                </Typography>
-                                            </>
+                                            ))
                                         ) : (
-                                            <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                                                Not assigned for attendance duties
-                                            </Typography>
+                                            <Typography color="text.secondary">No attendance sections assigned</Typography>
                                         )}
                                     </Box>
                                 </Box>
