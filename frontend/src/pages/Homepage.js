@@ -18,28 +18,28 @@ const Homepage = () => {
                 <Grid item xs={12} md={6}>
                     <StyledPaper elevation={3}>
                         <StyledTitle>
-                            {t('welcome')}
+                            {t('homePage.welcome')}
                         </StyledTitle>
                         <StyledText>
-                            {t('homepage_description')}
+                            {t('homePage.description')}
                         </StyledText>
                         <StyledBox>
                             <StyledLink to="/choose">
                                 <LightPurpleButton variant="contained" fullWidth>
-                                    {t('login')}
+                                    {t('homePage.login')}
                                 </LightPurpleButton>
                             </StyledLink>
                             <StyledLink to="/chooseasguest">
                                 <Button variant="outlined" fullWidth
                                     sx={{ mt: 2, mb: 3, color: "#7f56da", borderColor: "#7f56da" }}
                                 >
-                                    {t('login_guest')}
+                                    {t('homePage.loginGuest')}
                                 </Button>
                             </StyledLink>
                             <StyledText>
-                                {t('no_account')} {' '}
+                                {t('homePage.noAccount')} {' '}
                                 <Link to="/Adminregister" style={{color:"#550080"}}>
-                                    {t('signup')}
+                                    {t('homePage.signup')}
                                 </Link>
                             </StyledText>
                         </StyledBox>

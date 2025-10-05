@@ -139,10 +139,10 @@ const LoginPage = ({ role }) => {
                         }}
                     >
                         <Typography variant="h4" sx={{ mb: 2, color: "#2c2143" }}>
-                            {t('login_title', { role })}
+                            {t('loginPage.title', { role })}
                         </Typography>
                         <Typography variant="h7">
-                            {t('login_welcome')}
+                            {t('loginPage.welcome')}
                         </Typography>
                         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 2 }}>
                             {role === "Student" ? (
@@ -152,13 +152,13 @@ const LoginPage = ({ role }) => {
                                         required
                                         fullWidth
                                         id="rollNumber"
-                                        label={t('login_roll_label')}
+                                        label={t('loginPage.rollLabel')}
                                         name="rollNumber"
                                         autoComplete="off"
                                         type="number"
                                         autoFocus
                                         error={rollNumberError}
-                                        helperText={rollNumberError && t('login_roll_required')}
+                                        helperText={rollNumberError && t('loginPage.rollRequired')}
                                         onChange={handleInputChange}
                                     />
                                     <TextField
@@ -166,12 +166,12 @@ const LoginPage = ({ role }) => {
                                         required
                                         fullWidth
                                         id="studentName"
-                                        label={t('login_name_label')}
+                                        label={t('loginPage.nameLabel')}
                                         name="studentName"
                                         autoComplete="name"
                                         autoFocus
                                         error={studentNameError}
-                                        helperText={studentNameError && t('login_name_required')}
+                                        helperText={studentNameError && t('loginPage.nameRequired')}
                                         onChange={handleInputChange}
                                     />
                                 </>
@@ -181,12 +181,12 @@ const LoginPage = ({ role }) => {
                                     required
                                     fullWidth
                                     id="email"
-                                    label={t('login_email_label')}
+                                    label={t('loginPage.emailLabel')}
                                     name="email"
                                     autoComplete="email"
                                     autoFocus
                                     error={emailError}
-                                    helperText={emailError && t('login_email_required')}
+                                    helperText={emailError && t('loginPage.emailRequired')}
                                     onChange={handleInputChange}
                                 />
                             )}
@@ -195,12 +195,12 @@ const LoginPage = ({ role }) => {
                                 required
                                 fullWidth
                                 name="password"
-                                label={t('login_password_label')}
+                                label={t('loginPage.passwordLabel')}
                                 type={toggle ? 'text' : 'password'}
                                 id="password"
                                 autoComplete="current-password"
                                 error={passwordError}
-                                helperText={passwordError && t('login_password_required')}
+                                helperText={passwordError && t('loginPage.passwordRequired')}
                                 onChange={handleInputChange}
                                 InputProps={{
                                     endAdornment: (
@@ -219,10 +219,10 @@ const LoginPage = ({ role }) => {
                             <Grid container sx={{ display: "flex", justifyContent: "space-between" }}>
                                 <FormControlLabel
                                     control={<Checkbox value="remember" color="primary" />}
-                                    label={t('login_remember')}
+                                    label={t('loginPage.remember')}
                                 />
                                 <Link to={`/forgot-password/${role}`}>
-                                   {t('login_forgot')}
+                                   {t('loginPage.forgot')}
                                 </Link>
                             </Grid>
                             <LightPurpleButton
@@ -233,7 +233,7 @@ const LoginPage = ({ role }) => {
                             >
                                 {loader ?
                                     <CircularProgress size={24} color="inherit" />
-                                    : t('login')}
+                                    : t('loginPage.login')}
                             </LightPurpleButton>
                             <Button
                                 fullWidth
@@ -241,16 +241,16 @@ const LoginPage = ({ role }) => {
                                 variant="outlined"
                                 sx={{ mt: 2, mb: 3, color: "#7f56da", borderColor: "#7f56da" }}
                             >
-                                {t('login_guest')}
+                                {t('loginPage.loginGuest')}
                             </Button>
                             {role === "Admin" &&
                                 <Grid container>
                                     <Grid>
-                                        {t('no_account')}
+                                        {t('loginPage.noAccount')}
                                     </Grid>
                                     <Grid item sx={{ ml: 2 }}>
                                         <Link to="/Adminregister">
-                                            {t('signup')}
+                                            {t('loginPage.signup')}
                                         </Link>
                                     </Grid>
                                 </Grid>
@@ -278,7 +278,7 @@ const LoginPage = ({ role }) => {
                 open={guestLoader}
             >
                 <CircularProgress color="primary" />
-                {t('please_wait')}
+                Please Wait
             </Backdrop>
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </ThemeProvider>

@@ -24,9 +24,9 @@ const Logout = () => {
     return (
         <LogoutContainer>
             <h1>{currentUser.name}</h1>
-            <LogoutMessage>{t('logout_confirm')}</LogoutMessage>
-            <LogoutButtonLogout onClick={handleLogout}>{t('logout')}</LogoutButtonLogout>
-            <LogoutButtonCancel onClick={handleCancel}>{t('cancel')}</LogoutButtonCancel>
+            <LogoutMessage>{t('logout.confirm')}</LogoutMessage>
+            <LogoutButtonLogout onClick={handleLogout}>{t('logout.logout')}</LogoutButtonLogout>
+            <LogoutButtonCancel onClick={handleCancel}>{t('logout.cancel')}</LogoutButtonCancel>
         </LogoutContainer>
     );
 };

@@ -108,9 +108,9 @@ const ChooseUser = ({ visitor }) => {
                 <AccountCircle fontSize="large" />
               </Box>
               <StyledTypography>
-                {t('choose_admin')}
+                {t('chooseUser.admin')}
               </StyledTypography>
-              {t('choose_admin_desc')}
+              {t('chooseUser.adminDesc')}
             </StyledPaper>
           </Grid>
           <Grid item xs={12} sm={6} md={6}>
@@ -119,9 +119,9 @@ const ChooseUser = ({ visitor }) => {
                 <Group fontSize="large" />
               </Box>
               <StyledTypography>
-                {t('choose_teacher')}
+                {t('chooseUser.teacher')}
               </StyledTypography>
-              {t('choose_teacher_desc')}
+              {t('chooseUser.teacherDesc')}
             </StyledPaper>
           </Grid>
           <Grid item xs={12} sm={6} md={6}>
@@ -130,9 +130,9 @@ const ChooseUser = ({ visitor }) => {
                 <School fontSize="large" />
               </Box>
               <StyledTypography>
-                {t('choose_student')}
+                {t('chooseUser.student')}
               </StyledTypography>
-              {t('choose_student_desc')}
+              {t('chooseUser.studentDesc')}
               </StyledPaper>
           </Grid>
           <Grid item xs={12} sm={6} md={6}>
@@ -141,9 +141,9 @@ const ChooseUser = ({ visitor }) => {
                 <FamilyRestroom fontSize="large" />
               </Box>
               <StyledTypography>
-                {t('choose_parent')}
+                {t('chooseUser.parent')}
               </StyledTypography>
-              {t('choose_parent_desc')}
+              {t('chooseUser.parentDesc')}
             </StyledPaper>
           </Grid>
         </Grid>
@@ -153,7 +153,7 @@ const ChooseUser = ({ visitor }) => {
         open={loader}
       >
         <CircularProgress color="inherit" />
-        {t('please_wait')}
+        Please Wait
       </Backdrop>
       <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
     </StyledContainer>
