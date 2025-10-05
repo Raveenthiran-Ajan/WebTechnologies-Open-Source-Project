@@ -3,9 +3,9 @@ import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom'
 import { getClassStudents } from "../../redux/sclassRelated/sclassHandle";
-import { Paper, Box, Typography, Container, Button, Grid, Chip } from '@mui/material';
+import { Paper, Box, Typography, Container, Button, Grid } from '@mui/material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { 
+import {
     DataGrid,
     GridToolbarContainer,
     GridToolbarColumnsButton,
@@ -39,6 +39,8 @@ const TeacherClassDetails = () => {
     }, [dispatch, classID])
 
     if (error) {
+        console.log(error)
+    }    if (error) {
         console.log(error)
     }
 
@@ -112,51 +114,6 @@ const TeacherClassDetails = () => {
                 </Box>
             ) : (
                 <>
-                    {/* Class Header */}
-                    <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
-                        <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-                            Class Details
-                        </Typography>
-                        
-                        <Grid container spacing={2} sx={{ mt: 2 }}>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="h6" color="text.secondary">Class Information</Typography>
-                                <Typography variant="body1">Class ID: {classID}</Typography>
-                                <Typography variant="body1">Subject: {currentUser.teachSubject?.subName}</Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="h6" color="text.secondary">Teacher Information</Typography>
-                                <Typography variant="body1">Name: {currentUser.name}</Typography>
-                                <Typography variant="body1">Email: {currentUser.email}</Typography>
-                            </Grid>
-                        </Grid>
-                    </Box>
-
-                    {/* Attendance Access */}
-                    <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
-                        <Typography variant="h6" gutterBottom color="text.secondary">
-                            Class Actions
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', alignItems: 'center' }}>
-                            {canTakeAttendance ? (
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => navigate(`/teacher/class/${classID}/simple-attendance`)}
-                                    size="large"
-                                >
-                                    Take Daily Attendance
-                                </Button>
-                            ) : (
-                                <Chip 
-                                    label="Teaching Only - No Attendance Access" 
-                                    color="warning"
-                                    variant="outlined"
-                                />
-                            )}
-                        </Box>
-                    </Box>
-
                     {/* Students List */}
                     {getresponse ? (
                         <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, textAlign: 'center' }}>
