@@ -112,8 +112,9 @@ export const addStuff = (fields, address) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
+        const isFormData = fields instanceof FormData;
         const result = await axios.post(`${API_BASE_URL}/${address}Create`, fields, {
-            headers: { 'Content-Type': 'application/json' },
+            headers: isFormData ? {} : { 'Content-Type': 'application/json' },
         });
 
         if (result.data.message) {

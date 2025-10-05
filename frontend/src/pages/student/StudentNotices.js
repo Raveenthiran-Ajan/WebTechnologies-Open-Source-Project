@@ -39,7 +39,7 @@ import {
     GridToolbarExport
 } from '@mui/x-data-grid';
 
-const ParentNotices = () => {
+const StudentNotices = () => {
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
     const { noticesList, loading, error, response } = useSelector((state) => state.notice);
@@ -506,6 +506,4 @@ const ParentNotices = () => {
             </Dialog>
         </>
     );
-};
-
-export default ParentNotices;
+};export default StudentNotices;

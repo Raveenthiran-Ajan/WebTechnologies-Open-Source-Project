@@ -15,7 +15,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import StudentHomePage from './StudentHomePage';
 import StudentProfile from './StudentProfile';
 import StudentSubjects from './StudentSubjects';
-import ViewStdAttendance from './ViewStdAttendance';
+import StudentAttendanceDashboard from './StudentAttendanceDashboard';
 import TermAttendanceReport from './TermAttendanceReport';
 import SimpleAttendanceReport from './SimpleAttendanceReport';
 import StudentComplain from './StudentComplain';
@@ -24,6 +24,8 @@ import Logout from '../Logout'
 import AccountMenu from '../../components/AccountMenu';
 import { AppBar, Drawer } from '../../components/styles';
 import StudentGrades from './StudentGrades';
+import StudentNotices from './StudentNotices';
+import StudentTermReport from './StudentTermReport';
 
 const StudentDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -81,12 +83,14 @@ const StudentDashboard = () => {
                         <Route path="/Student/profile" element={<StudentProfile />} />
 
                         <Route path="/Student/subjects" element={<StudentSubjects />} />
-                        <Route path="/Student/attendance" element={<ViewStdAttendance />} />
+                        <Route path="/Student/attendance" element={<StudentAttendanceDashboard />} />
                         <Route path="/Student/term-attendance" element={<TermAttendanceReport />} />
                         <Route path="/Student/simple-attendance" element={<SimpleAttendanceReport />} />
                         <Route path="/Student/complain" element={<StudentComplain />} />
                         <Route path="/Student/timetable" element={<StudentTimetable />} />
                         <Route path="/Student/grades" element={<StudentGrades />} />
+                        <Route path="/Student/term-report" element={<StudentTermReport />} />
+                        <Route path="/Student/notices" element={<StudentNotices />} />
 
                         <Route path="/logout" element={<Logout />} />
                     </Routes>

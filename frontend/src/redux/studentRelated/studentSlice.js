@@ -5,7 +5,9 @@ const initialState = {
     loading: false,
     error: null,
     response: null,
-    statestatus: "idle",
+    statestatus: 'idle',
+    studentDetails: {},
+    studentTermReport: null,
 };
 
 const studentSlice = createSlice({
@@ -19,7 +21,7 @@ const studentSlice = createSlice({
             state.loading = false;
             state.error = null;
             state.response = null;
-            state.statestatus = "added";
+            state.statestatus = 'added';
         },
         getSuccess: (state, action) => {
             state.studentsList = action.payload;
@@ -27,9 +29,16 @@ const studentSlice = createSlice({
             state.error = null;
             state.response = null;
         },
+        getStudentDetails: (state, action) => {
+            state.studentDetails = action.payload;
+            state.loading = false;
+            state.error = null;
+            state.response = null;
+        },
         getFailed: (state, action) => {
             state.response = action.payload;
             state.loading = false;
+            state.statestatus = 'failed';
             state.error = null;
         },
         getError: (state, action) => {
@@ -40,14 +49,20 @@ const studentSlice = createSlice({
             state.loading = false;
             state.response = null;
             state.error = null;
-            state.statestatus = "idle";
+            state.statestatus = 'idle';
         },
         clearStudentsList: (state) => {
             state.studentsList = [];
             state.loading = false;
             state.error = null;
             state.response = null;
-        }
+        },
+        getStudentTermReportSuccess: (state, action) => {
+            state.studentTermReport = action.payload;
+            state.loading = false;
+            state.error = null;
+            state.response = null;
+        },
     },
 });
 
@@ -59,6 +74,8 @@ export const {
     underStudentControl,
     stuffDone,
     clearStudentsList,
+    getStudentDetails,
+    getStudentTermReportSuccess,
 } = studentSlice.actions;
 
 export const studentReducer = studentSlice.reducer;

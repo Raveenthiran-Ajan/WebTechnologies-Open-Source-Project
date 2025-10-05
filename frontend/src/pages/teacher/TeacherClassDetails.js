@@ -1,11 +1,11 @@
-import { useEffect } from "react";
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom';
 import { getClassStudents } from "../../redux/sclassRelated/sclassHandle";
-import { Paper, Box, Typography, Container, Button, Grid, Chip } from '@mui/material';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import { 
+import { Paper, Box, Typography, Container, Button, Grid, TextField, Alert, CircularProgress } from '@mui/material';
+import { updateStudentTermMarks } from '../../redux/studentRelated/studentHandle';
+import { underStudentControl } from '../../redux/studentRelated/studentSlice';
+import {
     DataGrid,
     GridToolbarContainer,
     GridToolbarColumnsButton,
@@ -13,36 +13,91 @@ import {
     GridToolbarDensitySelector,
     GridToolbarExport
 } from '@mui/x-data-grid';
-
+const getGradeFromMarks = (marks) => {
+    if (marks >= 85) return 'A+';
+    if (marks >= 75) return 'A';
+    if (marks >= 70) return 'B+';
+    if (marks >= 60) return 'B';
+    if (marks >= 50) return 'C+';
+    if (marks >= 40) return 'C';
+    if (marks >= 30) return 'D';
+    return 'F';
+};
 
 const TeacherClassDetails = () => {
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const dispatch = useDispatch();
-    const { sclassStudents, loading, error, getresponse } = useSelector((state) => state.sclass);
+    const { sclassStudents, loading, error: classError, getresponse } = useSelector((state) => state.sclass);
     const { classId } = useParams();
+    const { statestatus, response, error: studentError, loading: studentLoading } = useSelector((state) => state.student);
 
+    const [marks, setMarks] = useState({});
+    const [message, setMessage] = useState('');
+    const [alertSeverity, setAlertSeverity] = useState('success');
+    const [marksMode, setMarksMode] = useState(false);
     const { currentUser } = useSelector((state) => state.user);
     // Use classId from params if available, otherwise fallback to current user's class
     const classID = classId || currentUser.teachSclass?._id
-    const subjectID = currentUser.teachSubject?._id
-    
-    // Check if this class is the attendance-assigned class
-    const attendanceClass = currentUser?.attendanceClass;
-    const canTakeAttendance = attendanceClass && 
-        (attendanceClass._id === classID || attendanceClass._id === classId ||
-         attendanceClass === classID || attendanceClass === classId);
-    
-
 
     useEffect(() => {
-        dispatch(getClassStudents(classID));
-    }, [dispatch, classID])
+        if (classID) {
+            dispatch(getClassStudents(classID));
+        }
+    }, [dispatch, classID]);
 
-    if (error) {
-        console.log(error)
+    useEffect(() => {
+        if (sclassStudents && sclassStudents.length > 0 && currentUser.teachSubject) {
+            const initialMarks = {};
+            sclassStudents.forEach(student => {
+                const getMarkForTerm = (term) => student.examResult?.find(res => res.subName?._id === currentUser.teachSubject._id && res.term === term);
+                initialMarks[student._id] = {
+                    TERM_1: { grade: getMarkForTerm('TERM_1')?.grade || '', marksObtained: getMarkForTerm('TERM_1')?.marksObtained ?? '' },
+                    TERM_2: { grade: getMarkForTerm('TERM_2')?.grade || '', marksObtained: getMarkForTerm('TERM_2')?.marksObtained ?? '' },
+                    TERM_3: { grade: getMarkForTerm('TERM_3')?.grade || '', marksObtained: getMarkForTerm('TERM_3')?.marksObtained ?? '' },
+                };
+            });
+            setMarks(initialMarks);
+        }
+    }, [sclassStudents, currentUser.teachSubject]);
+    const handleMarksChange = (studentId, term, value) => {
+        const newMarks = value;
+        const newGrade = getGradeFromMarks(newMarks);
+        setMarks(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [term]: { grade: newGrade, marksObtained: newMarks }
+            }
+        }));
+    };
+    const handleSave = (studentId) => {
+        const studentMarks = marks[studentId];
+        const terms = ['TERM_1', 'TERM_2', 'TERM_3'];
+        const fields = {
+            subName: currentUser.teachSubject._id,
+            marks: terms.map(term => ({
+                term,
+                grade: studentMarks[term].grade,
+                marksObtained: studentMarks[term].marksObtained,
+            }))
+        };
+        dispatch(updateStudentTermMarks(studentId, fields));
+    };
+    useEffect(() => {
+        if (statestatus === 'added') {
+            setMessage('Marks updated successfully!');
+            setAlertSeverity('success');
+            dispatch(underStudentControl());
+        } else if (statestatus === 'failed') {
+            setMessage(response);
+            setAlertSeverity('error');
+            dispatch(underStudentControl());
+        }
+    }, [statestatus, response, dispatch, classID]);
+    if (classError || studentError) {
+        console.log(classError || studentError);
     }
-
-    const dataGridColumns = [
+    const marksColumns = [
         { 
             field: 'rollNum', 
             headerName: 'Roll Number', 
@@ -56,10 +111,61 @@ const TeacherClassDetails = () => {
             width: 200,
             flex: 1
         },
-        { 
-            field: 'email', 
-            headerName: 'Email', 
-            width: 250,
+        ...['TERM_1', 'TERM_2', 'TERM_3'].map(term => ({
+            field: term,
+            headerName: term.replace('_', ' '),
+            width: 200,
+            headerAlign: 'center',
+            align: 'center',
+            renderCell: (params) => (
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <TextField
+                        type="number"
+                        size="small"
+                        value={marks[params.row.id]?.[term]?.marksObtained || ''}
+                        onChange={(e) => handleMarksChange(params.row.id, term, e.target.value)}
+                        sx={{ width: 80 }}
+                        inputProps={{ min: 0, max: 100 }}
+                    />
+                    <Typography sx={{ p: 1, border: '1px solid #ccc', borderRadius: 1, minWidth: 40, textAlign: 'center' }}>
+                        {marks[params.row.id]?.[term]?.grade || '-'}
+                    </Typography>
+                </Box>
+            )
+        })),
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 200,
+            headerAlign: 'center',
+            align: 'center',
+            sortable: false,
+            renderCell: (params) => ( 
+                <Box sx={{ display: 'flex', gap:0.5 }}>
+                    <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => handleSave(params.row.id)}
+                        disabled={studentLoading}
+                    >
+                        {studentLoading ? <CircularProgress size={20} color="inherit" /> : 'Save'}
+                    </Button>
+                </Box>
+            ),
+        },
+    ];
+    const simpleColumns = [
+        {
+            field: 'rollNum',
+            headerName: 'Roll Number',
+            width: 130,
+            headerAlign: 'center',
+            align: 'center'
+        },
+        {
+            field: 'name',
+            headerName: 'Student Name',
+            width: 200,
             flex: 1
         },
         {
@@ -67,30 +173,20 @@ const TeacherClassDetails = () => {
             headerName: 'Actions',
             width: 150,
             headerAlign: 'center',
-            align: 'center',
+            align: 'right',
             sortable: false,
             renderCell: (params) => (
-                <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => navigate(`/teacher/students/student/${params.row.id}`)}
-                    sx={{ textTransform: 'none' }}
-                >
-                    VIEW
-                </Button>
-            ),
-        },
+                <Button variant="contained" onClick={() => navigate(`/teacher/class/student/${params.row.id}`)}>View</Button>
+            )
+        }
     ];
-
     const studentRows = sclassStudents.map((student) => {
         return {
             rollNum: student.rollNum,
             name: student.name,
-            email: student.email || 'N/A',
             id: student._id,
         };
     });
-
     const CustomToolbar = () => {
         return (
             <GridToolbarContainer>
@@ -101,9 +197,6 @@ const TeacherClassDetails = () => {
             </GridToolbarContainer>
         );
     };
-
-
-
     return (
         <Container maxWidth="lg">
             {loading ? (
@@ -119,7 +212,7 @@ const TeacherClassDetails = () => {
                         </Typography>
                         
                         <Grid container spacing={2} sx={{ mt: 2 }}>
-                            <Grid item xs={12} md={6}>
+                            <Grid item xs={12} md={6}> 
                                 <Typography variant="h6" color="text.secondary">Class Information</Typography>
                                 <Typography variant="body1">Class ID: {classID}</Typography>
                                 <Typography variant="body1">Subject: {currentUser.teachSubject?.subName}</Typography>
@@ -132,31 +225,6 @@ const TeacherClassDetails = () => {
                         </Grid>
                     </Box>
 
-                    {/* Attendance Access */}
-                    <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
-                        <Typography variant="h6" gutterBottom color="text.secondary">
-                            Class Actions
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', alignItems: 'center' }}>
-                            {canTakeAttendance ? (
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={() => navigate(`/teacher/class/${classID}/simple-attendance`)}
-                                    size="large"
-                                >
-                                    Take Daily Attendance
-                                </Button>
-                            ) : (
-                                <Chip 
-                                    label="Teaching Only - No Attendance Access" 
-                                    color="warning"
-                                    variant="outlined"
-                                />
-                            )}
-                        </Box>
-                    </Box>
-
                     {/* Students List */}
                     {getresponse ? (
                         <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, textAlign: 'center' }}>
@@ -165,28 +233,30 @@ const TeacherClassDetails = () => {
                             </Typography>
                         </Box>
                     ) : (
-                        <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3 }}>
+                        <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}>
+                            {message && <Alert severity={alertSeverity} sx={{ mb: 2 }} onClose={() => setMessage('')}>{message}</Alert>}
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                                <Typography variant="h5" component="h2" gutterBottom>
-                                    All Students
-                                </Typography>
-                                {canTakeAttendance && (
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        startIcon={<AccessTimeIcon />}
-                                        onClick={() => navigate(`/teacher/class/${classID}/simple-attendance`)}
-                                        sx={{ textTransform: 'none' }}
-                                    >
-                                        Take Attendance
-                                    </Button>
+                                {marksMode ? (
+                                    <>
+                                        <Typography variant="h5" component="h2" gutterBottom>
+                                            Manage Class Marks for {currentUser.teachSubject?.subName}
+                                        </Typography>
+                                        <Button variant="outlined" onClick={() => setMarksMode(false)}>Back to List</Button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Typography variant="h5" component="h2" gutterBottom>
+                                            Students List
+                                        </Typography>
+                                        <Button variant="contained" onClick={() => setMarksMode(true)}>Add Marks</Button>
+                                    </>
                                 )}
                             </Box>
 
                             <Box sx={{ height: 400, width: '100%' }}>
                                 <DataGrid
                                     rows={studentRows}
-                                    columns={dataGridColumns}
+                                    columns={marksMode ? marksColumns : simpleColumns}
                                     initialState={{
                                         pagination: {
                                             paginationModel: {
@@ -223,7 +293,7 @@ const TeacherClassDetails = () => {
                                     }}
                                 />
                             </Box>
-                        </Box>
+                        </Paper>
                     )}
                 </>
             )}

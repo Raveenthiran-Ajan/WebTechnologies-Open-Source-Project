@@ -174,6 +174,49 @@ const updateExamResult = async (req, res) => {
     }
 };
 
+const addTermMarks = async (req, res) => {
+    const { subName, marks } = req.body; // Expecting marks as an array of {term, marksObtained}
+    const studentId = req.params.id;
+
+    try {
+        const student = await Student.findById(studentId);
+
+        if (!student) {
+            return res.status(404).send({ message: 'Student not found' });
+        }
+
+        if (!Array.isArray(marks)) {
+            return res.status(400).send({ message: 'Marks should be an array.' });
+        }
+
+        marks.forEach(mark => {
+            const { term, marksObtained, grade } = mark;
+            const existingResultIndex = student.examResult.findIndex(
+                (result) => result.subName.toString() === subName && result.term === term
+            );
+
+            if (existingResultIndex !== -1) {
+                student.examResult[existingResultIndex].marksObtained = marksObtained ?? 0;
+                student.examResult[existingResultIndex].grade = grade;
+            } else {
+                // Add new entry only if there's a mark or grade
+                if (marksObtained || grade) {
+                    student.examResult.push({ subName, marksObtained: marksObtained ?? 0, term, grade });
+                }
+            }
+        });
+
+        const result = await student.save();
+
+        // After saving, populate the subName field before sending the response
+        // The result from save() is a Mongoose document, so we can call populate on it.
+        await result.populate("examResult.subName", "subName");
+        return res.status(200).send(result);
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
 const studentAttendance = async (req, res) => {
     const { subName, status, date, isDailyAttendance } = req.body;
 
@@ -394,6 +437,70 @@ const changePassword = async (req, res) => {
     }
 };
 
+const getStudentTermReport = async (req, res) => {
+    try {
+        const student = await Student.findById(req.params.id)
+            .populate('sclassName', 'sclassName')
+            .populate('examResult.subName', 'subName');
+
+        if (!student) {
+            return res.status(404).send({ message: "Student not found" });
+        }
+
+        const classId = student.sclassName._id;
+        const classmates = await Student.find({ sclassName: classId }).populate('examResult.subName', 'subName');
+
+        const report = {};
+        const terms = ['TERM_1', 'TERM_2', 'TERM_3'];
+
+        terms.forEach(term => {
+            // Calculate total marks for all students in the class for the current term
+            const termScores = classmates.map(s => {
+                const totalMarks = s.examResult
+                    .filter(result => result.term === term)
+                    .reduce((acc, curr) => acc + (curr.marksObtained || 0), 0);
+                return { studentId: s._id.toString(), totalMarks };
+            });
+
+            // Sort by total marks to determine rank
+            termScores.sort((a, b) => b.totalMarks - a.totalMarks);
+
+            // Find the rank of the current student
+            const studentRank = termScores.findIndex(s => s.studentId === student._id.toString()) + 1;
+
+            // Filter results for the current student and term
+            const studentTermResults = student.examResult.filter(result => result.term === term);
+
+            if (studentTermResults.length > 0) {
+                const totalMarks = studentTermResults.reduce((acc, curr) => acc + (curr.marksObtained || 0), 0);
+                const average = totalMarks / studentTermResults.length;
+
+                report[term] = {
+                    subjects: studentTermResults.map(r => ({
+                        subName: r.subName.subName,
+                        marksObtained: r.marksObtained,
+                        grade: r.grade,
+                    })),
+                    totalMarks,
+                    average,
+                    rank: studentRank > 0 ? studentRank : 'N/A',
+                };
+            } else {
+                report[term] = {
+                    subjects: [],
+                    totalMarks: 0,
+                    average: 0,
+                    rank: 'N/A',
+                };
+            }
+        });
+
+        res.status(200).json(report);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     studentRegister,
     studentLogIn,
@@ -407,8 +514,10 @@ module.exports = {
     deleteStudentsByClass,
     updateExamResult,
     clearAllStudentsAttendanceBySubject,
+    addTermMarks,
     clearAllStudentsAttendance,
     removeStudentAttendanceBySubject,
     removeStudentAttendance,
     changePassword,
+    getStudentTermReport,
 };

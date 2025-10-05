@@ -1,10 +1,12 @@
 const router = require('express').Router();
+const multer = require('multer');
+const path = require('path');
 
 const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChildDetails, addAnotherChild,deleteParent } = require('../controllers/parent-controller.js');
 const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
 const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents } = require('../controllers/class-controller.js');
 const { complainCreate, complainList, complainUpdate, complainDelete } = require('../controllers/complain-controller.js');
-const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice } = require('../controllers/notice-controller.js');
+const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice, markNoticeAsRead } = require('../controllers/notice-controller.js');
 // const { adminRegister, adminLogIn, deleteAdmin, getAdminDetail, updateAdmin } = require('../controllers/admin-controller.js');
 const {
     studentRegister,
@@ -19,10 +21,12 @@ const {
     deleteStudentsByClass,
     updateExamResult,
     clearAllStudentsAttendanceBySubject,
+    addTermMarks,
     clearAllStudentsAttendance,
     removeStudentAttendanceBySubject,
     removeStudentAttendance,
-    changePassword: studentChangePassword
+    changePassword: studentChangePassword,
+    getStudentTermReport
 } = require('../controllers/student_controller.js');
 const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects } = require('../controllers/subject-controller.js');
 const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, assignMultipleSubjects, testTeacherAssignment, teacherAttendance, changePassword: teacherChangePassword } = require('../controllers/teacher-controller.js');
@@ -39,6 +43,33 @@ const {
   getSubmissionsByStudent,
   upload: submissionUpload,
 } = require("../controllers/submission-controller");
+
+// Configure multer for file uploads
+const noticeStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/notices/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
+    },
+});
+const noticeUpload = multer({ 
+    storage: noticeStorage,
+    limits: {
+        fileSize: 30 * 1024 * 1024, // 30MB
+    },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|gif|pdf|mp4|avi|mov/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Invalid file type'));
+        }
+    }
+});
+
 // Complaint Routes
 router.post('/ComplainAdd', complainCreate);
 router.get('/ComplainList/:id', complainList);
@@ -74,6 +105,7 @@ router.delete("/StudentsClass/:id", deleteStudentsByClass)
 router.delete("/Student/:id", deleteStudent)
 router.put("/Student/:id", updateStudent)
 router.put('/UpdateExamResult/:id', updateExamResult)
+router.post('/Students/addTermMarks/:id', addTermMarks);
 router.put('/StudentAttendance/:id', studentAttendance)
 router.put('/TermAttendance/:id', termAttendance)
 router.put('/RemoveAllStudentsSubAtten/:id', clearAllStudentsAttendanceBySubject);
@@ -81,6 +113,7 @@ router.put('/RemoveAllStudentsAtten/:id', clearAllStudentsAttendance);
 router.put('/RemoveStudentSubAtten/:id', removeStudentAttendanceBySubject);
 router.put('/RemoveStudentAtten/:id', removeStudentAttendance)
 router.put("/Student/password/:id", studentChangePassword)
+router.get('/Student/termReport/:id', getStudentTermReport);
 
 // Teacher
 router.post('/TeacherReg', teacherRegister);
@@ -97,11 +130,16 @@ router.post('/TeacherAttendance/:id', teacherAttendance)
 router.put("/Teacher/password/:id", teacherChangePassword)
 
 // Notice
-router.post('/NoticeCreate', noticeCreate);
+router.post('/NoticeCreate', noticeUpload.array('files', 5), noticeCreate);
 router.get('/NoticeList/:id', noticeList);
 router.delete("/Notices/:id", deleteNotices)
 router.delete("/Notice/:id", deleteNotice)
 router.put("/Notice/:id", updateNotice)
+router.put('/NoticeRead', markNoticeAsRead);
+router.get('/download/notice/:filename', (req, res) => {
+    const filePath = path.join(__dirname, '../uploads/notices', req.params.filename);
+    res.download(filePath);
+});
 // ------------------- Notice -------------------
 
 // Complain
@@ -151,4 +189,3 @@ router.delete("/submissions/:submissionId", require("../controllers/submission-c
 router.put("/submissions/:submissionId/marking", require("../controllers/submission-controller").updateSubmissionMarking);
 
 module.exports = router;
-

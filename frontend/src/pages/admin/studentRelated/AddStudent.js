@@ -27,7 +27,7 @@ const AddStudent = ({ situation }) => {
 
     useEffect(() => {
         if (situation === "Class") {
-            setSclassName(params.id);
+            setSclassName(params.id || '');
         }
     }, [params.id, situation]);
 
@@ -64,7 +64,12 @@ const AddStudent = ({ situation }) => {
     useEffect(() => {
         if (status === 'added') {
             dispatch(underControl())
-            navigate(-1)
+            const sclass = sclassesList.find(c => c._id === sclassName);
+            if (sclass) {
+                navigate('/Admin/students', { state: { sclass } });
+            } else {
+                navigate(-1);
+            }
         }
         else if (status === 'failed') {
             setMessage(response)

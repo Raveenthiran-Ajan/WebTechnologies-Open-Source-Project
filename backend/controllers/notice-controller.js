@@ -2,12 +2,36 @@ const Notice = require('../models/noticeSchema.js');
 
 const noticeCreate = async (req, res) => {
     try {
+        const { title, details, date, adminID } = req.body;
+        const files = req.files || [];
+
+        const fileTypes = [];
+        const filePaths = [];
+
+        files.forEach(file => {
+            let fileType = 'text';
+            if (file.mimetype.startsWith('image/')) {
+                fileType = 'image';
+            } else if (file.mimetype === 'application/pdf') {
+                fileType = 'pdf';
+            } else if (file.mimetype.startsWith('video/')) {
+                fileType = 'video';
+            }
+            fileTypes.push(fileType);
+            filePaths.push(file.path);
+        });
+
         const notice = new Notice({
-            ...req.body,
-            school: req.body.adminID
-        })
-        const result = await notice.save()
-        res.send(result)
+            title,
+            details,
+            date,
+            school: adminID,
+            fileType: fileTypes,
+            filePath: filePaths
+        });
+
+        const result = await notice.save();
+        res.send(result);
     } catch (err) {
         res.status(500).json(err);
     }
@@ -39,10 +63,13 @@ const updateNotice = async (req, res) => {
 
 const deleteNotice = async (req, res) => {
     try {
-        const result = await Notice.findByIdAndDelete(req.params.id)
-        res.send(result)
+        const result = await Notice.findByIdAndDelete(req.params.id);
+        if (!result) {
+            return res.status(404).json({ message: "Notice not found" });
+        }
+        res.status(200).json({ message: "Notice deleted successfully", result });
     } catch (error) {
-        res.status(500).json(err);
+        res.status(500).json({ message: "An error occurred while deleting the notice", error });
     }
 }
 
@@ -59,4 +86,24 @@ const deleteNotices = async (req, res) => {
     }
 }
 
-module.exports = { noticeCreate, noticeList, updateNotice, deleteNotice, deleteNotices };
+const markNoticeAsRead = async (req, res) => {
+    try {
+        const { noticeId, userId } = req.body;
+        
+        const result = await Notice.findByIdAndUpdate(
+            noticeId,
+            { $addToSet: { readBy: userId } }, // $addToSet prevents duplicates
+            { new: true }
+        );
+        
+        if (!result) {
+            return res.status(404).json({ message: "Notice not found" });
+        }
+        
+        res.send(result);
+    } catch (error) {
+        res.status(500).json({ message: "An error occurred while marking notice as read", error });
+    }
+}
+
+module.exports = { noticeCreate, noticeList, updateNotice, deleteNotice, deleteNotices, markNoticeAsRead };

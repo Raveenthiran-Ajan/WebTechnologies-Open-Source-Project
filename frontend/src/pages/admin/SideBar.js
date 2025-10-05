@@ -118,7 +118,7 @@ const SideBar = () => {
                     <ListItemIcon>
                         <NotificationsIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_notices')} />
+                    <ListItemText primary="Notices" />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 

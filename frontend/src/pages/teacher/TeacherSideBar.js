@@ -4,7 +4,8 @@ import {
     ListItemButton, 
     ListItemIcon, 
     ListItemText, 
-    ListSubheader
+    ListSubheader,
+    Badge
 } from '@mui/material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -15,12 +16,19 @@ import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 
 const TeacherSideBar = () => {
     const { currentUser } = useSelector((state) => state.user);
+    const { noticesList } = useSelector((state) => state.notice);
+
+    // Count unread notices
+    const unreadNoticesCount = noticesList ? noticesList.filter(notice => 
+        !notice.readBy || !notice.readBy.includes(currentUser?._id)
+    ).length : 0;
 
     const location = useLocation();
     const { t } = useTranslation();
@@ -63,6 +71,16 @@ const TeacherSideBar = () => {
                         />
                     </ListItemIcon>
                     <ListItemText primary="Timetable" />
+                </ListItemButton>
+                <ListItemButton component={Link} to="/teacher/notices">
+                    <ListItemIcon>
+                        <NotificationsIcon
+                            color={location.pathname.startsWith("/teacher/notices") ? "primary" : "inherit"}
+                        />
+                    </ListItemIcon>
+                    <Badge badgeContent={unreadNoticesCount} color="error" max={99}>
+                        <ListItemText primary="Notices" />
+                    </Badge>
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/complain">
                     <ListItemIcon>

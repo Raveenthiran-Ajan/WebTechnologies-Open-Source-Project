@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
+import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Badge } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 
 import HomeIcon from '@mui/icons-material/Home';
@@ -9,6 +9,7 @@ import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ScheduleIcon from '@mui/icons-material/Schedule';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -19,6 +20,12 @@ const StudentSideBar = () => {
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
+    const { noticesList } = useSelector((state) => state.notice);
+
+    // Count unread notices
+    const unreadNoticesCount = noticesList ? noticesList.filter(notice => 
+        !notice.readBy || !notice.readBy.includes(currentUser?._id)
+    ).length : 0;
 
 
 
@@ -95,6 +102,30 @@ const StudentSideBar = () => {
                         <AssignmentIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('menu_grades') || 'Grades'} />
+                </ListItemButton>
+                <ListItemButton 
+                    component={Link} 
+                    to="/Student/term-report"
+                    selected={location.pathname.startsWith("/Student/term-report")}
+                    sx={selectedItemStyles}
+                >
+                    <ListItemIcon>
+                        <AssignmentIcon />
+                    </ListItemIcon>
+                    <ListItemText primary={'Term Report'} />
+                </ListItemButton>
+                <ListItemButton 
+                    component={Link} 
+                    to="/Student/notices"
+                    selected={location.pathname.startsWith("/Student/notices")}
+                    sx={selectedItemStyles}
+                >
+                    <ListItemIcon>
+                        <NotificationsIcon />
+                    </ListItemIcon>
+                    <Badge badgeContent={unreadNoticesCount} color="error" max={99}>
+                        <ListItemText primary="Notices" />
+                    </Badge>
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 

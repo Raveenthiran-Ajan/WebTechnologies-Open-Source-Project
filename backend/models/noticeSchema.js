@@ -17,6 +17,12 @@ const noticeSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin'
     },
+    fileType: [String],
+    filePath: [String],
+    readBy: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'user'
+    }],
 }, { timestamps: true });
 
 module.exports = mongoose.model("notice", noticeSchema)

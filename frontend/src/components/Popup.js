@@ -20,11 +20,13 @@ const Popup = ({ message, setShowPopup, showPopup }) => {
         dispatch(underStudentControl())
     };
 
+    // Always show green for any success message
+    const isSuccess = message && (message.toLowerCase().includes('success') || message.toLowerCase().includes('deleted'));
     return (
         <>
             <Snackbar open={showPopup} autoHideDuration={2000} onClose={handleClose} anchorOrigin={{ vertical, horizontal }} key={vertical + horizontal}>
                 {
-                    (message === "Done Successfully") ?
+                    isSuccess ?
                         <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
                             {message}
                         </Alert>
