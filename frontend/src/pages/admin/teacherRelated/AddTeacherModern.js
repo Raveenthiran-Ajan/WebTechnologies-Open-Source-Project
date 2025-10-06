@@ -44,9 +44,12 @@ const AddTeacherModern = () => {
     const [attendanceSections, setAttendanceSections] = useState([]);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [loader, setLoader] = useState(false);
+    const [isClassAttendanceResponsible, setIsClassAttendanceResponsible] = useState(false);
+    const [autoGeneratePassword, setAutoGeneratePassword] = useState(true);
     
-    const steps = ['Select Class', 'Choose Sections', 'Select Subjects', 'Add Teacher Details'];
+    const [steps, setSteps] = useState(['Select Class', 'Choose Sections', 'Select Subjects', 'Add Teacher Details']);
 
     // Get route parameters
     const classId = searchParams.get('classId');
@@ -120,7 +123,18 @@ const AddTeacherModern = () => {
         setSelectedClass(classItem);
         setSelectedSections([]);
         setSelectedSubjects([]);
-        setActiveStep(1);
+        setIsClassAttendanceResponsible(false);
+        setAutoGeneratePassword(true);
+        setPassword('');
+        
+        // Update steps based on whether class has sections
+        if (classItem.sections && classItem.sections.length > 0) {
+            setSteps(['Select Class', 'Choose Sections', 'Select Subjects', 'Add Teacher Details']);
+            setActiveStep(1);
+        } else {
+            setSteps(['Select Class', 'Select Subjects', 'Add Teacher Details']);
+            setActiveStep(1); // This will be the "Select Subjects" step
+        }
     };
 
     const handleSectionSelect = (event) => {
@@ -178,6 +192,12 @@ const AddTeacherModern = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         
+        // Validate password if not auto-generating
+        if (!autoGeneratePassword && !password.trim()) {
+            alert("Please enter a password for the teacher");
+            return;
+        }
+        
         // Validate that all attendance sections are included in teaching sections
         const validAttendanceSections = attendanceSections.filter(
             section => selectedSections.includes(section)
@@ -195,7 +215,10 @@ const AddTeacherModern = () => {
             teachSubjects: selectedSubjects,
             teachSclass: selectedClass._id,
             teachSections: selectedSections,
-            attendanceSections: validAttendanceSections
+            attendanceSections: validAttendanceSections,
+            ...(selectedSections.length === 0 && isClassAttendanceResponsible && { attendanceClass: selectedClass._id }),
+            autoGeneratePassword,
+            ...(autoGeneratePassword ? {} : { password })
         };
         
         console.log('Submitting teacher data:', teacherData);
@@ -295,8 +318,8 @@ const AddTeacherModern = () => {
                     </Fade>
                 )}
 
-                {/* Step 2: Choose Sections */}
-                {activeStep === 1 && selectedClass && (
+                {/* Step 1: Choose Sections (only shown if class has sections) */}
+                {activeStep === 1 && selectedClass && selectedClass.sections && selectedClass.sections.length > 0 && (
                     <Fade in timeout={500}>
                         <Box>
                             <Typography variant="h5" gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
@@ -308,94 +331,72 @@ const AddTeacherModern = () => {
                                 First select teaching sections, then optionally choose from those sections for attendance duty.
                             </Typography>
                             
-                            {selectedClass.sections && selectedClass.sections.length > 0 ? (
-                                <Box sx={{ mb: 4 }}>
-                                    <FormControl fullWidth sx={{ mb: 3 }}>
-                                        <InputLabel id="sections-checkbox-label">Teaching Sections</InputLabel>
-                                        <Select
-                                            labelId="sections-checkbox-label"
-                                            id="sections-checkbox"
-                                            multiple
-                                            value={selectedSections}
-                                            onChange={handleSectionSelect}
-                                            input={<OutlinedInput label="Teaching Sections" />}
-                                            renderValue={(selected) => selected.join(', ')}
-                                            MenuProps={MenuProps}
-                                        >
-                                            {selectedClass.sections.map((section) => (
-                                                <MenuItem key={section.sectionName} value={section.sectionName}>
-                                                    <Checkbox checked={selectedSections.indexOf(section.sectionName) > -1} />
-                                                    <ListItemText primary={section.sectionName} />
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                                            Select all sections this teacher will teach. This will determine 
-                                            which sections can be chosen for attendance duty in the next field.
-                                        </Typography>
-                                    </FormControl>
-                                    
-                                    <FormControl fullWidth disabled={selectedSections.length === 0}>
-                                        <InputLabel id="attendance-sections-label">Attendance Sections</InputLabel>
-                                        <Select
-                                            labelId="attendance-sections-label"
-                                            id="attendance-sections"
-                                            multiple
-                                            value={attendanceSections}
-                                            onChange={handleAttendanceSectionsSelect}
-                                            input={<OutlinedInput label="Attendance Sections" />}
-                                            renderValue={(selected) => selected.join(', ')}
-                                            MenuProps={MenuProps}
-                                        >
-                                            {selectedSections.map((sectionName) => (
-                                                <MenuItem key={sectionName} value={sectionName}>
-                                                    <Checkbox checked={attendanceSections.indexOf(sectionName) > -1} />
-                                                    <ListItemText primary={sectionName} />
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                                            (Optional) Select sections for which this teacher will take attendance. 
-                                            You can only choose from the teaching sections selected above. Leave empty if this teacher won't take attendance.
-                                        </Typography>
-                                    </FormControl>
-                                    
-                                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-                                        <Button
-                                            variant="contained"
-                                            onClick={handleNext}
-                                            disabled={selectedSections.length === 0}
-                                        >
-                                            Next
-                                        </Button>
-                                    </Box>
-                                </Box>
-                            ) : (
-                                <Box sx={{ textAlign: 'center', py: 8 }}>
-                                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                                        No sections available for this class
+                            <Box sx={{ mb: 4 }}>
+                                <FormControl fullWidth sx={{ mb: 3 }}>
+                                    <InputLabel id="sections-checkbox-label">Teaching Sections</InputLabel>
+                                    <Select
+                                        labelId="sections-checkbox-label"
+                                        id="sections-checkbox"
+                                        multiple
+                                        value={selectedSections}
+                                        onChange={handleSectionSelect}
+                                        input={<OutlinedInput label="Teaching Sections" />}
+                                        renderValue={(selected) => selected.join(', ')}
+                                        MenuProps={MenuProps}
+                                    >
+                                        {selectedClass.sections.map((section) => (
+                                            <MenuItem key={section.sectionName} value={section.sectionName}>
+                                                <Checkbox checked={selectedSections.indexOf(section.sectionName) > -1} />
+                                                <ListItemText primary={section.sectionName} />
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                                        Select all sections this teacher will teach. This will determine 
+                                        which sections can be chosen for attendance duty in the next field.
                                     </Typography>
-                                    <Button 
-                                        variant="contained" 
-                                        onClick={() => navigate(`/Admin/updateclass/${selectedClass._id}`)}
-                                        sx={{ mt: 2, mr: 2 }}
+                                </FormControl>
+                                
+                                <FormControl fullWidth disabled={selectedSections.length === 0}>
+                                    <InputLabel id="attendance-sections-label">Attendance Sections</InputLabel>
+                                    <Select
+                                        labelId="attendance-sections-label"
+                                        id="attendance-sections"
+                                        multiple
+                                        value={attendanceSections}
+                                        onChange={handleAttendanceSectionsSelect}
+                                        input={<OutlinedInput label="Attendance Sections" />}
+                                        renderValue={(selected) => selected.join(', ')}
+                                        MenuProps={MenuProps}
                                     >
-                                        Add Sections First
-                                    </Button>
-                                    <Button 
-                                        variant="outlined" 
-                                        onClick={() => setActiveStep(0)}
+                                        {selectedSections.map((sectionName) => (
+                                            <MenuItem key={sectionName} value={sectionName}>
+                                                <Checkbox checked={attendanceSections.indexOf(sectionName) > -1} />
+                                                <ListItemText primary={sectionName} />
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                                        (Optional) Select sections for which this teacher will take attendance. 
+                                        You can only choose from the teaching sections selected above. Leave empty if this teacher won't take attendance.
+                                    </Typography>
+                                </FormControl>
+                                
+                                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+                                    <Button
+                                        variant="contained"
+                                        onClick={handleNext}
+                                        disabled={selectedSections.length === 0}
                                     >
-                                        Choose Different Class
+                                        Next
                                     </Button>
                                 </Box>
-                            )}
+                            </Box>
                         </Box>
                     </Fade>
-                )}
-
-                {/* Step 3: Select Subjects */}
-                {activeStep === 2 && selectedClass && (
+                )}                {/* Step 2: Select Subjects (when sections exist) or Step 1: Select Subjects (when no sections) */}
+                {((activeStep === 2 && selectedClass && selectedClass.sections && selectedClass.sections.length > 0) || 
+                  (activeStep === 1 && selectedClass && (!selectedClass.sections || selectedClass.sections.length === 0))) && (
                     <Fade in timeout={500}>
                         <Box>
                             <Typography variant="h5" gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
@@ -491,9 +492,8 @@ const AddTeacherModern = () => {
                                         <Button
                                             variant="contained"
                                             onClick={handleNext}
-                                            disabled={selectedSubjects.length === 0}
                                         >
-                                            Next
+                                            {selectedSubjects.length > 0 ? 'Next' : 'Continue without subjects'}
                                         </Button>
                                     </Box>
                                 </Box>
@@ -522,8 +522,9 @@ const AddTeacherModern = () => {
                     </Fade>
                 )}
 
-                {/* Step 4: Add Teacher Details */}
-                {activeStep === 3 && (
+                {/* Step 3: Add Teacher Details (when sections exist) or Step 2: Add Teacher Details (when no sections) */}
+                {((activeStep === 3 && selectedClass && selectedClass.sections && selectedClass.sections.length > 0) || 
+                  (activeStep === 2 && selectedClass && (!selectedClass.sections || selectedClass.sections.length === 0))) && (
                     <Fade in timeout={500}>
                         <Box component="form" onSubmit={handleSubmit}>
                             <Typography variant="h5" gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
@@ -555,6 +556,36 @@ const AddTeacherModern = () => {
                                         onChange={(e) => setEmail(e.target.value)}
                                     />
                                 </Grid>
+                                <Grid item xs={12}>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={autoGeneratePassword}
+                                                onChange={(e) => setAutoGeneratePassword(e.target.checked)}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="Auto-generate password and send login details via email"
+                                    />
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 4 }}>
+                                        If checked, a random password will be generated and login details will be sent to the teacher's email.
+                                        If unchecked, you must enter a password manually.
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        required={!autoGeneratePassword}
+                                        disabled={autoGeneratePassword}
+                                        fullWidth
+                                        id="password"
+                                        label="Password"
+                                        name="password"
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        helperText={autoGeneratePassword ? "Password will be auto-generated" : "Enter a password for the teacher"}
+                                    />
+                                </Grid>
                             </Grid>
                             
                             <Divider sx={{ my: 4 }} />
@@ -573,9 +604,12 @@ const AddTeacherModern = () => {
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={12} sm={4}>
-                                    <Typography variant="subtitle1">Attendance Sections (Optional):</Typography>
+                                    <Typography variant="subtitle1">Attendance Responsibility:</Typography>
                                     <Typography variant="body1">
-                                        {attendanceSections.length > 0 ? attendanceSections.join(', ') : 'None selected'}
+                                        {selectedSections.length > 0 
+                                            ? (attendanceSections.length > 0 ? attendanceSections.join(', ') : 'None selected')
+                                            : (isClassAttendanceResponsible ? 'Responsible for class attendance' : 'Not responsible for attendance')
+                                        }
                                     </Typography>
                                 </Grid>
                                 <Grid item xs={12}>
@@ -600,12 +634,31 @@ const AddTeacherModern = () => {
                                 </Grid>
                             </Grid>
                             
+                            {/* Attendance Responsibility for classes without sections */}
+                            {selectedSections.length === 0 && (
+                                <Box sx={{ mb: 3 }}>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={isClassAttendanceResponsible}
+                                                onChange={(e) => setIsClassAttendanceResponsible(e.target.checked)}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="This teacher is responsible for taking attendance for this class"
+                                    />
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 4 }}>
+                                        Check this if the teacher will be responsible for attendance in this class (when no specific sections exist).
+                                    </Typography>
+                                </Box>
+                            )}
+                            
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
                                 <Button
                                     type="submit"
                                     variant="contained"
                                     sx={{ px: 4 }}
-                                    disabled={loader || !name || !email || selectedSections.length === 0 || selectedSubjects.length === 0}
+                                    disabled={loader || !name.trim() || !email.trim() || (!autoGeneratePassword && !password.trim())}
                                 >
                                     {loader ? (
                                         <CircularProgress size={24} color="inherit" />

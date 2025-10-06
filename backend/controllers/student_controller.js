@@ -539,6 +539,34 @@ const checkSectionAttendanceStatus = async (req, res) => {
     }
 };
 
+// Check if daily attendance has been taken for an entire class (no sections) today
+const checkClassAttendanceStatus = async (req, res) => {
+    try {
+        const { sclassId } = req.params;
+        const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+        const students = await Student.find({ sclassName: sclassId });
+
+        if (students.length === 0) {
+            return res.json({ attendanceTaken: false, message: 'No students found in this class' });
+        }
+
+        // True if at least one student has a daily attendance record for today
+        const attendanceTaken = students.some(student =>
+            student.attendance.some(att => {
+                const isToday = att.date.toISOString().split('T')[0] === today;
+                // Daily attendance is where isTermAttendance is false or undefined and no subject (class-wide)
+                const isDaily = att.isTermAttendance === false || att.isTermAttendance === undefined;
+                return isToday && isDaily;
+            })
+        );
+
+        res.json({ attendanceTaken, totalStudents: students.length, date: today });
+    } catch (error) {
+        res.status(500).json({ message: 'Error checking class attendance status', error: error.message });
+    }
+};
+
 module.exports = {
     studentRegister,
     studentLogIn,
@@ -559,4 +587,5 @@ module.exports = {
     changePassword,
     getStudentTermReport,
     checkSectionAttendanceStatus,
+    checkClassAttendanceStatus,
 };

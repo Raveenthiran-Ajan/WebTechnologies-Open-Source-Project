@@ -49,19 +49,26 @@ const TeacherClassDetails = () => {
     }, [dispatch, classID, sectionParam]);
 
     useEffect(() => {
-        if (sclassStudents && sclassStudents.length > 0 && currentUser.teachSubject) {
-            const initialMarks = {};
-            sclassStudents.forEach(student => {
-                const getMarkForTerm = (term) => student.examResult?.find(res => res.subName?._id === currentUser.teachSubject._id && res.term === term);
-                initialMarks[student._id] = {
-                    TERM_1: { grade: getMarkForTerm('TERM_1')?.grade || '', marksObtained: getMarkForTerm('TERM_1')?.marksObtained ?? '' },
-                    TERM_2: { grade: getMarkForTerm('TERM_2')?.grade || '', marksObtained: getMarkForTerm('TERM_2')?.marksObtained ?? '' },
-                    TERM_3: { grade: getMarkForTerm('TERM_3')?.grade || '', marksObtained: getMarkForTerm('TERM_3')?.marksObtained ?? '' },
-                };
-            });
-            setMarks(initialMarks);
+        if (sclassStudents && sclassStudents.length > 0) {
+            // For teachers with multiple subjects, we can't pre-fill marks
+            // Only pre-fill if teacher has a single subject
+            const teacherSubject = currentUser.teachSubject || (currentUser.teachSubjects && currentUser.teachSubjects.length === 1 ? currentUser.teachSubjects[0] : null);
+            
+            if (teacherSubject) {
+                const initialMarks = {};
+                sclassStudents.forEach(student => {
+                    const subjectId = typeof teacherSubject === 'object' ? teacherSubject._id : teacherSubject;
+                    const getMarkForTerm = (term) => student.examResult?.find(res => res.subName?._id === subjectId && res.term === term);
+                    initialMarks[student._id] = {
+                        TERM_1: { grade: getMarkForTerm('TERM_1')?.grade || '', marksObtained: getMarkForTerm('TERM_1')?.marksObtained ?? '' },
+                        TERM_2: { grade: getMarkForTerm('TERM_2')?.grade || '', marksObtained: getMarkForTerm('TERM_2')?.marksObtained ?? '' },
+                        TERM_3: { grade: getMarkForTerm('TERM_3')?.grade || '', marksObtained: getMarkForTerm('TERM_3')?.marksObtained ?? '' },
+                    };
+                });
+                setMarks(initialMarks);
+            }
         }
-    }, [sclassStudents, currentUser.teachSubject]);
+    }, [sclassStudents, currentUser.teachSubject, currentUser.teachSubjects]);
     const handleMarksChange = (studentId, term, value) => {
         const newMarks = value;
         const newGrade = getGradeFromMarks(newMarks);
@@ -76,8 +83,19 @@ const TeacherClassDetails = () => {
     const handleSave = (studentId) => {
         const studentMarks = marks[studentId];
         const terms = ['TERM_1', 'TERM_2', 'TERM_3'];
+        
+        // Determine which subject to use for saving marks
+        const teacherSubject = currentUser.teachSubject || (currentUser.teachSubjects && currentUser.teachSubjects.length === 1 ? currentUser.teachSubjects[0] : null);
+        const subjectId = typeof teacherSubject === 'object' ? teacherSubject._id : teacherSubject;
+        
+        if (!subjectId) {
+            setMessage('Cannot save marks: No specific subject assigned to this teacher for this class');
+            setAlertSeverity('error');
+            return;
+        }
+        
         const fields = {
-            subName: currentUser.teachSubject._id,
+            subName: subjectId,
             marks: terms.map(term => ({
                 term,
                 grade: studentMarks[term].grade,
@@ -184,15 +202,15 @@ const TeacherClassDetails = () => {
         }
     ];
     // Optionally filter students by section from query param if provided
-    const filteredStudents = sectionParam ? sclassStudents.filter(s => s.sectionName === sectionParam) : sclassStudents;
+    const filteredStudents = sectionParam && Array.isArray(sclassStudents) ? sclassStudents.filter(s => s.sectionName === sectionParam) : (Array.isArray(sclassStudents) ? sclassStudents : []);
 
-    const studentRows = filteredStudents.map((student) => {
+    const studentRows = Array.isArray(filteredStudents) ? filteredStudents.map((student) => {
         return {
             rollNum: student.rollNum,
             name: student.name,
             id: student._id,
         };
-    });
+    }) : [];
     const CustomToolbar = () => {
         return (
             <GridToolbarContainer>
@@ -221,7 +239,12 @@ const TeacherClassDetails = () => {
                             <Grid item xs={12} md={6}> 
                                 <Typography variant="h6" color="text.secondary">Class Information</Typography>
                                 <Typography variant="body1">Class ID: {classID}</Typography>
-                                <Typography variant="body1">Subject: {currentUser.teachSubject?.subName}</Typography>
+                                <Typography variant="body1">
+                                    Subject: {(() => {
+                                        const teacherSubject = currentUser.teachSubject || (currentUser.teachSubjects && currentUser.teachSubjects.length === 1 ? currentUser.teachSubjects[0] : null);
+                                        return teacherSubject ? (typeof teacherSubject === 'object' ? teacherSubject.subName : 'Multiple subjects') : 'No specific subject';
+                                    })()}
+                                </Typography>
                             </Grid>
                             <Grid item xs={12} md={6}>
                                 <Typography variant="h6" color="text.secondary">Teacher Information</Typography>
@@ -254,50 +277,78 @@ const TeacherClassDetails = () => {
                                         <Typography variant="h5" component="h2" gutterBottom>
                                             Students List {sectionParam ? `(Section ${sectionParam})` : ''}
                                         </Typography>
-                                        <Button variant="contained" onClick={() => setMarksMode(true)}>Add Marks</Button>
+                                        {(() => {
+                                            const teacherSubject = currentUser.teachSubject || (currentUser.teachSubjects && currentUser.teachSubjects.length === 1 ? currentUser.teachSubjects[0] : null);
+                                            return teacherSubject ? (
+                                                <Button variant="contained" onClick={() => setMarksMode(true)}>Add Marks</Button>
+                                            ) : (
+                                                <Typography variant="body2" color="text.secondary">
+                                                    Marks entry not available: No specific subject assigned to this teacher for this class
+                                                </Typography>
+                                            );
+                                        })()}
                                     </>
                                 )}
                             </Box>
 
                             <Box sx={{ height: 400, width: '100%' }}>
-                                <DataGrid
-                                    rows={studentRows}
-                                    columns={marksMode ? marksColumns : simpleColumns}
-                                    initialState={{
-                                        pagination: {
-                                            paginationModel: {
-                                                pageSize: 10,
+                                {studentRows.length === 0 ? (
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        flexDirection: 'column', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center', 
+                                        height: '100%',
+                                        textAlign: 'center',
+                                        p: 4
+                                    }}>
+                                        <Typography variant="h6" color="text.secondary" gutterBottom>
+                                            No students found in this class
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary">
+                                            {sectionParam ? `No students are assigned to section "${sectionParam}"` : 'This class currently has no students assigned'}
+                                        </Typography>
+                                    </Box>
+                                ) : (
+                                    <DataGrid
+                                        rows={studentRows}
+                                        columns={marksMode ? marksColumns : simpleColumns}
+                                        initialState={{
+                                            pagination: {
+                                                paginationModel: {
+                                                    pageSize: 10,
+                                                },
                                             },
-                                        },
-                                    }}
-                                    pageSizeOptions={[5, 10, 25]}
-                                    checkboxSelection={false}
-                                    disableRowSelectionOnClick
-                                    slots={{
-                                        toolbar: CustomToolbar,
-                                    }}
-                                    sx={{
-                                        '& .MuiDataGrid-root': {
-                                            border: 'none',
-                                        },
-                                        '& .MuiDataGrid-cell': {
-                                            borderBottom: '1px solid #f0f0f0',
-                                        },
-                                        '& .MuiDataGrid-columnHeaders': {
-                                            backgroundColor: '#f5f5f5',
-                                            borderBottom: '1px solid #e0e0e0',
-                                        },
-                                        '& .MuiDataGrid-virtualScroller': {
-                                            backgroundColor: '#fafafa',
-                                        },
-                                        '& .MuiDataGrid-overlay': {
-                                            backgroundColor: '#ffffff',
-                                        },
-                                    }}
-                                    localeText={{
-                                        noRowsLabel: 'No students enrolled in this class yet.',
-                                    }}
-                                />
+                                        }}
+                                        pageSizeOptions={[5, 10, 25]}
+                                        checkboxSelection={false}
+                                        disableRowSelectionOnClick
+                                        slots={{
+                                            toolbar: CustomToolbar,
+                                        }}
+                                        sx={{
+                                            '& .MuiDataGrid-root': {
+                                                border: 'none',
+                                            },
+                                            '& .MuiDataGrid-cell': {
+                                                borderBottom: '1px solid #f0f0f0',
+                                            },
+                                            '& .MuiDataGrid-columnHeaders': {
+                                                backgroundColor: '#f5f5f5',
+                                                borderBottom: '1px solid #e0e0e0',
+                                            },
+                                            '& .MuiDataGrid-virtualScroller': {
+                                                backgroundColor: '#fafafa',
+                                            },
+                                            '& .MuiDataGrid-overlay': {
+                                                backgroundColor: '#ffffff',
+                                            },
+                                        }}
+                                        localeText={{
+                                            noRowsLabel: 'No students enrolled in this class yet.',
+                                        }}
+                                    />
+                                )}
                             </Box>
                         </Paper>
                     )}

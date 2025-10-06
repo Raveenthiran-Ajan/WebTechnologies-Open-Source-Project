@@ -175,6 +175,9 @@ const ShowTeachers = () => {
             flex: 0.8,
             renderCell: (params) => {
                 const sections = params.row.attendanceSections;
+                const attendanceClass = params.row.attendanceClass;
+                const hasSections = sections && sections.length > 0;
+                const hasClass = Boolean(attendanceClass);
                 return (
                     <Box sx={{ 
                         display: 'flex', 
@@ -183,18 +186,26 @@ const ShowTeachers = () => {
                         width: '100%',
                         py: 1 
                     }}>
-                        {sections && sections.length > 0 ? (
-                            sections.map((section, index) => (
-                                <Chip 
-                                    key={section.sectionId || index} 
-                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
-                                    size="small" 
-                                    color="success" 
-                                    variant="filled"
-                                    sx={{ fontSize: '0.75rem' }}
-                                />
-                            ))
-                        ) : (
+                        {hasSections && sections.map((section, index) => (
+                            <Chip 
+                                key={section.sectionId || index} 
+                                label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
+                                size="small" 
+                                color="success" 
+                                variant="filled"
+                                sx={{ fontSize: '0.75rem' }}
+                            />
+                        ))}
+                        {hasClass && (
+                            <Chip 
+                                label={`Whole Class (${attendanceClass?.sclassName || 'Unknown'})`} 
+                                size="small" 
+                                color="success" 
+                                variant="outlined"
+                                sx={{ fontSize: '0.75rem' }}
+                            />
+                        )}
+                        {!hasSections && !hasClass && (
                             <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
                                 No attendance duty
                             </Typography>
@@ -261,6 +272,7 @@ const ShowTeachers = () => {
             teachSclasses: teachingClasses,
             teachSections: teacher.teachSections || [],
             attendanceSections: teacher.attendanceSections || [],
+            attendanceClass: teacher.attendanceClass || null,
             teachSubject: teacher.teachSubject?.subName || null,
             teachSclass: teacher.teachSclass ? teacher.teachSclass.sclassName : 'No Class',
         };

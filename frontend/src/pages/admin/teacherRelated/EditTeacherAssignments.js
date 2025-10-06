@@ -39,15 +39,23 @@ const EditTeacherAssignments = () => {
     const [selectedAttendanceSections, setSelectedAttendanceSections] = useState([]);
     const [availableSections, setAvailableSections] = useState([]);
     const [availableSubjects, setAvailableSubjects] = useState([]);
+    const [wholeClassAttendance, setWholeClassAttendance] = useState(false);
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
     const [loader, setLoader] = useState(false);
 
     useEffect(() => {
         dispatch(getTeacherDetails(id));
-        dispatch(getAllSclasses(currentUser._id, "Sclass"));
-        dispatch(getSubjectList(currentUser._id, "AllSubjects"));
-    }, [dispatch, id, currentUser._id]);
+    }, [dispatch, id]);
+
+    // Load classes and subjects using the teacher's school ID
+    useEffect(() => {
+        const schoolId = teacherDetails?.school && (typeof teacherDetails.school === 'object' ? teacherDetails.school._id : teacherDetails.school);
+        if (schoolId) {
+            dispatch(getAllSclasses(schoolId, "Sclass"));
+            dispatch(getSubjectList(schoolId, "AllSubjects"));
+        }
+    }, [dispatch, teacherDetails?.school]);
 
     useEffect(() => {
         if (teacherDetails) {
@@ -78,13 +86,17 @@ const EditTeacherAssignments = () => {
                     className: sclass.sclassName
                 }));
                 setAvailableSections(sections);
+                const hasSections = (sclass.sections || []).length > 0;
+                setWholeClassAttendance(!hasSections && Boolean((teacherDetails?.attendanceClass?._id || teacherDetails?.attendanceClass) === selectedClass));
             } else {
                 setAvailableSections([]);
+                setWholeClassAttendance(Boolean((teacherDetails?.attendanceClass?._id || teacherDetails?.attendanceClass) === selectedClass));
             }
         } else {
             setAvailableSections([]);
+            setWholeClassAttendance(false);
         }
-    }, [selectedClass, sclassesList]);
+    }, [selectedClass, sclassesList, teacherDetails?.attendanceClass]);
 
     useEffect(() => {
         // Get available subjects for the selected class
@@ -133,7 +145,8 @@ const EditTeacherAssignments = () => {
             return;
         }
 
-        if (selectedTeachingSections.length === 0) {
+        const classHasSections = availableSections.length > 0;
+        if (classHasSections && selectedTeachingSections.length === 0) {
             setMessage("Please select at least one teaching section");
             setShowPopup(true);
             return;
@@ -159,16 +172,23 @@ const EditTeacherAssignments = () => {
 
         setLoader(true);
         try {
+            // For classes without sections, explicitly send null to CLEAR class-wide attendance when unchecked
+            const attendanceClassId = !classHasSections
+                ? (wholeClassAttendance ? selectedClass : null)
+                : undefined;
             const response = await dispatch(updateTeacherAssignments(
                 id, 
                 selectedSubjects, 
                 selectedTeachingSections, 
                 selectedAttendanceSections,
-                selectedClass
+                selectedClass,
+                attendanceClassId
             ));
             
             setMessage("Teacher assignments updated successfully!");
             setShowPopup(true);
+            // Refresh teacher details so the current assignments block reflects updates immediately
+            await dispatch(getTeacherDetails(id));
             
             setTimeout(() => {
                 navigate(-1); // Go back to previous page
@@ -280,6 +300,21 @@ const EditTeacherAssignments = () => {
                                     </Typography>
                                 )}
                             </Box>
+
+                            {/* Also show whole-class attendance if assigned */}
+                            {(teacherDetails?.attendanceClass) && (
+                                <Box sx={{ mt: 1 }}>
+                                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                                        Class-wide Attendance:
+                                    </Typography>
+                                    <Chip 
+                                        label={`Whole Class (${teacherDetails.attendanceClass?.sclassName || 'Unknown'})`} 
+                                        size="small" 
+                                        color="success" 
+                                        variant="outlined" 
+                                    />
+                                </Box>
+                            )}
                         </Box>
                         <Divider sx={{ my: 2 }} />
                     </Grid>
@@ -306,8 +341,8 @@ const EditTeacherAssignments = () => {
                             </Select>
                         </FormControl>
 
-                        {/* Step 2: Select Teaching Sections */}
-                        {selectedClass && (
+                        {/* Step 2: Select Teaching Sections (only if class has sections) */}
+                        {selectedClass && availableSections.length > 0 && (
                             <FormControl fullWidth sx={{ mb: 3 }}>
                                 <InputLabel>Teaching Sections</InputLabel>
                                 <Select
@@ -368,8 +403,8 @@ const EditTeacherAssignments = () => {
                             </FormControl>
                         )}
 
-                        {/* Step 4: Attendance Sections (Optional) */}
-                        {selectedClass && selectedTeachingSections.length > 0 && (
+                        {/* Step 4a: Attendance Sections (Optional) - only when class has sections */}
+                        {selectedClass && availableSections.length > 0 && selectedTeachingSections.length > 0 && (
                             <Box sx={{ mb: 3 }}>
                                 <Typography variant="subtitle1" gutterBottom>
                                     Attendance Responsibility (Optional)
@@ -417,6 +452,22 @@ const EditTeacherAssignments = () => {
                                             ))}
                                     </Select>
                                 </FormControl>
+                            </Box>
+                        )}
+
+                        {/* Step 4b: Whole Class Attendance (for classes without sections) */}
+                        {selectedClass && availableSections.length === 0 && (
+                            <Box sx={{ mb: 3 }}>
+                                <Typography variant="subtitle1" gutterBottom>
+                                    Whole Class Attendance (No Sections)
+                                </Typography>
+                                <FormControlLabel
+                                    control={<Checkbox checked={wholeClassAttendance} onChange={(e) => setWholeClassAttendance(e.target.checked)} />}
+                                    label="Assign this teacher to take attendance for the whole class"
+                                />
+                                <Typography variant="body2" color="text.secondary">
+                                    Tip: Enable this when the class has no sections and the teacher should take class-wide attendance.
+                                </Typography>
                             </Box>
                         )}
                     </Grid>

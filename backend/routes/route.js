@@ -117,6 +117,7 @@ router.put('/RemoveStudentAtten/:id', removeStudentAttendance)
 router.put("/Student/password/:id", studentChangePassword)
 router.get('/Student/termReport/:id', getStudentTermReport);
 router.get('/CheckSectionAttendance/:sclassId/:sectionName', checkSectionAttendanceStatus);
+router.get('/CheckClassAttendance/:sclassId', require("../controllers/student_controller").checkClassAttendanceStatus);
 
 // Teacher
 router.post('/TeacherReg', teacherRegister);

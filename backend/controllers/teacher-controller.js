@@ -6,12 +6,20 @@ const Subject = require('../models/subjectSchema.js');
 const sendEmail = require('../utils/sendEmail.js');
 
 const teacherRegister = async (req, res) => {
-    const { name, email, role, school, teachSubjects, teachSclass, teachSections, attendanceSections } = req.body;
+    const { name, email, role, school, teachSubjects, teachSclass, teachSections, attendanceSections, attendanceClass, autoGeneratePassword, password } = req.body;
     try {
-        // Generate random password
-        const randomPassword = crypto.randomBytes(8).toString('hex');
+        let finalPassword;
+        
+        if (autoGeneratePassword) {
+            // Generate random password
+            finalPassword = crypto.randomBytes(8).toString('hex');
+        } else {
+            // Use provided password
+            finalPassword = password;
+        }
+        
         const salt = await bcrypt.genSalt(10);
-        const hashedPass = await bcrypt.hash(randomPassword, salt);
+        const hashedPass = await bcrypt.hash(finalPassword, salt);
 
         // Check for existing attendance responsibility in the same sections
         if (attendanceSections && attendanceSections.length > 0) {
@@ -20,6 +28,16 @@ const teacherRegister = async (req, res) => {
             });
             if (existingAttendanceTeacher) {
                 return res.send({ message: 'Another teacher is already assigned for attendance in one or more of these sections' });
+            }
+        }
+
+        // Check for existing attendance responsibility for the class
+        if (attendanceClass) {
+            const existingClassAttendanceTeacher = await Teacher.findOne({
+                attendanceClass: attendanceClass
+            });
+            if (existingClassAttendanceTeacher) {
+                return res.send({ message: 'Another teacher is already assigned for attendance in this class' });
             }
         }
 
@@ -73,7 +91,8 @@ const teacherRegister = async (req, res) => {
             teachSclass,
             teachSclasses: teachSclass ? [teachSclass] : [],
             teachSections: teachingSectionDetails,
-            attendanceSections: attendanceSectionDetails
+            attendanceSections: attendanceSectionDetails,
+            attendanceClass: attendanceClass || null
         };
         console.log('Saving teacher with data:', teacherData);
 
@@ -112,7 +131,7 @@ const teacherRegister = async (req, res) => {
 
                         <div style="background-color: #f5f7fa; padding: 16px; border-radius: 8px; margin: 0 0 16px;">
                             <p style="margin: 0 0 8px;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #1976d2; text-decoration: underline;">${email}</a></p>
-                            <p style="margin: 0 0 8px;"><strong>Password:</strong> ${randomPassword}</p>
+                            <p style="margin: 0 0 8px;"><strong>Password:</strong> ${finalPassword}</p>
                             <p style="margin: 0;"><strong>Role:</strong> Teacher</p>
                         </div>
 
@@ -179,7 +198,8 @@ const getTeachers = async (req, res) => {
             .populate("teachSubjects", "subName")
             .populate("teachSclasses", "sclassName")
             .populate("teachSections.sclassName", "sclassName")
-            .populate("attendanceSections.sclassName", "sclassName");
+            .populate("attendanceSections.sclassName", "sclassName")
+            .populate("attendanceClass", "sclassName");
         console.log('Teachers found:', teachers.length);
         teachers.forEach((teacher, index) => {
             console.log(`Teacher ${index}: ${teacher.name}, teachSections:`, teacher.teachSections, 'attendanceSections:', teacher.attendanceSections);
@@ -422,7 +442,7 @@ const assignMultipleSubjects = async (req, res) => {
 };
 
 const updateTeacherAssignments = async (req, res) => {
-    const { teacherId, subjectIds, teachSections, attendanceSections, selectedClass } = req.body;
+    const { teacherId, subjectIds, teachSections, attendanceSections, selectedClass, attendanceClassId } = req.body;
     try {
         console.log('=== UPDATE TEACHER ASSIGNMENTS ===');
         console.log('Teacher ID:', teacherId);
@@ -517,6 +537,19 @@ const updateTeacherAssignments = async (req, res) => {
             attendanceSections: attendanceSectionDetails
         };
 
+        // Handle class-wide vs section attendance precedence
+        if (attendanceClassId !== undefined) {
+            // If explicitly set (including null), apply it
+            updateFields.attendanceClass = attendanceClassId;
+            // When class-wide attendance is set, clear section-based attendance
+            if (attendanceClassId) {
+                updateFields.attendanceSections = [];
+            }
+        } else if ((attendanceSections || []).length > 0) {
+            // If section attendance provided, clear class-wide attendance
+            updateFields.attendanceClass = null;
+        }
+
         console.log('Update fields:', updateFields);
 
         // Update teacher with explicit field replacement
@@ -526,6 +559,7 @@ const updateTeacherAssignments = async (req, res) => {
             { new: true, runValidators: true }
         ).populate("teachSubjects", "subName")
          .populate("teachSclasses", "sclassName")
+         .populate("attendanceClass", "sclassName")
          .populate("teachSections.sclassName", "sclassName")
          .populate("attendanceSections.sclassName", "sclassName");
 

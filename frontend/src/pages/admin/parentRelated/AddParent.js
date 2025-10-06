@@ -5,7 +5,7 @@ import { addParent } from '../../../redux/parentRelated/parentHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
 import Popup from '../../../components/Popup';
 import { getAllStudents } from '../../../redux/studentRelated/studentHandle';
-import { CircularProgress, TextField, Button, Container, Box, Typography, Grid } from '@mui/material';
+import { CircularProgress, TextField, Button, Container, Box, Typography, Grid, FormControlLabel, Checkbox } from '@mui/material';
 
 const AddParent = () => {
     const dispatch = useDispatch();
@@ -17,6 +17,8 @@ const AddParent = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [studentId, setStudentId] = useState('');
+    const [autoGeneratePassword, setAutoGeneratePassword] = useState(true);
+    const [password, setPassword] = useState('');
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
@@ -31,12 +33,15 @@ const AddParent = () => {
         }
     }, [adminID, dispatch]);
 
-    const fields = { name, email, studentId, school };
+    const fields = { name, email, studentId, school, autoGeneratePassword, ...(autoGeneratePassword ? {} : { password }) };
 
     const submitHandler = (event) => {
         event.preventDefault();
         if (studentId === "") {
             setMessage("Please select a child");
+            setShowPopup(true);
+        } else if (!autoGeneratePassword && !password.trim()) {
+            setMessage("Please enter a password");
             setShowPopup(true);
         } else {
             setLoader(true);
@@ -85,6 +90,35 @@ const AddParent = () => {
                                 required
                             />
                         </Grid>
+                        <Grid item xs={12}>
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={autoGeneratePassword}
+                                        onChange={(e) => setAutoGeneratePassword(e.target.checked)}
+                                        color="primary"
+                                    />
+                                }
+                                label="Auto-generate password and send login details via email"
+                            />
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 4 }}>
+                                If checked, a random password will be generated and login details will be sent to the parent's email.
+                                If unchecked, you must enter a password manually.
+                            </Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                            <TextField
+                                required={!autoGeneratePassword}
+                                disabled={autoGeneratePassword}
+                                fullWidth
+                                label="Password"
+                                type="password"
+                                variant="outlined"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                helperText={autoGeneratePassword ? "Password will be auto-generated" : "Enter a password for the parent"}
+                            />
+                        </Grid>
                         <Grid item xs={12} sm={6}>
                             <TextField
                                 select
@@ -107,7 +141,7 @@ const AddParent = () => {
                             </TextField>
                         </Grid>
                         <Grid item xs={12}>
-                            <Button variant="contained" color="primary" type="submit" disabled={loader}>
+                            <Button variant="contained" color="primary" type="submit" disabled={loader || !name.trim() || !email.trim() || (!autoGeneratePassword && !password.trim())}>
                                 {loader ? <CircularProgress size={24} color="inherit" /> : 'Add Parent'}
                             </Button>
                         </Grid>

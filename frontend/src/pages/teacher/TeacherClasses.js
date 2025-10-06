@@ -65,11 +65,12 @@ const TeacherClasses = () => {
 
     // Check attendance status for sections with attendance responsibility
     const checkAttendanceStatus = async () => {
-        if (!teacherData?.attendanceSections?.length) return;
+        if (!teacherData?.attendanceSections?.length && !teacherData?.attendanceClass) return;
 
         const statusUpdates = {};
 
-        for (const section of teacherData.attendanceSections) {
+        // Check section-level attendance
+        for (const section of teacherData.attendanceSections || []) {
             const sclassId = typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName;
             try {
                 const response = await fetch(`${API_BASE_URL}/CheckSectionAttendance/${sclassId}/${section.sectionName}`);
@@ -87,15 +88,35 @@ const TeacherClasses = () => {
             }
         }
 
+        // Check class-level attendance (for classes without sections)
+        if (teacherData?.attendanceClass) {
+            const attendanceClassId = typeof teacherData.attendanceClass === 'object' ? teacherData.attendanceClass._id : teacherData.attendanceClass;
+            try {
+                const resp = await fetch(`${API_BASE_URL}/CheckClassAttendance/${attendanceClassId}`);
+                const data = await resp.json();
+                statusUpdates[`${attendanceClassId}-whole-class`] = Boolean(data.attendanceTaken);
+            } catch (error) {
+                console.error('Error checking class attendance status:', error);
+                statusUpdates[`${attendanceClassId}-whole-class`] = false;
+            }
+        }
+
         setAttendanceStatus(statusUpdates);
     };
     
     useEffect(() => {
         if (currentUser?._id) {
             dispatch(getTeacherDetails(currentUser._id));
-            dispatch(getAllSclasses(currentUser._id, "Sclass"));
         }
     }, [dispatch, currentUser?._id]);
+
+    // Load classes for the teacher's school (needed to build "Whole Class" entries)
+    useEffect(() => {
+        const schoolId = teacherData?.school && (typeof teacherData.school === 'object' ? teacherData.school._id : teacherData.school);
+        if (schoolId) {
+            dispatch(getAllSclasses(schoolId, "Sclass"));
+        }
+    }, [dispatch, teacherData?.school]);
 
     useEffect(() => {
         if (teacherData) {
@@ -146,6 +167,9 @@ const TeacherClasses = () => {
     
     // Attendance sections (multiple) - get from attendanceSections array
     const attendanceSections = teacherData?.attendanceSections || [];
+    
+    // Classes assigned directly (for classes without sections)
+    const assignedClasses = teacherData?.teachSclasses || [];
 
     const CustomToolbar = () => {
         return (
@@ -245,7 +269,10 @@ const TeacherClasses = () => {
                         variant="outlined"
                         size="small"
                         startIcon={<VisibilityIcon />}
-                        onClick={() => navigate(`/teacher/class/${params.row.sclassId}?section=${encodeURIComponent(params.row.sectionName)}`)}
+                        onClick={() => {
+                            const sectionParam = params.row.sectionName === 'Whole Class' ? '' : `?section=${encodeURIComponent(params.row.sectionName)}`;
+                            navigate(`/teacher/class/${params.row.sclassId}${sectionParam}`);
+                        }}
                         sx={{ textTransform: 'none' }}
                     >
                         View
@@ -256,7 +283,10 @@ const TeacherClasses = () => {
                             size="small"
                             color="primary"
                             startIcon={<EventAvailableIcon />}
-                            onClick={() => navigate(`/teacher/class/${params.row.sclassId}/attendance?section=${encodeURIComponent(params.row.sectionName)}`)}
+                            onClick={() => {
+                                const sectionParam = params.row.sectionName === 'Whole Class' ? '' : `?section=${encodeURIComponent(params.row.sectionName)}`;
+                                navigate(`/teacher/class/${params.row.sclassId}/attendance${sectionParam}`);
+                            }}
                             sx={{ textTransform: 'none', minWidth: '100px' }}
                         >
                             Attendance
@@ -295,6 +325,34 @@ const TeacherClasses = () => {
             });
         }
         // Note: No attendance-only sections since system doesn't support attendance-only teachers
+    });
+    
+    // Add 'Whole Class' entries for classes where the teacher is assigned to the class
+    // but has no specific section assignments for that class (regardless of whether the class defines sections)
+    assignedClasses.forEach(classItem => {
+        const sclassId = typeof classItem === 'object' ? classItem._id : classItem;
+        const classInfo = sclassesList?.find(c => c._id === sclassId);
+        
+        // Only add if this class has no sections assigned to this teacher
+        const hasSectionsForThisClass = teachingSections.some(section => {
+            const sectionClassId = typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName;
+            return sectionClassId === sclassId;
+        });
+        
+        if (!hasSectionsForThisClass && classInfo) {
+            const attendanceClassId = teacherData?.attendanceClass && (typeof teacherData.attendanceClass === 'object' ? teacherData.attendanceClass._id : teacherData.attendanceClass);
+            // Create a virtual section entry for the whole class
+            const key = `${sclassId}-whole-class`;
+            sectionMap.set(key, {
+                sectionId: 'whole-class',
+                sectionName: 'Whole Class',
+                sclassName: classInfo,
+                hasTeaching: true,
+                hasAttendance: attendanceClassId === sclassId,
+                role: attendanceClassId === sclassId ? 'teaching+attendance' : 'teaching',
+                studentCount: typeof classInfo.students === 'number' ? classInfo.students : 0
+            });
+        }
     });
     
     const processedSections = Array.from(sectionMap.values());
@@ -500,15 +558,21 @@ const TeacherClasses = () => {
                                                     transition: 'all 0.2s ease-in-out'
                                                 }
                                             }}
-                                            onClick={() => navigate(`/teacher/class/${selectedClass.sclassId}?section=${encodeURIComponent(section.sectionName)}`)}
+                                            onClick={() => {
+                                                const isWholeClass = section.sectionId === 'whole-class' || section.sectionName === 'Whole Class';
+                                                const sectionQuery = isWholeClass ? '' : `?section=${encodeURIComponent(section.sectionName)}`;
+                                                navigate(`/teacher/class/${selectedClass.sclassId}${sectionQuery}`);
+                                            }}
                                         >
                                             <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
                                                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
                                                     <Badge 
                                                         badgeContent={
-                                                            section.hasAttendance && 
-                                                            !attendanceStatus[`${typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName}-${section.sectionId}`] 
-                                                            ? "!" : 0
+                                                            section.hasAttendance && (
+                                                                section.sectionId === 'whole-class'
+                                                                    ? !attendanceStatus[`${typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName}-whole-class`]
+                                                                    : !attendanceStatus[`${typeof section.sclassName === 'object' ? section.sclassName._id : section.sclassName}-${section.sectionId}`]
+                                                            ) ? "!" : 0
                                                         } 
                                                         color="error"
                                                         sx={{
@@ -541,7 +605,9 @@ const TeacherClasses = () => {
                                                             size="medium"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                navigate(`/teacher/class/${selectedClass.sclassId}/attendance?section=${encodeURIComponent(section.sectionName)}`);
+                                                                const isWholeClass = section.sectionId === 'whole-class' || section.sectionName === 'Whole Class';
+                                                                const sectionQuery = isWholeClass ? '' : `?section=${encodeURIComponent(section.sectionName)}`;
+                                                                navigate(`/teacher/class/${selectedClass.sclassId}/attendance${sectionQuery}`);
                                                             }}
                                                             sx={{ 
                                                                 color: 'secondary.main',

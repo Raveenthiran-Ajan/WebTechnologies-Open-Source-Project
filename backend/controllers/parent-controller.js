@@ -7,17 +7,25 @@ const Admin = require('../models/adminSchema.js');
 
 const parentRegister = async (req, res) => {
     try {
-        const { name, email, school, studentId } = req.body;
+        const { name, email, school, studentId, autoGeneratePassword, password } = req.body;
 
         // Check if all required fields are provided
         if (!name || !email || !school || !studentId) {
             return res.status(400).json({ message: "Please fill all the required fields" });
         }
 
-        // Generate random password
-        const randomPassword = crypto.randomBytes(8).toString('hex');
+        let finalPassword;
+        
+        if (autoGeneratePassword) {
+            // Generate random password
+            finalPassword = crypto.randomBytes(8).toString('hex');
+        } else {
+            // Use provided password
+            finalPassword = password;
+        }
+        
         const salt = await bcrypt.genSalt(10);
-        const hashedPass = await bcrypt.hash(randomPassword, salt);
+        const hashedPass = await bcrypt.hash(finalPassword, salt);
 
         const existingParent = await Parent.findOne({ email });
         if (existingParent) {
@@ -60,7 +68,7 @@ const parentRegister = async (req, res) => {
 
                     <div style="background-color: #f5f7fa; padding: 16px; border-radius: 8px; margin: 0 0 16px;">
                         <p style="margin: 0 0 8px;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #1976d2; text-decoration: underline;">${email}</a></p>
-                        <p style="margin: 0 0 8px;"><strong>Password:</strong> ${randomPassword}</p>
+                        <p style="margin: 0 0 8px;"><strong>Password:</strong> ${finalPassword}</p>
                         <p style="margin: 0;"><strong>Role:</strong> Parent</p>
                     </div>
 

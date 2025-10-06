@@ -78,7 +78,7 @@ export const assignMultipleSubjects = (teacherId, subjectIds, attendanceClassId 
     }
 }
 
-export const updateTeacherAssignments = (teacherId, subjectIds, teachSections, attendanceSections, selectedClass) => async (dispatch) => {
+export const updateTeacherAssignments = (teacherId, subjectIds, teachSections, attendanceSections, selectedClass, attendanceClassId = undefined) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
@@ -89,6 +89,9 @@ export const updateTeacherAssignments = (teacherId, subjectIds, teachSections, a
             attendanceSections,
             selectedClass
         };
+        if (attendanceClassId !== undefined) {
+            requestData.attendanceClassId = attendanceClassId;
+        }
         
         const result = await axios.put(`${REACT_APP_BASE_URL}/TeacherAssignments`, requestData, {
             headers: { 'Content-Type': 'application/json' },
