@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import { useTranslation } from 'react-i18next';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppBar, Drawer } from '../../components/styles';
 import ParentHomePage from './ParentHomePage';
@@ -28,6 +29,7 @@ const ParentDashboard = () => {
     const toggleDrawer = () => {
         setOpen(!open);
     };
+    const { t } = useTranslation();
 
     return (
         <>
@@ -54,7 +56,7 @@ const ParentDashboard = () => {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Parent Dashboard
+                            {t('parentDashboard.title')}
                         </Typography>
                         <AccountMenu />
                     </Toolbar>

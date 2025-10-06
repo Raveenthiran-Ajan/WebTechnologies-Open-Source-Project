@@ -26,12 +26,14 @@ import { AppBar, Drawer } from '../../components/styles.js';
 import StudentGrades from './StudentGrades.js';
 import StudentNotices from './StudentNotices.js';
 import StudentTermReport from './StudentTermReport.js';
+import { useTranslation } from 'react-i18next';
 
 const StudentDashboard = () => {
     const [open, setOpen] = useState(true);
     const toggleDrawer = () => {
         setOpen(!open);
     };
+    const { t } = useTranslation();
 
     return (
         <>
@@ -58,7 +60,7 @@ const StudentDashboard = () => {
                             noWrap
                             sx={{ flexGrow: 1 }}
                         >
-                            Student Dashboard
+                            {t('studentDashboard.title')}
                         </Typography>
                         <AccountMenu />
                     </Toolbar>
