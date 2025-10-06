@@ -116,16 +116,11 @@ const getAssignmentsByStudent = async (req, res) => {
       return res.status(400).json({ error: "Student class information is incomplete" });
     }
 
-    // Find assignments where the student's class is included, and section matches if specified
+    // Find assignments where the student's class is included
     let assignments = await Assignment.find({
       assignments: {
         $elemMatch: {
-          classId: student.sclassName._id,
-          $or: [
-            { sectionName: { $exists: false } }, // No section specified, for whole class
-            { sectionName: null }, // Section is null
-            { sectionName: student.sectionName || "" } // Matches student's section
-          ]
+          classId: student.sclassName._id
         }
       }
     });

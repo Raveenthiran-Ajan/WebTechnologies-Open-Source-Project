@@ -9,12 +9,6 @@ const sclassSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin'
     },
-    sections: [{
-        sectionName: {
-            type: String,
-            required: true
-        }
-    }],
     timetable: [{
 
 

@@ -30,12 +30,11 @@ export const getAllSclasses = (id, address) => async (dispatch) => {
     }
 }
 
-export const getClassStudents = (id, sectionName) => async (dispatch) => {
+export const getClassStudents = (id) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const params = sectionName ? { params: { sectionName } } : undefined;
-        const result = await axios.get(`${REACT_APP_BASE_URL}/Sclass/Students/${id}`, params);
+        const result = await axios.get(`${REACT_APP_BASE_URL}/Sclass/Students/${id}`);
         if (result.data.message) {
             dispatch(getFailedTwo(result.data.message));
         } else {

@@ -23,26 +23,24 @@ const TeacherHomePage = () => {
     // Use teacherDetails if available, otherwise fall back to currentUser
     const teacherData = teacherDetails || currentUser;
 
-    // Get teaching sections (multiple sections)
-    const teachingSections = teacherData?.teachSections || [];
+    // Get teaching classes (multiple classes)
+    const teachingClasses = teacherData?.teachSclasses || [];
     
-    // Get attendance sections (multiple sections, subset of teaching sections)
-    const attendanceSections = teacherData?.attendanceSections || [];
+    // Get attendance class (single class)
+    const attendanceClass = teacherData?.attendanceClass;
 
     useEffect(() => {
-        // Fetch teacher details to get section information
+        // Fetch teacher details to get class information
         if (currentUser?._id) {
             dispatch(getTeacherDetails(currentUser._id));
-            // Fetch all classes to get proper class names for sections
+            // Fetch all classes to get proper class names
             dispatch(getAllSclasses(currentUser._id, "Sclass"));
         }
     }, [dispatch, currentUser?._id]);
 
-    // Calculate totals from sections
-    const totalTeachingSections = teachingSections.length;
-    const totalAttendanceSections = attendanceSections.length;
+    // Calculate totals from classes
+    const totalTeachingClasses = teachingClasses.length;
     const totalSubjects = teacherData?.teachSubjects?.length || 0;
-    const totalUniqueClasses = new Set([...teachingSections, ...attendanceSections].map(s => s.sclassName)).size;
 
     const { t } = useTranslation();
     return (
@@ -61,19 +59,19 @@ const TeacherHomePage = () => {
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3, mt: 2 }}>
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                {t('teacherHomePage.teachingSections')}
+                                {t('teacherHomePage.teachingClasses')}
                             </Typography>
                             <Box sx={{ mt: 1 }}>
-                                {teachingSections.length > 0 ? (
+                                {teachingClasses.length > 0 ? (
                                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                        {teachingSections.slice(0, 3).map((section, index) => {
+                                        {teachingClasses.slice(0, 3).map((sclass, index) => {
                                             // Handle both populated object and ID cases for class name
                                             let classDisplayName = 'Unknown';
-                                            if (section.sclassName) {
-                                                if (typeof section.sclassName === 'object' && section.sclassName.sclassName) {
-                                                    classDisplayName = section.sclassName.sclassName;
-                                                } else if (typeof section.sclassName === 'string') {
-                                                    const classInfo = sclassesList?.find(c => c._id === section.sclassName);
+                                            if (sclass) {
+                                                if (typeof sclass === 'object' && sclass.sclassName) {
+                                                    classDisplayName = sclass.sclassName;
+                                                } else if (typeof sclass === 'string') {
+                                                    const classInfo = sclassesList?.find(c => c._id === sclass);
                                                     if (classInfo) {
                                                         classDisplayName = classInfo.sclassName;
                                                     }
@@ -81,19 +79,19 @@ const TeacherHomePage = () => {
                                             }
                                             return (
                                                 <Typography key={index} variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                    • {section.sectionName} ({classDisplayName})
+                                                    • {classDisplayName}
                                                 </Typography>
                                             );
                                         })}
-                                        {teachingSections.length > 3 && (
+                                        {teachingClasses.length > 3 && (
                                             <Typography variant="body2" color="text.secondary">
-                                                {t('teacherHomePage.moreSections', { count: teachingSections.length - 3 })}
+                                                {t('teacherHomePage.moreClasses', { count: teachingClasses.length - 3 })}
                                             </Typography>
                                         )}
                                     </Box>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary">
-                                        {t('teacherHomePage.noSectionsAssigned')}
+                                        {t('teacherHomePage.noClassesAssigned')}
                                     </Typography>
                                 )}
                             </Box>
@@ -136,39 +134,20 @@ const TeacherHomePage = () => {
                         
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                {t('teacherHomePage.attendanceSections')}
+                                {t('teacherHomePage.attendanceClass')}
                             </Typography>
                             <Box sx={{ mt: 1 }}>
-                                {attendanceSections.length > 0 ? (
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                        {attendanceSections.slice(0, 3).map((section, index) => {
-                                            // Handle both populated object and ID cases for class name
-                                            let classDisplayName = 'Unknown';
-                                            if (section.sclassName) {
-                                                if (typeof section.sclassName === 'object' && section.sclassName.sclassName) {
-                                                    classDisplayName = section.sclassName.sclassName;
-                                                } else if (typeof section.sclassName === 'string') {
-                                                    const classInfo = sclassesList?.find(c => c._id === section.sclassName);
-                                                    if (classInfo) {
-                                                        classDisplayName = classInfo.sclassName;
-                                                    }
-                                                }
-                                            }
-                                            return (
-                                                <Typography key={index} variant="body2" sx={{ fontWeight: 'medium' }}>
-                                                    • {section.sectionName} ({classDisplayName})
-                                                </Typography>
-                                            );
-                                        })}
-                                        {attendanceSections.length > 3 && (
-                                            <Typography variant="body2" color="text.secondary">
-                                                {t('teacherHomePage.moreSections', { count: attendanceSections.length - 3 })}
-                                            </Typography>
-                                        )}
-                                    </Box>
+                                {attendanceClass ? (
+                                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                                        {typeof attendanceClass === 'object' && attendanceClass.sclassName 
+                                            ? attendanceClass.sclassName 
+                                            : (typeof attendanceClass === 'string' 
+                                                ? (sclassesList?.find(c => c._id === attendanceClass)?.sclassName || 'Unknown')
+                                                : 'Unknown')}
+                                    </Typography>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary">
-                                        {t('teacherHomePage.noAttendanceSectionsAssigned')}
+                                        {t('teacherHomePage.noAttendanceClassAssigned')}
                                     </Typography>
                                 )}
                             </Box>
@@ -186,20 +165,20 @@ const TeacherHomePage = () => {
                 <Grid container spacing={3} sx={{ mt: 1 }}>
                     <Grid item xs={12} md={3}>
                         <StyledPaper>
-                            <img src={Students} alt="Sections" />
+                            <img src={Students} alt="Classes" />
                             <Title>
-                                {t('teacherHomePage.teachingSections')}
+                                {t('teacherHomePage.teachingClasses')}
                             </Title>
-                            <Data><CountUp key={totalTeachingSections} start={0} end={totalTeachingSections} duration={2.5} /></Data>
+                            <Data><CountUp key={totalTeachingClasses} start={0} end={totalTeachingClasses} duration={2.5} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3}>
                         <StyledPaper>
                             <img src={Lessons} alt="Attendance" />
                             <Title>
-                                {t('teacherHomePage.attendanceSections')}
+                                {t('teacherHomePage.attendanceClass')}
                             </Title>
-                            <Data><CountUp key={totalAttendanceSections} start={0} end={totalAttendanceSections} duration={2.5} /></Data>
+                            <Data><CountUp key={attendanceClass ? 1 : 0} start={0} end={attendanceClass ? 1 : 0} duration={2.5} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3}>
@@ -217,7 +196,7 @@ const TeacherHomePage = () => {
                             <Title>
                                 {t('teacherHomePage.totalClasses')}
                             </Title>
-                            <Data><CountUp key={totalTeachingSections} start={0} end={totalUniqueClasses} duration={2.5} /></Data>
+                            <Data><CountUp key={totalTeachingClasses} start={0} end={totalTeachingClasses} duration={2.5} /></Data>
                         </StyledPaper>
                     </Grid>
                 </Grid>
@@ -232,16 +211,16 @@ const TeacherHomePage = () => {
                     <Button 
                         variant="contained" 
                         color="primary"
-                        onClick={() => attendanceSections.length > 0 ? window.location.href = `/Teacher/class/${attendanceSections[0].sclassName}/attendance` : null}
-                        disabled={attendanceSections.length === 0}
+                        onClick={() => attendanceClass ? window.location.href = `/Teacher/class/${typeof attendanceClass === 'object' ? attendanceClass._id : attendanceClass}/attendance` : null}
+                        disabled={!attendanceClass}
                     >
                         {t('teacherHomePage.takeAttendance')}
                     </Button>
                     <Button 
                         variant="contained" 
                         color="secondary"
-                        onClick={() => teachingSections.length > 0 ? window.location.href = `/Teacher/class/${teachingSections[0].sclassName}` : null}
-                        disabled={teachingSections.length === 0}
+                        onClick={() => teachingClasses.length > 0 ? window.location.href = `/Teacher/class/${typeof teachingClasses[0] === 'object' ? teachingClasses[0]._id : teachingClasses[0]}` : null}
+                        disabled={teachingClasses.length === 0}
                     >
                         {t('teacherHomePage.viewClassDetails')}
                     </Button>

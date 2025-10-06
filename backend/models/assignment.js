@@ -7,8 +7,7 @@ const assignmentSchema = new mongoose.Schema({
   subject: { type: String, required: true },
   teacherId: { type: mongoose.Schema.Types.ObjectId, ref: "teacher", required: true },
   assignments: [{
-    classId: { type: mongoose.Schema.Types.ObjectId, ref: "sclass", required: true },
-    sectionName: { type: String, required: false } // Optional, if not provided, assignment is for entire class
+    classId: { type: mongoose.Schema.Types.ObjectId, ref: "sclass", required: true }
   }],
   fileUrl: { type: String },
   createdAt: { type: Date, default: Date.now }

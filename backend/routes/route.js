@@ -4,7 +4,7 @@ const path = require('path');
 
 const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChildDetails, addAnotherChild,deleteParent, changePassword: parentChangePassword } = require('../controllers/parent-controller.js');
 const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
-const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, addSection, deleteSection, getTeacherClasses, updateTeacherClasses } = require('../controllers/class-controller.js');
+const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTeacherClasses, updateTeacherClasses } = require('../controllers/class-controller.js');
 const { complainCreate, complainList, complainUpdate, complainDelete } = require('../controllers/complain-controller.js');
 const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice, markNoticeAsRead } = require('../controllers/notice-controller.js');
 // const { adminRegister, adminLogIn, deleteAdmin, getAdminDetail, updateAdmin } = require('../controllers/admin-controller.js');
@@ -26,8 +26,7 @@ const {
     removeStudentAttendanceBySubject,
     removeStudentAttendance,
     changePassword: studentChangePassword,
-    getStudentTermReport,
-    checkSectionAttendanceStatus
+    getStudentTermReport
 } = require('../controllers/student_controller.js');
 const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects } = require('../controllers/subject-controller.js');
 const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, assignMultipleSubjects, updateTeacherAssignments, testTeacherAssignment, teacherAttendance, changePassword: teacherChangePassword } = require('../controllers/teacher-controller.js');
@@ -116,7 +115,6 @@ router.put('/RemoveStudentSubAtten/:id', removeStudentAttendanceBySubject);
 router.put('/RemoveStudentAtten/:id', removeStudentAttendance)
 router.put("/Student/password/:id", studentChangePassword)
 router.get('/Student/termReport/:id', getStudentTermReport);
-router.get('/CheckSectionAttendance/:sclassId/:sectionName', checkSectionAttendanceStatus);
 router.get('/CheckClassAttendance/:sclassId', require("../controllers/student_controller").checkClassAttendanceStatus);
 
 // Teacher
@@ -162,8 +160,6 @@ router.get("/Sclass/:id", getSclassDetail)
 router.get("/Sclass/Students/:id", getSclassStudents)
 router.delete("/Sclasses/:id", deleteSclasses)
 router.delete("/Sclass/:id", deleteSclass)
-router.post("/Sclass/:id/addSection", addSection)
-router.delete("/Sclass/:id/deleteSection/:sectionName", deleteSection)
 router.get("/Sclass/Teachers/:id", require("../controllers/class-controller").getClassTeachers);
 router.get("/Sclass/Timetable/:id", require("../controllers/class-controller").getTimetable);
 router.put("/Sclass/Timetable/:id", require("../controllers/class-controller").updateTimetable);

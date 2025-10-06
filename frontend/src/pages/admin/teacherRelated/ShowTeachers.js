@@ -136,11 +136,11 @@ const ShowTeachers = () => {
             },
         },
         {
-            field: 'teachSections',
-            headerName: 'Teaching Sections',
+            field: 'teachSclasses',
+            headerName: 'Teaching Classes',
             flex: 0.8,
             renderCell: (params) => {
-                const sections = params.row.teachSections;
+                const classes = params.row.teachSclasses;
                 return (
                     <Box sx={{ 
                         display: 'flex', 
@@ -149,11 +149,11 @@ const ShowTeachers = () => {
                         width: '100%',
                         py: 1 
                     }}>
-                        {sections && sections.length > 0 ? (
-                            sections.map((section, index) => (
+                        {classes && classes.length > 0 ? (
+                            classes.slice(0, 3).map((sclass, index) => (
                                 <Chip 
-                                    key={section.sectionId || index} 
-                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
+                                    key={sclass._id || index} 
+                                    label={sclass.sclassName || 'Unknown'} 
                                     size="small" 
                                     color="info" 
                                     variant="outlined"
@@ -162,7 +162,12 @@ const ShowTeachers = () => {
                             ))
                         ) : (
                             <Typography variant="body2" color="text.secondary">
-                                No sections
+                                No classes
+                            </Typography>
+                        )}
+                        {classes && classes.length > 3 && (
+                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                                +{classes.length - 3} more
                             </Typography>
                         )}
                     </Box>
@@ -170,14 +175,11 @@ const ShowTeachers = () => {
             },
         },
         {
-            field: 'attendanceSections',
-            headerName: 'Attendance Sections',
+            field: 'attendanceClass',
+            headerName: 'Attendance Class',
             flex: 0.8,
             renderCell: (params) => {
-                const sections = params.row.attendanceSections;
                 const attendanceClass = params.row.attendanceClass;
-                const hasSections = sections && sections.length > 0;
-                const hasClass = Boolean(attendanceClass);
                 return (
                     <Box sx={{ 
                         display: 'flex', 
@@ -186,26 +188,15 @@ const ShowTeachers = () => {
                         width: '100%',
                         py: 1 
                     }}>
-                        {hasSections && sections.map((section, index) => (
+                        {attendanceClass ? (
                             <Chip 
-                                key={section.sectionId || index} 
-                                label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
+                                label={attendanceClass.sclassName || 'Unknown'} 
                                 size="small" 
                                 color="success" 
                                 variant="filled"
                                 sx={{ fontSize: '0.75rem' }}
                             />
-                        ))}
-                        {hasClass && (
-                            <Chip 
-                                label={`Whole Class (${attendanceClass?.sclassName || 'Unknown'})`} 
-                                size="small" 
-                                color="success" 
-                                variant="outlined"
-                                sx={{ fontSize: '0.75rem' }}
-                            />
-                        )}
-                        {!hasSections && !hasClass && (
+                        ) : (
                             <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
                                 No attendance duty
                             </Typography>
@@ -249,7 +240,7 @@ const ShowTeachers = () => {
     ];
 
     const rows = teachersList && teachersList.map((teacher) => {
-        console.log('Teacher data:', teacher.name, 'teachSections:', teacher.teachSections, 'attendanceSections:', teacher.attendanceSections);
+        console.log('Teacher data:', teacher.name, 'teachSclasses:', teacher.teachSclasses, 'attendanceClass:', teacher.attendanceClass);
         let teachingSubjects = [];
         let teachingClasses = [];
         
@@ -270,8 +261,6 @@ const ShowTeachers = () => {
             name: teacher.name,
             teachSubjects: teachingSubjects,
             teachSclasses: teachingClasses,
-            teachSections: teacher.teachSections || [],
-            attendanceSections: teacher.attendanceSections || [],
             attendanceClass: teacher.attendanceClass || null,
             teachSubject: teacher.teachSubject?.subName || null,
             teachSclass: teacher.teachSclass ? teacher.teachSclass.sclassName : 'No Class',
@@ -329,44 +318,16 @@ const ShowTeachers = () => {
                                             )}
                                         </Box>
                                     )}
-                                    {row?.teachSections && row.teachSections.length > 0 && (
-                                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
-                                            <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>Teaching:</Typography>
-                                            {row.teachSections.slice(0, 3).map((section, index) => (
-                                                <Chip
-                                                    key={section.sectionId || index}
-                                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`}
-                                                    size="small"
-                                                    color="info"
-                                                    variant="outlined"
-                                                    sx={{ fontSize: '0.7rem', height: '20px' }}
-                                                />
-                                            ))}
-                                            {row.teachSections.length > 3 && (
-                                                <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                                    +{row.teachSections.length - 3} more
-                                                </Typography>
-                                            )}
-                                        </Box>
-                                    )}
-                                    {row?.attendanceSections && row.attendanceSections.length > 0 && (
+                                    {row?.attendanceClass && (
                                         <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
                                             <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>Attendance:</Typography>
-                                            {row.attendanceSections.slice(0, 3).map((section, index) => (
-                                                <Chip
-                                                    key={section.sectionId || index}
-                                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`}
-                                                    size="small"
-                                                    color="success"
-                                                    variant="filled"
-                                                    sx={{ fontSize: '0.7rem', height: '20px' }}
-                                                />
-                                            ))}
-                                            {row.attendanceSections.length > 3 && (
-                                                <Typography variant="caption" sx={{ ml: 0.5 }}>
-                                                    +{row.attendanceSections.length - 3} more
-                                                </Typography>
-                                            )}
+                                            <Chip
+                                                label={row.attendanceClass.sclassName || 'Unknown'}
+                                                size="small"
+                                                color="success"
+                                                variant="filled"
+                                                sx={{ fontSize: '0.7rem', height: '20px' }}
+                                            />
                                         </Box>
                                     )}
                                 </Box>

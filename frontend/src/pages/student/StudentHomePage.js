@@ -232,7 +232,7 @@ const StudentHomePage = () => {
         <>
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
                 <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: 'bold' }}>
-                    {currentUser.sclassName?.sclassName} {currentUser.sectionName ? `- ${currentUser.sectionName}` : ''}
+                    {currentUser.sclassName?.sclassName}
                 </Typography>
                 <Grid container spacing={3}>
                     <Grid item xs={12} md={3} lg={3}>

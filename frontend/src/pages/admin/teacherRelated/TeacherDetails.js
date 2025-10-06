@@ -166,38 +166,35 @@ const TeacherDetails = () => {
                                     </Box>
                                     
                                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                        Teaching Sections
+                                        Teaching Classes
                                     </Typography>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-                                        {teacherDetails?.teachSections && teacherDetails.teachSections.length > 0 ? (
-                                            teacherDetails.teachSections.map((section, index) => (
+                                        {teacherDetails?.teachSclasses && teacherDetails.teachSclasses.length > 0 ? (
+                                            teacherDetails.teachSclasses.map((sclass, index) => (
                                                 <Chip 
-                                                    key={section.sectionId || index} 
-                                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
+                                                    key={sclass._id || index} 
+                                                    label={sclass.sclassName || 'Unknown'} 
                                                     color="info" 
                                                     variant="outlined" 
                                                 />
                                             ))
                                         ) : (
-                                            <Typography color="text.secondary">No sections assigned</Typography>
+                                            <Typography color="text.secondary">No classes assigned</Typography>
                                         )}
                                     </Box>
                                     
                                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                        Attendance Sections
+                                        Attendance Class
                                     </Typography>
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-                                        {teacherDetails?.attendanceSections && teacherDetails.attendanceSections.length > 0 ? (
-                                            teacherDetails.attendanceSections.map((section, index) => (
-                                                <Chip 
-                                                    key={section.sectionId || index} 
-                                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
-                                                    color="success" 
-                                                    variant="filled" 
-                                                />
-                                            ))
+                                        {teacherDetails?.attendanceClass ? (
+                                            <Chip 
+                                                label={teacherDetails.attendanceClass.sclassName || 'Unknown'} 
+                                                color="success" 
+                                                variant="filled" 
+                                            />
                                         ) : (
-                                            <Typography color="text.secondary">No attendance sections assigned</Typography>
+                                            <Typography color="text.secondary">No attendance class assigned</Typography>
                                         )}
                                     </Box>
                                 </Box>

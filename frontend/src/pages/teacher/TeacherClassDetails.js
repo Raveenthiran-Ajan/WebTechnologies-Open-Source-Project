@@ -29,9 +29,6 @@ const TeacherClassDetails = () => {
     const dispatch = useDispatch();
     const { sclassStudents, loading, error: classError, getresponse } = useSelector((state) => state.sclass);
     const { classId } = useParams();
-    const location = useLocation();
-    const queryParams = new URLSearchParams(location.search);
-    const sectionParam = queryParams.get('section');
     const { statestatus, response, error: studentError, loading: studentLoading } = useSelector((state) => state.student);
 
     const [marks, setMarks] = useState({});
@@ -44,9 +41,9 @@ const TeacherClassDetails = () => {
 
     useEffect(() => {
         if (classID) {
-            dispatch(getClassStudents(classID, sectionParam || undefined));
+            dispatch(getClassStudents(classID));
         }
-    }, [dispatch, classID, sectionParam]);
+    }, [dispatch, classID]);
 
     useEffect(() => {
         if (sclassStudents && sclassStudents.length > 0) {
@@ -201,8 +198,7 @@ const TeacherClassDetails = () => {
             )
         }
     ];
-    // Optionally filter students by section from query param if provided
-    const filteredStudents = sectionParam && Array.isArray(sclassStudents) ? sclassStudents.filter(s => s.sectionName === sectionParam) : (Array.isArray(sclassStudents) ? sclassStudents : []);
+    const filteredStudents = Array.isArray(sclassStudents) ? sclassStudents : [];
 
     const studentRows = Array.isArray(filteredStudents) ? filteredStudents.map((student) => {
         return {
@@ -275,7 +271,7 @@ const TeacherClassDetails = () => {
                                 ) : (
                                     <>
                                         <Typography variant="h5" component="h2" gutterBottom>
-                                            Students List {sectionParam ? `(Section ${sectionParam})` : ''}
+                                            Students List
                                         </Typography>
                                         {(() => {
                                             const teacherSubject = currentUser.teachSubject || (currentUser.teachSubjects && currentUser.teachSubjects.length === 1 ? currentUser.teachSubjects[0] : null);
@@ -306,7 +302,7 @@ const TeacherClassDetails = () => {
                                             No students found in this class
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                            {sectionParam ? `No students are assigned to section "${sectionParam}"` : 'This class currently has no students assigned'}
+                                            This class currently has no students assigned
                                         </Typography>
                                     </Box>
                                 ) : (

@@ -6,7 +6,7 @@ const Subject = require('../models/subjectSchema.js');
 const sendEmail = require('../utils/sendEmail.js');
 
 const teacherRegister = async (req, res) => {
-    const { name, email, role, school, teachSubjects, teachSclass, teachSclasses, teachSections, attendanceSections, attendanceClass, autoGeneratePassword, password } = req.body;
+    const { name, email, role, school, teachSubjects, teachSclass, teachSclasses, attendanceClass, autoGeneratePassword, password } = req.body;
     try {
         let finalPassword;
         
@@ -21,16 +21,6 @@ const teacherRegister = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPass = await bcrypt.hash(finalPassword, salt);
 
-        // Check for existing attendance responsibility in the same sections
-        if (attendanceSections && attendanceSections.length > 0) {
-            const existingAttendanceTeacher = await Teacher.findOne({
-                "attendanceSections.sectionName": { $in: attendanceSections }
-            });
-            if (existingAttendanceTeacher) {
-                return res.send({ message: 'Another teacher is already assigned for attendance in one or more of these sections' });
-            }
-        }
-
         // Check for existing attendance responsibility for the class
         if (attendanceClass) {
             const existingClassAttendanceTeacher = await Teacher.findOne({
@@ -38,42 +28,6 @@ const teacherRegister = async (req, res) => {
             });
             if (existingClassAttendanceTeacher) {
                 return res.send({ message: 'Another teacher is already assigned for attendance in this class' });
-            }
-        }
-
-        // Convert section names to proper objects
-        const Sclass = require('../models/sclassSchema.js');
-        const teachingSectionDetails = [];
-        const attendanceSectionDetails = [];
-        
-        const classObj = await Sclass.findById(teachSclass);
-        if (!classObj) {
-            return res.send({ message: 'Class not found' });
-        }
-
-        if (teachSections && teachSections.length > 0) {
-            for (const sectionName of teachSections) {
-                const section = classObj.sections.find(s => s.sectionName === sectionName);
-                if (section) {
-                    teachingSectionDetails.push({
-                        sectionId: section._id,
-                        sectionName: sectionName,
-                        sclassName: teachSclass
-                    });
-                }
-            }
-        }
-
-        if (attendanceSections && attendanceSections.length > 0) {
-            for (const sectionName of attendanceSections) {
-                const section = classObj.sections.find(s => s.sectionName === sectionName);
-                if (section) {
-                    attendanceSectionDetails.push({
-                        sectionId: section._id,
-                        sectionName: sectionName,
-                        sclassName: teachSclass
-                    });
-                }
             }
         }
 
@@ -95,8 +49,6 @@ const teacherRegister = async (req, res) => {
             teachSubject, 
             teachSclass,
             teachSclasses: initialTeachSclasses,
-            teachSections: teachingSectionDetails,
-            attendanceSections: attendanceSectionDetails,
             attendanceClass: attendanceClass || null
         };
         console.log('Saving teacher with data:', teacherData);
@@ -202,12 +154,10 @@ const getTeachers = async (req, res) => {
             .populate("teachSclass", "sclassName")
             .populate("teachSubjects", "subName")
             .populate("teachSclasses", "sclassName")
-            .populate("teachSections.sclassName", "sclassName")
-            .populate("attendanceSections.sclassName", "sclassName")
             .populate("attendanceClass", "sclassName");
         console.log('Teachers found:', teachers.length);
         teachers.forEach((teacher, index) => {
-            console.log(`Teacher ${index}: ${teacher.name}, teachSections:`, teacher.teachSections, 'attendanceSections:', teacher.attendanceSections);
+            console.log(`Teacher ${index}: ${teacher.name}`);
         });
         if (teachers.length > 0) {
             let modifiedTeachers = teachers.map((teacher) => {
@@ -239,35 +189,10 @@ const getTeacherDetail = async (req, res) => {
             })
             .populate("teachSclasses", "sclassName")
             .populate("attendanceClass", "sclassName")
-            .populate("teachSections.sclassName", "sclassName")
-            .populate("attendanceSections.sclassName", "sclassName")
 
         if (teacher) {
             const teacherDoc = teacher.toObject();
             teacherDoc.password = undefined;
-
-            // Add student counts for each section
-            const Student = require('../models/studentSchema.js');
-            
-            if (teacherDoc.teachSections && teacherDoc.teachSections.length > 0) {
-                for (let section of teacherDoc.teachSections) {
-                    const studentCount = await Student.countDocuments({
-                        sclassName: section.sclassName._id,
-                        sectionName: section.sectionName
-                    });
-                    section.studentCount = studentCount;
-                }
-            }
-
-            if (teacherDoc.attendanceSections && teacherDoc.attendanceSections.length > 0) {
-                for (let section of teacherDoc.attendanceSections) {
-                    const studentCount = await Student.countDocuments({
-                        sclassName: section.sclassName._id,
-                        sectionName: section.sectionName
-                    });
-                    section.studentCount = studentCount;
-                }
-            }
 
             // Clean up the data
             if (!teacherDoc.teachSubjects?.length) delete teacherDoc.teachSubjects;
@@ -447,13 +372,11 @@ const assignMultipleSubjects = async (req, res) => {
 };
 
 const updateTeacherAssignments = async (req, res) => {
-    const { teacherId, subjectIds, teachSections, attendanceSections, selectedClass, attendanceClassId } = req.body;
+    const { teacherId, subjectIds, selectedClass, attendanceClassId } = req.body;
     try {
         console.log('=== UPDATE TEACHER ASSIGNMENTS ===');
         console.log('Teacher ID:', teacherId);
         console.log('Subject IDs:', subjectIds);
-        console.log('Teaching Sections:', teachSections);
-        console.log('Attendance Sections:', attendanceSections);
         console.log('Selected Class:', selectedClass);
 
         const teacher = await Teacher.findById(teacherId);
@@ -477,82 +400,15 @@ const updateTeacherAssignments = async (req, res) => {
 
         console.log('Found subjects:', subjects.map(s => ({ name: s.subName, class: s.sclassName.sclassName })));
 
-        // Validate that attendance sections are subset of teaching sections (only if attendance sections are provided)
-        if (attendanceSections && attendanceSections.length > 0) {
-            const invalidSections = attendanceSections.filter(sectionId => 
-                !teachSections.includes(sectionId)
-            );
-            if (invalidSections.length > 0) {
-                return res.status(400).json({
-                    message: "Attendance sections must be a subset of teaching sections"
-                });
-            }
-
-            // Check if another teacher is already assigned for attendance in the selected sections
-            const existingAttendanceTeacher = await Teacher.findOne({
-                "attendanceSections.sectionId": { $in: attendanceSections },
-                _id: { $ne: teacherId } // Exclude current teacher
-            });
-            
-            if (existingAttendanceTeacher) {
-                return res.status(400).json({
-                    message: `Another teacher is already assigned for attendance in one or more of these sections`
-                });
-            }
-        }
-
-        // Get section details for population
-        const Sclass = require('../models/sclassSchema.js');
-        const teachingSectionDetails = [];
-        const attendanceSectionDetails = [];
-
-        for (const sectionId of teachSections) {
-            const section = await Sclass.findOne(
-                { "sections._id": sectionId },
-                { "sections.$": 1, sclassName: 1 }
-            );
-            if (section && section.sections && section.sections.length > 0) {
-                teachingSectionDetails.push({
-                    sectionId: sectionId,
-                    sectionName: section.sections[0].sectionName,
-                    sclassName: section._id
-                });
-            }
-        }
-
-        for (const sectionId of (attendanceSections || [])) {
-            const section = await Sclass.findOne(
-                { "sections._id": sectionId },
-                { "sections.$": 1, sclassName: 1 }
-            );
-            if (section && section.sections && section.sections.length > 0) {
-                attendanceSectionDetails.push({
-                    sectionId: sectionId,
-                    sectionName: section.sections[0].sectionName,
-                    sclassName: section._id
-                });
-            }
-        }
-
         // Direct update - replace all arrays
         const updateFields = {
             teachSubjects: subjectIds,
             teachSclasses: [selectedClass], // Single class
-            teachSections: teachingSectionDetails,
-            attendanceSections: attendanceSectionDetails
         };
 
-        // Handle class-wide vs section attendance precedence
+        // Handle class-wide attendance
         if (attendanceClassId !== undefined) {
-            // If explicitly set (including null), apply it
             updateFields.attendanceClass = attendanceClassId;
-            // When class-wide attendance is set, clear section-based attendance
-            if (attendanceClassId) {
-                updateFields.attendanceSections = [];
-            }
-        } else if ((attendanceSections || []).length > 0) {
-            // If section attendance provided, clear class-wide attendance
-            updateFields.attendanceClass = null;
         }
 
         console.log('Update fields:', updateFields);
@@ -564,9 +420,7 @@ const updateTeacherAssignments = async (req, res) => {
             { new: true, runValidators: true }
         ).populate("teachSubjects", "subName")
          .populate("teachSclasses", "sclassName")
-         .populate("attendanceClass", "sclassName")
-         .populate("teachSections.sclassName", "sclassName")
-         .populate("attendanceSections.sclassName", "sclassName");
+         .populate("attendanceClass", "sclassName");
 
         // Update all subjects to reference this teacher
         await Subject.updateMany(
@@ -578,8 +432,7 @@ const updateTeacherAssignments = async (req, res) => {
             name: updatedTeacher.name,
             teachSubjects: updatedTeacher.teachSubjects,
             teachSclasses: updatedTeacher.teachSclasses,
-            teachSections: updatedTeacher.teachSections,
-            attendanceSections: updatedTeacher.attendanceSections
+            attendanceClass: updatedTeacher.attendanceClass
         });
 
         res.send(updatedTeacher);
@@ -768,41 +621,21 @@ const deleteTeachersByClass = async (req, res) => {
     }
 };
 
-// Update attendance duty: either class-wide attendanceClass or section-based attendanceSections
+// Update attendance duty: class-wide attendance only
 const updateTeacherAttendance = async (req, res) => {
     try {
-        const { teacherId, attendanceClassId = null, attendanceSectionIds = [] } = req.body;
+        const { teacherId, attendanceClassId = null } = req.body;
         if (!teacherId) return res.status(400).json({ message: 'teacherId is required' });
 
         const teacher = await Teacher.findById(teacherId);
         if (!teacher) return res.status(404).json({ message: 'Teacher not found' });
 
         const update = {};
-        // If class-wide selected, set class and clear sections
-        if (attendanceClassId) {
-            update.attendanceClass = attendanceClassId;
-            update.attendanceSections = [];
-        } else {
-            update.attendanceClass = null;
-            // Build attendanceSections docs from ids
-            const Sclass = require('../models/sclassSchema.js');
-            const attendanceSections = [];
-            for (const sectionId of attendanceSectionIds) {
-                const secDoc = await Sclass.findOne({ 'sections._id': sectionId }, { 'sections.$': 1, sclassName: 1 });
-                if (secDoc && secDoc.sections && secDoc.sections.length > 0) {
-                    attendanceSections.push({
-                        sectionId,
-                        sectionName: secDoc.sections[0].sectionName,
-                        sclassName: secDoc._id
-                    });
-                }
-            }
-            update.attendanceSections = attendanceSections;
-        }
+        // Set class-wide attendance
+        update.attendanceClass = attendanceClassId;
 
         const updated = await Teacher.findByIdAndUpdate(teacherId, update, { new: true })
-            .populate('attendanceClass', 'sclassName')
-            .populate('attendanceSections.sclassName', 'sclassName');
+            .populate('attendanceClass', 'sclassName');
         res.json(updated);
     } catch (error) {
         console.error('Update attendance error:', error);
@@ -810,10 +643,10 @@ const updateTeacherAttendance = async (req, res) => {
     }
 };
 
-// Bulk update: classes, subjects, teaching sections (does not touch attendance by default)
+// Bulk update: classes and subjects only (no sections)
 const updateTeacherBulkAssignments = async (req, res) => {
     try {
-        const { teacherId, classIds = [], subjectIds = [], teachingSectionIds = [] } = req.body;
+        const { teacherId, classIds = [], subjectIds = [] } = req.body;
 
         if (!teacherId) {
             return res.status(400).json({ message: "teacherId is required" });
@@ -825,27 +658,9 @@ const updateTeacherBulkAssignments = async (req, res) => {
             return res.status(404).json({ message: "Teacher not found" });
         }
 
-        // Build teachSections details from provided section IDs
-        const Sclass = require('../models/sclassSchema.js');
-        const teachSections = [];
-        for (const sectionId of teachingSectionIds) {
-            const sectionDoc = await Sclass.findOne(
-                { "sections._id": sectionId },
-                { "sections.$": 1, sclassName: 1 }
-            );
-            if (sectionDoc && sectionDoc.sections && sectionDoc.sections.length > 0) {
-                teachSections.push({
-                    sectionId,
-                    sectionName: sectionDoc.sections[0].sectionName,
-                    sclassName: sectionDoc._id
-                });
-            }
-        }
-
         const updateFields = {
             teachSclasses: Array.isArray(classIds) ? classIds : [],
             teachSubjects: Array.isArray(subjectIds) ? subjectIds : [],
-            teachSections
         };
 
         const updated = await Teacher.findByIdAndUpdate(
@@ -855,8 +670,6 @@ const updateTeacherBulkAssignments = async (req, res) => {
         )
             .populate("teachSubjects", "subName")
             .populate("teachSclasses", "sclassName")
-            .populate("teachSections.sclassName", "sclassName")
-            .populate("attendanceSections.sclassName", "sclassName")
             .populate("attendanceClass", "sclassName");
 
         // Update subject teacher reference

@@ -88,14 +88,6 @@ const ShowClasses = () => {
             )
         },
         {
-            field: 'sections',
-            headerName: 'Sections',
-            flex: 0.5,
-            renderCell: (params) => (
-                <Typography>{params.row.sections ? params.row.sections.length : 0}</Typography>
-            ),
-        },
-        {
             field: 'students',
             headerName: 'Students',
             flex: 0.5,
@@ -175,13 +167,6 @@ const ShowClasses = () => {
                                 <ListItemIcon><PersonAddAlt1Icon /></ListItemIcon>
                                 Add Student
                             </MenuItem>
-                            <MenuItem onClick={() => {
-                                navigate("/Admin/class/addsection/" + params.row.id);
-                                handleMenuClose(params.row.id);
-                            }}>
-                                <ListItemIcon><GroupIcon /></ListItemIcon>
-                                Add Section
-                            </MenuItem>
                         </Menu>
                     </Box>
                 );
@@ -206,7 +191,6 @@ const ShowClasses = () => {
         name: sclass.sclassName,
         students: sclass.students,
         teachers: sclass.teachers,
-        sections: sclass.sections,
         timetable: sclass._id, // Pass the id for navigation
     }));
 
@@ -242,7 +226,7 @@ const ShowClasses = () => {
                                 <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary', mb: 1 }}>
                                     <GroupIcon sx={{ mr: 1 }} />
                                     <Typography variant="body2">
-                                        {sclass.students} Students, {sclass.teachers} Teachers, {sclass.sections ? sclass.sections.length : 0} Sections
+                                        {sclass.students} Students, {sclass.teachers} Teachers
                                     </Typography>
                                 </Box>
                             </CardContent>

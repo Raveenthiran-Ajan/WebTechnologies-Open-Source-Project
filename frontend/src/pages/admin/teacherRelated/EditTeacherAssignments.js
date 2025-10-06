@@ -34,13 +34,11 @@ const EditTeacherAssignments = () => {
     const { currentUser } = useSelector((state) => state.user);
     
     const [selectedClassesMulti, setSelectedClassesMulti] = useState([]);
-    const [selectedTeachingSectionsByClass, setSelectedTeachingSectionsByClass] = useState({}); // { [classId]: [sectionId, ...] }
     const [selectedSubjects, setSelectedSubjects] = useState([]);
     const [availableSubjects, setAvailableSubjects] = useState([]);
     // Attendance duty state
-    const [attendanceMode, setAttendanceMode] = useState('none'); // 'none' | 'class' | 'sections'
+    const [attendanceMode, setAttendanceMode] = useState('none'); // 'none' | 'class'
     const [attendanceClassId, setAttendanceClassId] = useState(null);
-    const [attendanceSectionsByClass, setAttendanceSectionsByClass] = useState({}); // { [classId]: [sectionId] }
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
     const [loader, setLoader] = useState(false);
@@ -67,41 +65,13 @@ const EditTeacherAssignments = () => {
             setSelectedClassesMulti(currentClasses.map(c => c._id));
             setSelectedSubjects(currentSubjects.map(s => s._id));
 
-            // Seed per-class sections from existing teachSections
-            const byClass = {};
-            (teacherDetails.teachSections || []).forEach(sec => {
-                const clsId = typeof sec.sclassName === 'object' ? sec.sclassName._id : sec.sclassName;
-                if (!byClass[clsId]) byClass[clsId] = [];
-                byClass[clsId].push(sec.sectionId);
-            });
-            setSelectedTeachingSectionsByClass(byClass);
-
             // Seed attendance duty
             if (teacherDetails.attendanceClass) {
                 setAttendanceMode('class');
                 setAttendanceClassId(teacherDetails.attendanceClass._id || teacherDetails.attendanceClass);
-                setAttendanceSectionsByClass({});
-            } else if ((teacherDetails.attendanceSections || []).length > 0) {
-                setAttendanceMode('sections');
-                const attRawByClass = {};
-                (teacherDetails.attendanceSections || []).forEach(sec => {
-                    const clsId = typeof sec.sclassName === 'object' ? sec.sclassName._id : sec.sclassName;
-                    if (!attRawByClass[clsId]) attRawByClass[clsId] = [];
-                    attRawByClass[clsId].push(sec.sectionId);
-                });
-                // prune to subset of teaching sections
-                const pruned = {};
-                Object.keys(attRawByClass).forEach(cid => {
-                    const allowed = byClass[cid] || [];
-                    const filtered = (attRawByClass[cid] || []).filter(id => allowed.includes(id));
-                    if (filtered.length) pruned[cid] = filtered;
-                });
-                setAttendanceSectionsByClass(pruned);
-                setAttendanceClassId(null);
             } else {
                 setAttendanceMode('none');
                 setAttendanceClassId(null);
-                setAttendanceSectionsByClass({});
             }
         }
     }, [teacherDetails]);
@@ -122,35 +92,6 @@ const EditTeacherAssignments = () => {
         const value = event.target.value;
         const newSelected = typeof value === 'string' ? value.split(',') : value;
         setSelectedClassesMulti(newSelected);
-        // Drop any per-class sections for classes no longer selected and prune attendance accordingly
-        setSelectedTeachingSectionsByClass(prevTeach => {
-            const nextTeach = {};
-            newSelected.forEach(cid => { if (prevTeach[cid]) nextTeach[cid] = prevTeach[cid]; });
-            // prune attendance selections to allowed teaching sections
-            setAttendanceSectionsByClass(prevAtt => {
-                const nextAtt = {};
-                newSelected.forEach(cid => {
-                    const att = prevAtt[cid] || [];
-                    const allowed = nextTeach[cid] || [];
-                    const filtered = att.filter(secId => allowed.includes(secId));
-                    if (filtered.length) nextAtt[cid] = filtered;
-                });
-                return nextAtt;
-            });
-            return nextTeach;
-        });
-    };
-
-    const handleTeachingSectionsChangeForClass = (classId) => (event) => {
-        const value = event.target.value;
-        const arr = typeof value === 'string' ? value.split(',') : value;
-        setSelectedTeachingSectionsByClass(prev => ({ ...prev, [classId]: arr }));
-        // Ensure attendance remains a subset of teaching
-        setAttendanceSectionsByClass(prev => {
-            const currentAtt = prev[classId] || [];
-            const filtered = currentAtt.filter(id => arr.includes(id));
-            return { ...prev, [classId]: filtered };
-        });
     };
 
     const handleSubjectChange = (event) => {
@@ -173,13 +114,10 @@ const EditTeacherAssignments = () => {
 
         setLoader(true);
         try {
-            // Flatten teaching sections across classes
-            const teachingSectionIds = Object.values(selectedTeachingSectionsByClass || {}).flat();
             await dispatch(updateTeacherBulkAssignments(
                 id,
                 selectedClassesMulti,
-                selectedSubjects,
-                teachingSectionIds
+                selectedSubjects
             ));
             
             setMessage("Teacher assignments updated successfully!");
@@ -264,54 +202,22 @@ const EditTeacherAssignments = () => {
                             </Box>
                             
                             <Typography variant="body2" color="text.secondary" gutterBottom>
-                                Teaching Sections:
+                                Attendance Duty:
                             </Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-                                {(teacherDetails?.teachSections || []).map((section, index) => (
+                                {teacherDetails?.attendanceClass ? (
                                     <Chip 
-                                        key={section.sectionId || index} 
-                                        label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
-                                        size="small" 
-                                        color="primary" 
-                                        variant="outlined" 
-                                    />
-                                ))}
-                            </Box>
-                            
-                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                                Attendance Sections:
-                            </Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
-                                {(teacherDetails?.attendanceSections || []).map((section, index) => (
-                                    <Chip 
-                                        key={section.sectionId || index} 
-                                        label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
+                                        label={`Class-wide (${teacherDetails.attendanceClass?.sclassName || 'Unknown'})`} 
                                         size="small" 
                                         color="success" 
                                         variant="filled" 
                                     />
-                                ))}
-                                {(teacherDetails?.attendanceSections || []).length === 0 && (
+                                ) : (
                                     <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                                        No attendance sections assigned
+                                        No attendance duty assigned
                                     </Typography>
                                 )}
                             </Box>
-
-                            {/* Also show whole-class attendance if assigned */}
-                            {(teacherDetails?.attendanceClass) && (
-                                <Box sx={{ mt: 1 }}>
-                                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                                        Class-wide Attendance:
-                                    </Typography>
-                                    <Chip 
-                                        label={`Whole Class (${teacherDetails.attendanceClass?.sclassName || 'Unknown'})`} 
-                                        size="small" 
-                                        color="success" 
-                                        variant="outlined" 
-                                    />
-                                </Box>
-                            )}
                         </Box>
                         <Divider sx={{ my: 2 }} />
                     </Grid>
@@ -356,54 +262,7 @@ const EditTeacherAssignments = () => {
                             {/* No separate save; classes will be saved with the bulk Save Assignments button */}
                         </Box>
 
-                        {/* Step 1: Select Teaching Sections per selected class (only if class has sections) */}
-                        {selectedClassesMulti.map((classId) => {
-                            const sclass = (sclassesList || []).find(c => c._id === classId);
-                            const sections = (sclass?.sections || []).map(section => ({ _id: section._id, sectionName: section.sectionName }));
-                            if (sections.length === 0) {
-                                return (
-                                    <Box key={classId} sx={{ mb: 2, p: 2, border: '1px dashed #ddd', borderRadius: 1 }}>
-                                        <Typography variant="subtitle2">
-                                            {sclass?.sclassName || 'Class'}: No sections (whole class)
-                                        </Typography>
-                                    </Box>
-                                );
-                            }
-                            const selectedForClass = selectedTeachingSectionsByClass[classId] || [];
-                            return (
-                                <Box key={classId} sx={{ mb: 3 }}>
-                                    <Typography variant="subtitle1" gutterBottom>
-                                        Teaching Sections - {sclass?.sclassName}
-                                    </Typography>
-                                    <FormControl fullWidth>
-                                        <InputLabel>Sections - {sclass?.sclassName}</InputLabel>
-                                        <Select
-                                            multiple
-                                            value={selectedForClass}
-                                            onChange={handleTeachingSectionsChangeForClass(classId)}
-                                            label={`Sections - ${sclass?.sclassName}`}
-                                            renderValue={(selected) => (
-                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                    {selected.map((value) => {
-                                                        const section = sections.find(s => s._id === value);
-                                                        return <Chip key={value} label={section ? section.sectionName : value} size="small" />;
-                                                    })}
-                                                </Box>
-                                            )}
-                                        >
-                                            {sections.map((section) => (
-                                                <MenuItem key={section._id} value={section._id}>
-                                                    <Checkbox checked={(selectedForClass || []).indexOf(section._id) > -1} />
-                                                    <ListItemText primary={section.sectionName} />
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Box>
-                            );
-                        })}
-
-                        {/* Step 2: Select Subjects across selected classes */}
+                        {/* Step 1: Select Subjects across selected classes */}
                         <FormControl fullWidth sx={{ mb: 3 }}>
                             <InputLabel>Teaching Subjects</InputLabel>
                             <Select
@@ -434,16 +293,12 @@ const EditTeacherAssignments = () => {
                             <Typography variant="h6" gutterBottom>Attendance Duty</Typography>
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
                                 <FormControlLabel
-                                    control={<Checkbox checked={attendanceMode === 'none'} onChange={() => { setAttendanceMode('none'); setAttendanceClassId(null); setAttendanceSectionsByClass({}); }} />}
+                                    control={<Checkbox checked={attendanceMode === 'none'} onChange={() => { setAttendanceMode('none'); setAttendanceClassId(null); }} />}
                                     label="No attendance duty"
                                 />
                                 <FormControlLabel
-                                    control={<Checkbox checked={attendanceMode === 'class'} onChange={() => { setAttendanceMode('class'); setAttendanceSectionsByClass({}); }} />}
+                                    control={<Checkbox checked={attendanceMode === 'class'} onChange={() => { setAttendanceMode('class'); }} />}
                                     label="Whole class attendance"
-                                />
-                                <FormControlLabel
-                                    control={<Checkbox checked={attendanceMode === 'sections'} onChange={() => { setAttendanceMode('sections'); setAttendanceClassId(null); }} />}
-                                    label="Section-based attendance"
                                 />
                             </Box>
 
@@ -466,75 +321,14 @@ const EditTeacherAssignments = () => {
                                 </FormControl>
                             )}
 
-                            {attendanceMode === 'sections' && (
-                                <Box>
-                                    {selectedClassesMulti.map((classId) => {
-                                        const sclass = (sclassesList || []).find(c => c._id === classId);
-                                        const teachAllowedIds = selectedTeachingSectionsByClass[classId] || [];
-                                        const sections = (sclass?.sections || [])
-                                            .filter(section => teachAllowedIds.includes(section._id))
-                                            .map(section => ({ _id: section._id, sectionName: section.sectionName }));
-                                        const selectedForClass = attendanceSectionsByClass[classId] || [];
-                                        if ((sclass?.sections || []).length === 0) return null;
-                                        return (
-                                            <Box key={classId} sx={{ mb: 2 }}>
-                                                <Typography variant="subtitle2" gutterBottom>
-                                                    Attendance Sections - {sclass?.sclassName}
-                                                </Typography>
-                                                {teachAllowedIds.length === 0 ? (
-                                                    <Typography variant="body2" color="text.secondary">
-                                                        Select teaching sections for this class first.
-                                                    </Typography>
-                                                ) : (
-                                                    <FormControl fullWidth>
-                                                        <InputLabel>Sections - {sclass?.sclassName}</InputLabel>
-                                                        <Select
-                                                            multiple
-                                                            value={selectedForClass}
-                                                            onChange={(e) => {
-                                                                const val = typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value;
-                                                                const filtered = (val || []).filter(v => teachAllowedIds.includes(v));
-                                                                setAttendanceSectionsByClass(prev => ({ ...prev, [classId]: filtered }));
-                                                            }}
-                                                            input={<OutlinedInput label={`Sections - ${sclass?.sclassName}`} />}
-                                                            renderValue={(selected) => (
-                                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                                    {selected.map((value) => {
-                                                                        const section = sections.find(s => s._id === value);
-                                                                        return <Chip key={value} label={section ? section.sectionName : value} size="small" />;
-                                                                    })}
-                                                                </Box>
-                                                            )}
-                                                        >
-                                                            {sections.map((section) => (
-                                                                <MenuItem key={section._id} value={section._id}>
-                                                                    <Checkbox checked={(selectedForClass || []).indexOf(section._id) > -1} />
-                                                                    <ListItemText primary={section.sectionName} />
-                                                                </MenuItem>
-                                                            ))}
-                                                        </Select>
-                                                    </FormControl>
-                                                )}
-                                            </Box>
-                                        );
-                                    })}
-                                </Box>
-                            )}
-
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                                 <Button
                                     variant="outlined"
                                     onClick={async () => {
                                         setLoader(true);
                                         try {
-                                            let attendanceSectionIds = [];
-                                            let attClassId = null;
-                                            if (attendanceMode === 'class') {
-                                                attClassId = attendanceClassId;
-                                            } else if (attendanceMode === 'sections') {
-                                                attendanceSectionIds = Object.values(attendanceSectionsByClass || {}).flat();
-                                            }
-                                            await dispatch(updateTeacherAttendance(id, attClassId, attendanceSectionIds));
+                                            const attClassId = attendanceMode === 'class' ? attendanceClassId : null;
+                                            await dispatch(updateTeacherAttendance(id, attClassId));
                                             setMessage('Attendance duty updated');
                                             setShowPopup(true);
                                             await dispatch(getTeacherDetails(id));

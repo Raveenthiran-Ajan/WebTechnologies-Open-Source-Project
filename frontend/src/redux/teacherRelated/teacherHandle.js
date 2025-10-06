@@ -78,15 +78,13 @@ export const assignMultipleSubjects = (teacherId, subjectIds, attendanceClassId 
     }
 }
 
-export const updateTeacherAssignments = (teacherId, subjectIds, teachSections, attendanceSections, selectedClass, attendanceClassId = undefined) => async (dispatch) => {
+export const updateTeacherAssignments = (teacherId, subjectIds, selectedClass, attendanceClassId = undefined) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
         const requestData = { 
             teacherId, 
             subjectIds,
-            teachSections,
-            attendanceSections,
             selectedClass
         };
         if (attendanceClassId !== undefined) {
@@ -119,10 +117,10 @@ export const updateTeacherClasses = (teacherId, classIds) => async (dispatch) =>
     }
 }
 
-export const updateTeacherBulkAssignments = (teacherId, classIds, subjectIds, teachingSectionIds) => async (dispatch) => {
+export const updateTeacherBulkAssignments = (teacherId, classIds, subjectIds) => async (dispatch) => {
     dispatch(getRequest());
     try {
-        const payload = { teacherId, classIds, subjectIds, teachingSectionIds };
+        const payload = { teacherId, classIds, subjectIds };
         const result = await axios.put(`${REACT_APP_BASE_URL}/Teacher/BulkAssignments`, payload, {
             headers: { 'Content-Type': 'application/json' },
         });
@@ -134,12 +132,11 @@ export const updateTeacherBulkAssignments = (teacherId, classIds, subjectIds, te
     }
 }
 
-export const updateTeacherAttendance = (teacherId, attendanceClassId = null, attendanceSectionIds = []) => async (dispatch) => {
+export const updateTeacherAttendance = (teacherId, attendanceClassId = null) => async (dispatch) => {
     dispatch(getRequest());
     try {
         const payload = { teacherId };
         if (attendanceClassId) payload.attendanceClassId = attendanceClassId;
-        if (Array.isArray(attendanceSectionIds)) payload.attendanceSectionIds = attendanceSectionIds;
         const result = await axios.put(`${REACT_APP_BASE_URL}/Teacher/Attendance`, payload, {
             headers: { 'Content-Type': 'application/json' },
         });

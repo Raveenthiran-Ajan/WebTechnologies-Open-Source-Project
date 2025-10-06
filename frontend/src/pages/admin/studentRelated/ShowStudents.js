@@ -39,10 +39,6 @@ const ShowStudents = () => {
     const [selectedClass, setSelectedClass] = useState(() => {
         return location.state?.sclass || null;
     });
-    const [selectedSection, setSelectedSection] = useState(() => {
-        const urlParams = new URLSearchParams(location.search);
-        return urlParams.get('section') || '';
-    });
     const [viewMode, setViewMode] = useState(() => {
         return localStorage.getItem('studentClassViewMode') || 'box';
     });
@@ -188,8 +184,7 @@ const ShowStudents = () => {
 
     const filteredStudents = selectedClass ? studentsList.filter(student => {
         const matchesClass = student.sclassName?._id === selectedClass._id;
-        const matchesSection = !selectedSection || student.sectionName === selectedSection;
-        return matchesClass && matchesSection;
+        return matchesClass;
     }) : [];
 
     const rows = filteredStudents.map((student) => ({
@@ -231,7 +226,7 @@ const ShowStudents = () => {
                         </Tooltip>
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ ml: 2 }}>
-                        Students in {selectedClass.sclassName}{selectedSection ? ` - Section ${selectedSection}` : ''}
+                        Students in {selectedClass.sclassName}
                     </Typography>
                 </Box>
                 {loading ?

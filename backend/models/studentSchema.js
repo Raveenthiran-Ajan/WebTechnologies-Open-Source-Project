@@ -19,10 +19,6 @@ const studentSchema = new mongoose.Schema({
         ref: 'sclass',
         required: true,
     },
-    sectionName: {
-        type: String,
-        required: false,
-    },
     school: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin',

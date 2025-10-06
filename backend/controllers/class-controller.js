@@ -8,7 +8,6 @@ const sclassCreate = async (req, res) => {
         const sclass = new Sclass({
             sclassName: req.body.sclassName,
             school: req.body.adminID,
-            sections: req.body.sections || [],
             timetable: []
         });
 
@@ -72,11 +71,7 @@ const getSclassDetail = async (req, res) => {
 
 const getSclassStudents = async (req, res) => {
     try {
-        const { sectionName } = req.query;
         const query = { sclassName: req.params.id };
-        if (sectionName) {
-            query.sectionName = sectionName;
-        }
 
         let students = await Student.find(query).populate("examResult.subName", "subName");
         if (students.length > 0) {
@@ -266,79 +261,6 @@ const getAvailableTeachers = async (req, res) => {
     }
 }
 
-const addSection = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { sectionName } = req.body;
-
-        if (!sectionName || !sectionName.trim()) {
-            return res.status(400).send({ message: 'Section name is required' });
-        }
-
-        const sclass = await Sclass.findById(id);
-        if (!sclass) {
-            return res.status(404).send({ message: 'Class not found' });
-        }
-
-        // Check if section name already exists in this class
-        const existingSection = sclass.sections.find(section =>
-            section.sectionName.toLowerCase() === sectionName.trim().toLowerCase()
-        );
-
-        if (existingSection) {
-            return res.status(400).send({ message: 'Section name already exists in this class' });
-        }
-
-        // Add new section
-        sclass.sections.push({ sectionName: sectionName.trim() });
-        const result = await sclass.save();
-
-        res.send(result);
-    } catch (err) {
-        res.status(500).json(err);
-    }
-};
-
-const deleteSection = async (req, res) => {
-    try {
-        const { id, sectionName } = req.params;
-
-        const sclass = await Sclass.findById(id);
-        if (!sclass) {
-            return res.status(404).send({ message: 'Class not found' });
-        }
-
-        // Find the section to delete
-        const sectionIndex = sclass.sections.findIndex(section =>
-            section.sectionName.toLowerCase() === sectionName.toLowerCase()
-        );
-
-        if (sectionIndex === -1) {
-            return res.status(404).send({ message: 'Section not found in this class' });
-        }
-
-        // Check if there are students in this section
-        const studentsInSection = await Student.countDocuments({
-            sclassName: id,
-            sectionName: sectionName
-        });
-
-        if (studentsInSection > 0) {
-            return res.status(400).send({
-                message: `Cannot delete section "${sectionName}" because it contains ${studentsInSection} student(s). Please move or remove students from this section first.`
-            });
-        }
-
-        // Remove the section
-        sclass.sections.splice(sectionIndex, 1);
-        const result = await sclass.save();
-
-        res.send(result);
-    } catch (err) {
-        res.status(500).json(err);
-    }
-};
-
 const getTeacherClasses = async (req, res) => {
     try {
         console.log("getTeacherClasses called with teacherId:", req.params.id);
@@ -357,34 +279,17 @@ const getTeacherClasses = async (req, res) => {
         }
         let classes = [];
         if (classIdSet.size > 0) {
-            classes = await Sclass.find({ _id: { $in: Array.from(classIdSet) } }).select('sclassName sections');
+            classes = await Sclass.find({ _id: { $in: Array.from(classIdSet) } }).select('sclassName');
         }
 
-        // Build allowed sections per class if teacher is section-scoped
-        const teachSections = Array.isArray(teacher.teachSections) ? teacher.teachSections : [];
-        const sectionScopeMap = teachSections.reduce((acc, ts) => {
-            const key = ts.sclassName?.toString?.() || String(ts.sclassName);
-            if (!acc[key]) acc[key] = new Set();
-            if (ts.sectionName) acc[key].add(ts.sectionName);
-            return acc;
-        }, {});
-
         const response = classes.map(cls => {
-            const id = cls._id.toString();
-            const allowedSet = sectionScopeMap[id];
-            // scope: 'class' means no section restriction; 'section' means must pick allowed sections
-            const scope = allowedSet && allowedSet.size > 0 ? 'section' : 'class';
-            const allowedSections = allowedSet ? Array.from(allowedSet) : null;
             return {
                 _id: cls._id,
                 sclassName: cls.sclassName,
-                sections: cls.sections,
-                scope,
-                allowedSections,
             };
         });
 
-        console.log("Teacher found, classes with scope:", response);
+        console.log("Teacher found, classes:", response);
         res.json(response);
     } catch (err) {
         console.error("Error in getTeacherClasses:", err);
@@ -411,4 +316,4 @@ const updateTeacherClasses = async (req, res) => {
     }
 };
 
-module.exports = { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers, addSection, deleteSection, getTeacherClasses, updateTeacherClasses };
+module.exports = { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers, getTeacherClasses, updateTeacherClasses };

@@ -22,7 +22,6 @@ const TeacherViewStudent = () => {
     const classId = params.classId;
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
-    const sectionParam = queryParams.get('section');
     const subjectId = currentUser.teachSubject?._id;
     const subjectName = currentUser.teachSubject?.subName;
 
@@ -126,8 +125,8 @@ const TeacherViewStudent = () => {
         };
     }, []);
 
-    // Apply section filter if provided
-    const sectionFiltered = sectionParam ? sclassStudents.filter(s => s.sectionName === sectionParam) : sclassStudents;
+    // Use all students in the class
+    const filteredStudents = sclassStudents;
 
     const chartData = studentAttendances.map(s => ({
         name: s.name,
@@ -267,7 +266,7 @@ const TeacherViewStudent = () => {
                 </>
             ) : (
                 <Typography variant="h6" gutterBottom component="div">
-                    No attendance data available for {sectionParam ? `section ${sectionParam}` : 'the class'}.
+                    No attendance data available for the class.
                 </Typography>
             )}
         </div>
