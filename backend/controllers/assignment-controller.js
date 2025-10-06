@@ -45,12 +45,25 @@ const createAssignment = async (req, res) => {
     console.log("Request body:", req.body);
     console.log("Uploaded file:", req.file);
 
-    const { title, description, dueDate, subject, teacherId } = req.body;
-    const classIds = req.body['classIds[]'];
+    const { title, description, dueDate, subject, teacherId, assignments: assignmentsStr } = req.body;
+    let assignments;
+    try {
+      assignments = JSON.parse(assignmentsStr);
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid assignments format" });
+    }
+    console.log("Parsed assignments:", assignments, "Type:", typeof assignments, "IsArray:", Array.isArray(assignments));
 
     // Validate required fields
-    if (!title || !subject || !teacherId || !classIds || !Array.isArray(classIds) || classIds.length === 0) {
-      return res.status(400).json({ error: "Missing required fields or invalid classIds" });
+    if (!title || !subject || !teacherId || !assignments || !Array.isArray(assignments) || assignments.length === 0) {
+      return res.status(400).json({ error: "Missing required fields or invalid assignments" });
+    }
+
+    // Validate each assignment has classId
+    for (const assignment of assignments) {
+      if (!assignment.classId) {
+        return res.status(400).json({ error: "Each assignment must have a classId" });
+      }
     }
 
     // Convert dueDate string to Date object if present
@@ -71,7 +84,7 @@ const createAssignment = async (req, res) => {
       dueDate: dueDateObj,
       subject,
       teacherId,
-      classIds,
+      assignments,
       fileUrl,
     });
 
@@ -103,7 +116,19 @@ const getAssignmentsByStudent = async (req, res) => {
       return res.status(400).json({ error: "Student class information is incomplete" });
     }
 
-    let assignments = await Assignment.find({ classIds: { $in: [student.sclassName._id] } });
+    // Find assignments where the student's class is included, and section matches if specified
+    let assignments = await Assignment.find({
+      assignments: {
+        $elemMatch: {
+          classId: student.sclassName._id,
+          $or: [
+            { sectionName: { $exists: false } }, // No section specified, for whole class
+            { sectionName: null }, // Section is null
+            { sectionName: student.sectionName || "" } // Matches student's section
+          ]
+        }
+      }
+    });
     // Map assignments to add subjectName property for frontend compatibility
     assignments = assignments.map(assignment => ({
       ...assignment.toObject(),
@@ -143,12 +168,17 @@ const getAssignmentsByTeacher = async (req, res) => {
 const updateAssignment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, dueDate, subject } = req.body;
-    const classIds = req.body['classIds[]'];
+    const { title, description, dueDate, subject, assignments: assignmentsStr } = req.body;
+    let assignments;
+    try {
+      assignments = JSON.parse(assignmentsStr);
+    } catch (e) {
+      return res.status(400).json({ error: "Invalid assignments format" });
+    }
 
     const updateData = { title, description, subject };
-    if (classIds && Array.isArray(classIds)) {
-      updateData.classIds = classIds.filter(cid => cid && cid !== 'undefined');
+    if (assignments && Array.isArray(assignments)) {
+      updateData.assignments = assignments.filter(assignment => assignment.classId);
     }
     if (dueDate) {
       updateData.dueDate = new Date(dueDate);

@@ -103,3 +103,50 @@ export const updateTeacherAssignments = (teacherId, subjectIds, teachSections, a
         throw error;
     }
 }
+
+export const updateTeacherClasses = (teacherId, classIds) => async (dispatch) => {
+    dispatch(getRequest());
+    try {
+        const payload = { teacherId, classIds };
+        const result = await axios.post(`${REACT_APP_BASE_URL}/teacher/update-classes`, payload, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        dispatch(postDone());
+        return result.data;
+    } catch (error) {
+        dispatch(getError(error));
+        throw error;
+    }
+}
+
+export const updateTeacherBulkAssignments = (teacherId, classIds, subjectIds, teachingSectionIds) => async (dispatch) => {
+    dispatch(getRequest());
+    try {
+        const payload = { teacherId, classIds, subjectIds, teachingSectionIds };
+        const result = await axios.put(`${REACT_APP_BASE_URL}/Teacher/BulkAssignments`, payload, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        dispatch(postDone());
+        return result.data;
+    } catch (error) {
+        dispatch(getError(error));
+        throw error;
+    }
+}
+
+export const updateTeacherAttendance = (teacherId, attendanceClassId = null, attendanceSectionIds = []) => async (dispatch) => {
+    dispatch(getRequest());
+    try {
+        const payload = { teacherId };
+        if (attendanceClassId) payload.attendanceClassId = attendanceClassId;
+        if (Array.isArray(attendanceSectionIds)) payload.attendanceSectionIds = attendanceSectionIds;
+        const result = await axios.put(`${REACT_APP_BASE_URL}/Teacher/Attendance`, payload, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        dispatch(postDone());
+        return result.data;
+    } catch (error) {
+        dispatch(getError(error));
+        throw error;
+    }
+}

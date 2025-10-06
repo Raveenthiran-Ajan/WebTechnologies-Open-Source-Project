@@ -40,14 +40,17 @@ const ClassAttendance = () => {
     const { sclassStudents, loading, error } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
     
-    // Check if teacher has attendance permission for this class
-    // TEMPORARILY DISABLED FOR TESTING - Allow all teachers to access attendance
-    // const attendanceClass = currentUser?.attendanceClass;
-    // const teachSclasses = currentUser?.teachSclasses || [];
-    // const hasAttendancePermission = attendanceClass &&
-    //     (attendanceClass._id === classId || attendanceClass === classId) ||
-    //     teachSclasses.some(sclass => sclass._id === classId || sclass === classId);
-    const hasAttendancePermission = true; // TEMP: Allow all access for testing
+    // Attendance permissions
+    const attendanceClass = currentUser?.attendanceClass;
+    const assignedAttendanceClassId = attendanceClass && (attendanceClass._id || attendanceClass);
+    const allAttendanceSections = Array.isArray(currentUser?.attendanceSections) ? currentUser.attendanceSections : [];
+    const assignedSectionsForClass = allAttendanceSections.filter(sec => {
+        const secClassId = typeof sec.sclassName === 'object' ? sec.sclassName._id : sec.sclassName;
+        return String(secClassId) === String(classId);
+    });
+    const hasAttendancePermission = (
+        String(assignedAttendanceClassId || '') === String(classId)
+    ) || assignedSectionsForClass.length > 0;
     
 
     
@@ -57,6 +60,7 @@ const ClassAttendance = () => {
     const [message, setMessage] = useState("");
     const [bulkActionMode, setBulkActionMode] = useState('present'); // 'present', 'absent', 'holiday'
     const [selectedSection, setSelectedSection] = useState('');
+    const classWideAttendance = String(assignedAttendanceClassId || '') === String(classId);
     
     useEffect(() => {
         if (classId) {
@@ -67,22 +71,27 @@ const ClassAttendance = () => {
     useEffect(() => {
         // Initialize attendance data for all students as present by default
         if (sclassStudents && sclassStudents.length > 0) {
-            const sectionFiltered = selectedSection ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
+            const sectionFiltered = (!classWideAttendance && selectedSection)
+                ? sclassStudents.filter(student => student.sectionName === selectedSection)
+                : sclassStudents;
             const initialData = {};
             sectionFiltered.forEach(student => {
                 initialData[student._id] = 'Present';
             });
             setAttendanceData(initialData);
         }
-    }, [sclassStudents, selectedSection]);
+    }, [sclassStudents, selectedSection, classWideAttendance]);
     
     useEffect(() => {
-        if (!selectedSection && currentUser?.attendanceSections && currentUser.attendanceSections.length > 0) {
-            setSelectedSection(currentUser.attendanceSections[0]);
+        // Default to first assigned section for this class if section-limited
+        if (!classWideAttendance && !selectedSection && assignedSectionsForClass.length > 0) {
+            setSelectedSection(assignedSectionsForClass[0].sectionName);
         }
-    }, [currentUser, selectedSection]);
+    }, [assignedSectionsForClass, classWideAttendance, selectedSection]);
     
-    const filteredStudents = selectedSection ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
+    const filteredStudents = (!classWideAttendance && selectedSection)
+        ? sclassStudents.filter(student => student.sectionName === selectedSection)
+        : sclassStudents;
     
     const handleAttendanceChange = (studentId, status) => {
         setAttendanceData(prev => ({
@@ -93,7 +102,7 @@ const ClassAttendance = () => {
     
     const markAllPresent = () => {
         const newData = { ...attendanceData };
-        const sectionFiltered = selectedSection ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
+    const sectionFiltered = (!classWideAttendance && selectedSection) ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
         sectionFiltered.forEach(student => {
             newData[student._id] = 'Present';
         });
@@ -102,7 +111,7 @@ const ClassAttendance = () => {
     
     const markAllAbsent = () => {
         const newData = { ...attendanceData };
-        const sectionFiltered = selectedSection ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
+    const sectionFiltered = (!classWideAttendance && selectedSection) ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
         sectionFiltered.forEach(student => {
             newData[student._id] = 'Absent';
         });
@@ -111,7 +120,7 @@ const ClassAttendance = () => {
     
     const markAllHoliday = () => {
         const newData = { ...attendanceData };
-        const sectionFiltered = selectedSection ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
+    const sectionFiltered = (!classWideAttendance && selectedSection) ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
         sectionFiltered.forEach(student => {
             newData[student._id] = 'Holiday';
         });

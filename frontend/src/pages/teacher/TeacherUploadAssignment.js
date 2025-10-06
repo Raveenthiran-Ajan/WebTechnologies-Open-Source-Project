@@ -84,7 +84,7 @@ const TeacherUploadAssignment = () => {
 
   // New states for class selection
   const [teacherClasses, setTeacherClasses] = useState([]);
-  const [selectedClassIds, setSelectedClassIds] = useState([]);
+  const [selectedAssignments, setSelectedAssignments] = useState([]);
 
   // New state for selected class filter
   const [selectedClassId, setSelectedClassId] = useState("");
@@ -107,7 +107,7 @@ const TeacherUploadAssignment = () => {
   const [editDescription, setEditDescription] = useState('');
   const [editSubject, setEditSubject] = useState('');
   const [editDueDate, setEditDueDate] = useState('');
-  const [editSelectedClassIds, setEditSelectedClassIds] = useState([]);
+  const [editSelectedAssignments, setEditSelectedAssignments] = useState([]);
   const [editFile, setEditFile] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showExtendModal, setShowExtendModal] = useState(false);
@@ -214,10 +214,25 @@ const TeacherUploadAssignment = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!title || !subject || !dueDate || selectedClassIds.length === 0) {
+    // Validate selection rules: at least one; for section-scoped classes, require section(s)
+    const hasSelection = Array.isArray(selectedAssignments) && selectedAssignments.length > 0;
+    const invalidSectionScoped = Array.isArray(teacherClasses) && teacherClasses
+      .filter(c => c && c._id)
+      .some(cls => {
+        if (cls.scope === 'section') {
+          // If any selection for this class is without sectionName, it's invalid
+          const selections = selectedAssignments.filter(a => a.classId === cls._id);
+          return selections.some(a => !a.sectionName);
+        }
+        return false;
+      });
+
+    if (!title || !subject || !dueDate || !hasSelection || invalidSectionScoped) {
       setAlert({
         open: true,
-        message: "Please fill in all required fields (title, subject, deadline, and select at least one class).",
+        message: invalidSectionScoped
+          ? "For section-assigned classes, please select one or more sections (whole class not allowed)."
+          : "Please fill in all required fields (title, subject, deadline, and at least one target).",
         severity: "error",
       });
       return;
@@ -232,9 +247,7 @@ const TeacherUploadAssignment = () => {
     formData.append("subject", subject);
     formData.append("dueDate", dueDate);
     formData.append("teacherId", currentUser._id);
-    selectedClassIds.forEach((classId) => {
-      formData.append("classIds[]", classId);
-    });
+    formData.append("assignments", JSON.stringify(selectedAssignments));
     if (file) {
       formData.append("file", file);
     }
@@ -261,6 +274,7 @@ const TeacherUploadAssignment = () => {
         setErrors({});
         setUploading(false);
         setUploadProgress(0);
+        setSelectedAssignments([]);
         return axios.get(`${API_BASE_URL}/assignments/teacher/${currentUser._id}`);
       })
       .then((res) => {
@@ -372,7 +386,7 @@ const TeacherUploadAssignment = () => {
         return;
       }
     } else if (activeStep === 1) {
-      if (selectedClassIds.length === 0 || !dueDate) {
+      if (selectedAssignments.length === 0 || !dueDate) {
         setAlert({
           open: true,
           message: "Please select at least one class and set a deadline date.",
@@ -419,24 +433,63 @@ const TeacherUploadAssignment = () => {
             <Paper sx={{ p: 2, bgcolor: '#f9f9f9', border: '1px solid #e0e0e0' }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
-                  <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Select Class(es):</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, p: 2, border: '1px solid #ddd', borderRadius: 2, bgcolor: '#f9f9f9' }}>
+                  <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Select Class(es) and Section(s):</Typography>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, p: 2, border: '1px solid #ddd', borderRadius: 2, bgcolor: '#f9f9f9', maxHeight: '300px', overflowY: 'auto' }}>
                     {Array.isArray(teacherClasses) && teacherClasses.length > 0 ? (
-                      teacherClasses.map((cls) => (
-                        <label key={cls._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '150px' }}>
-                          <input
-                            type="checkbox"
-                            checked={selectedClassIds.includes(cls._id)}
-                            onChange={() => {
-                              setSelectedClassIds((prev) =>
-                                prev.includes(cls._id)
-                                  ? prev.filter((id) => id !== cls._id)
-                                  : [...prev, cls._id]
-                              );
-                            }}
-                          />
-                          <span>Class {cls.sclassName}</span>
-                        </label>
+                      teacherClasses.filter(cls => cls && cls._id).map((cls) => (
+                        <Box key={cls._id} sx={{ border: '1px solid #ccc', borderRadius: 1, p: 2, bgcolor: 'white' }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            Class {cls.sclassName}
+                            <span style={{ fontSize: 12, padding: '2px 6px', borderRadius: 8, background: '#eef', color: '#335' }}>
+                              {cls.scope === 'section' ? 'Section-limited' : 'Whole class allowed'}
+                            </span>
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            {/* Whole class option only when scope is class */}
+                            {(!cls.scope || cls.scope === 'class') && (
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '120px' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={Array.isArray(selectedAssignments) && selectedAssignments.some(a => a.classId === cls._id && !a.sectionName)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedAssignments(prev => [...prev, { classId: cls._id }]);
+                                    } else {
+                                      setSelectedAssignments(prev => prev.filter(a => !(a.classId === cls._id && !a.sectionName)));
+                                    }
+                                  }}
+                                />
+                                <span>Whole Class</span>
+                              </label>
+                            )}
+                            {Array.isArray(cls.sections) && cls.sections.length > 0 && (
+                              ((cls.scope === 'section' && Array.isArray(cls.allowedSections))
+                                ? cls.sections.filter(sec => cls.allowedSections.includes(sec.sectionName))
+                                : cls.sections
+                              ).map((section) => (
+                              <label key={section.sectionName} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '120px' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={Array.isArray(selectedAssignments) && selectedAssignments.some(a => a.classId === cls._id && a.sectionName === section.sectionName)}
+                                  onChange={(e) => {
+                                    // If teacher is section-scoped, only allow allowedSections
+                                    const allowed = Array.isArray(cls.allowedSections) ? cls.allowedSections : null;
+                                    const isAllowed = !allowed || allowed.includes(section.sectionName);
+                                    if (e.target.checked) {
+                                      if (isAllowed) {
+                                        setSelectedAssignments(prev => [...prev, { classId: cls._id, sectionName: section.sectionName }]);
+                                      }
+                                    } else {
+                                      setSelectedAssignments(prev => prev.filter(a => !(a.classId === cls._id && a.sectionName === section.sectionName)));
+                                    }
+                                  }}
+                                />
+                                <span>Section {section.sectionName}</span>
+                              </label>
+                              ))
+                            )}
+                          </Box>
+                        </Box>
                       ))
                     ) : (
                       <Typography color="textSecondary" fontStyle="italic">
@@ -566,16 +619,46 @@ const TeacherUploadAssignment = () => {
     setEditDescription(assignment.description);
     setEditSubject(assignment.subject);
     setEditDueDate(new Date(assignment.dueDate).toISOString().slice(0, 16));
-    setEditSelectedClassIds(assignment.classIds.map(cls => cls.toString()));
+    const mapped = Array.isArray(assignment.assignments)
+      ? assignment.assignments.map((a) => ({
+          classId:
+            (a.classId && typeof a.classId === 'object' && a.classId._id)
+              ? a.classId._id.toString()
+              : a.classId?.toString?.() || String(a.classId),
+          sectionName: a.sectionName,
+        }))
+      : Array.isArray(assignment.classIds)
+        ? assignment.classIds.map((cls) => ({
+            classId:
+              (cls && typeof cls === 'object' && cls._id)
+                ? cls._id.toString()
+                : cls?.toString?.() || String(cls),
+            sectionName: undefined,
+          }))
+        : [];
+    setEditSelectedAssignments(mapped);
     setEditFile(null);
     setShowEditModal(true);
   };
 
   const handleSaveEdit = async () => {
-    if (!editTitle || !editSubject || !editDueDate || editSelectedClassIds.length === 0) {
+    const hasSelection = Array.isArray(editSelectedAssignments) && editSelectedAssignments.length > 0;
+    const invalidSectionScoped = Array.isArray(teacherClasses) && teacherClasses
+      .filter(c => c && c._id)
+      .some(cls => {
+        if (cls.scope === 'section') {
+          const selections = editSelectedAssignments.filter(a => a.classId === cls._id);
+          return selections.some(a => !a.sectionName);
+        }
+        return false;
+      });
+
+    if (!editTitle || !editSubject || !editDueDate || !hasSelection || invalidSectionScoped) {
       setAlert({
         open: true,
-        message: "Please fill in all required fields.",
+        message: invalidSectionScoped
+          ? "For section-assigned classes, please select one or more sections (whole class not allowed)."
+          : "Please fill in all required fields.",
         severity: "error",
       });
       return;
@@ -586,9 +669,7 @@ const TeacherUploadAssignment = () => {
     formData.append("description", editDescription);
     formData.append("subject", editSubject);
     formData.append("dueDate", editDueDate);
-    editSelectedClassIds.forEach((classId) => {
-      formData.append("classIds[]", classId);
-    });
+    formData.append("assignments", JSON.stringify(editSelectedAssignments));
     if (editFile) {
       formData.append("file", editFile);
     }
@@ -762,7 +843,7 @@ const TeacherUploadAssignment = () => {
                   setSubject("");
                   setDueDate("");
                   setFile(null);
-                  setSelectedClassIds([]);
+                  setSelectedAssignments([]);
                   setActiveStep(0);
                 }}
               >
@@ -802,7 +883,7 @@ const TeacherUploadAssignment = () => {
               fullWidth
               sx={{ mb: 3 }}
             >
-              {assignments.map((assignment) => (
+              {Array.isArray(assignments) && assignments.map((assignment) => (
                 <option key={assignment._id} value={assignment._id}>
                   {assignment.title}
                 </option>
@@ -865,7 +946,7 @@ const TeacherUploadAssignment = () => {
                 size="small"
               >
                 <option value="">All Classes</option>
-                {teacherClasses.map((cls) => (
+                {Array.isArray(teacherClasses) && teacherClasses.filter(cls => cls && cls._id).map((cls) => (
                   <option key={cls._id} value={cls._id}>
                     Class {cls.sclassName}
                   </option>
@@ -1049,12 +1130,21 @@ const TeacherUploadAssignment = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {assignments.map((assignment) => (
+                {Array.isArray(assignments) && assignments.map((assignment) => (
                   <TableRow key={assignment._id}>
                     <TableCell>{assignment.title}</TableCell>
                     <TableCell>{assignment.subject}</TableCell>
                     <TableCell>
-                      {assignment.classIds.map((cls) => `Class ${cls.sclassName}`).join(', ')}
+                      {Array.isArray(assignment.assignments) && assignment.assignments.length > 0
+                        ? assignment.assignments.map((a) => {
+                            const sectionSuffix = a.sectionName ? ` (Section ${a.sectionName})` : '';
+                            // When assignments are fetched, class name may not be populated; fallback to ID display
+                            const classLabel = a.classId?.sclassName
+                              ? `Class ${a.classId.sclassName}`
+                              : `Class ${a.classId}`;
+                            return `${classLabel}${sectionSuffix}`;
+                          }).join(', ')
+                        : '—'}
                     </TableCell>
                     <TableCell>{new Date(assignment.dueDate).toLocaleString()}</TableCell>
                     <TableCell>{getStatusChip(assignment)}</TableCell>
@@ -1160,24 +1250,67 @@ const TeacherUploadAssignment = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <Typography sx={{ mb: 1 }}>Select Classes:</Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {teacherClasses.map((cls) => (
-                    <label key={cls._id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <input
-                        type="checkbox"
-                        checked={editSelectedClassIds.includes(cls._id)}
-                        onChange={() => {
-                          setEditSelectedClassIds((prev) =>
-                            prev.includes(cls._id)
-                              ? prev.filter((id) => id !== cls._id)
-                              : [...prev, cls._id]
-                          );
-                        }}
-                      />
-                      <span>Class {cls.sclassName}</span>
-                    </label>
-                  ))}
+                <Typography sx={{ mb: 1 }}>Select Classes and Sections:</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: '200px', overflowY: 'auto' }}>
+                  {Array.isArray(teacherClasses) && teacherClasses.length > 0 ? (
+                    teacherClasses.filter(cls => cls && cls._id).map((cls) => (
+                      <Box key={cls._id} sx={{ border: '1px solid #ccc', borderRadius: 1, p: 2, bgcolor: 'white' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                          Class {cls.sclassName}
+                          <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 8, background: '#eef', color: '#335' }}>
+                            {cls.scope === 'section' ? 'Section-limited' : 'Whole class allowed'}
+                          </span>
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                          {(!cls.scope || cls.scope === 'class') && (
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '120px' }}>
+                              <input
+                                type="checkbox"
+                                checked={Array.isArray(editSelectedAssignments) && editSelectedAssignments.some(a => a.classId === cls._id && !a.sectionName)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setEditSelectedAssignments(prev => [...prev, { classId: cls._id }]);
+                                  } else {
+                                    setEditSelectedAssignments(prev => prev.filter(a => !(a.classId === cls._id && !a.sectionName)));
+                                  }
+                                }}
+                              />
+                              <span>Whole Class</span>
+                            </label>
+                          )}
+                          {Array.isArray(cls.sections) && cls.sections.length > 0 && (
+                            ((cls.scope === 'section' && Array.isArray(cls.allowedSections))
+                              ? cls.sections.filter(sec => cls.allowedSections.includes(sec.sectionName))
+                              : cls.sections
+                            ).map((section) => (
+                            <label key={section.sectionName} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '120px' }}>
+                              <input
+                                type="checkbox"
+                                checked={Array.isArray(editSelectedAssignments) && editSelectedAssignments.some(a => a.classId === cls._id && a.sectionName === section.sectionName)}
+                                onChange={(e) => {
+                                  const allowed = Array.isArray(cls.allowedSections) ? cls.allowedSections : null;
+                                  const isAllowed = !allowed || allowed.includes(section.sectionName);
+                                  if (e.target.checked) {
+                                    if (isAllowed) {
+                                      setEditSelectedAssignments(prev => [...prev, { classId: cls._id, sectionName: section.sectionName }]);
+                                    }
+                                  } else {
+                                    setEditSelectedAssignments(prev => prev.filter(a => !(a.classId === cls._id && a.sectionName === section.sectionName)));
+                                  }
+                                }}
+                              />
+                              <span>Section {section.sectionName}</span>
+                            </label>
+                          ))
+                          )}
+                        </Box>
+                      </Box>
+                    ))
+                  ) : (
+                    <Typography color="textSecondary" fontStyle="italic">
+                      No classes available to select.
+                    </Typography>
+                  )}
                 </Box>
               </Grid>
               <Grid item xs={12}>

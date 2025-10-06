@@ -6,7 +6,10 @@ const assignmentSchema = new mongoose.Schema({
   dueDate: { type: Date },
   subject: { type: String, required: true },
   teacherId: { type: mongoose.Schema.Types.ObjectId, ref: "teacher", required: true },
-  classIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "sclass", required: true }],
+  assignments: [{
+    classId: { type: mongoose.Schema.Types.ObjectId, ref: "sclass", required: true },
+    sectionName: { type: String, required: false } // Optional, if not provided, assignment is for entire class
+  }],
   fileUrl: { type: String },
   createdAt: { type: Date, default: Date.now }
 });

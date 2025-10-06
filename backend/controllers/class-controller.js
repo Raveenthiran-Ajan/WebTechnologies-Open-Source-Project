@@ -347,14 +347,45 @@ const getTeacherClasses = async (req, res) => {
             console.log("Teacher not found for id:", req.params.id);
             return res.status(404).json({ message: "Teacher not found" });
         }
-        let classes = [];
-        if (teacher.teachSclasses && teacher.teachSclasses.length > 0) {
-            classes = await Sclass.find({ _id: { $in: teacher.teachSclasses.map(c => c._id) } }).select('sclassName');
-        } else if (teacher.teachSclass) {
-            classes = await Sclass.find({ _id: teacher.teachSclass._id }).select('sclassName');
+        // Collect union of classes from teachSclasses and teachSclass
+        const classIdSet = new Set();
+        if (Array.isArray(teacher.teachSclasses)) {
+            teacher.teachSclasses.forEach(c => c && c._id && classIdSet.add(c._id.toString()));
         }
-        console.log("Teacher found, classes:", classes);
-        res.json(classes);
+        if (teacher.teachSclass && teacher.teachSclass._id) {
+            classIdSet.add(teacher.teachSclass._id.toString());
+        }
+        let classes = [];
+        if (classIdSet.size > 0) {
+            classes = await Sclass.find({ _id: { $in: Array.from(classIdSet) } }).select('sclassName sections');
+        }
+
+        // Build allowed sections per class if teacher is section-scoped
+        const teachSections = Array.isArray(teacher.teachSections) ? teacher.teachSections : [];
+        const sectionScopeMap = teachSections.reduce((acc, ts) => {
+            const key = ts.sclassName?.toString?.() || String(ts.sclassName);
+            if (!acc[key]) acc[key] = new Set();
+            if (ts.sectionName) acc[key].add(ts.sectionName);
+            return acc;
+        }, {});
+
+        const response = classes.map(cls => {
+            const id = cls._id.toString();
+            const allowedSet = sectionScopeMap[id];
+            // scope: 'class' means no section restriction; 'section' means must pick allowed sections
+            const scope = allowedSet && allowedSet.size > 0 ? 'section' : 'class';
+            const allowedSections = allowedSet ? Array.from(allowedSet) : null;
+            return {
+                _id: cls._id,
+                sclassName: cls.sclassName,
+                sections: cls.sections,
+                scope,
+                allowedSections,
+            };
+        });
+
+        console.log("Teacher found, classes with scope:", response);
+        res.json(response);
     } catch (err) {
         console.error("Error in getTeacherClasses:", err);
         res.status(500).json(err);

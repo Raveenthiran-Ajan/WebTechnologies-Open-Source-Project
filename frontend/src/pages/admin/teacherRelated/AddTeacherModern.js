@@ -40,6 +40,7 @@ const AddTeacherModern = () => {
     const [activeStep, setActiveStep] = useState(0);
     const [selectedClass, setSelectedClass] = useState(null);
     const [selectedSections, setSelectedSections] = useState([]);
+    const [additionalClasses, setAdditionalClasses] = useState([]);
     const [selectedSubjects, setSelectedSubjects] = useState([]);
     const [attendanceSections, setAttendanceSections] = useState([]);
     const [name, setName] = useState('');
@@ -214,6 +215,8 @@ const AddTeacherModern = () => {
             school: currentUser._id,
             teachSubjects: selectedSubjects,
             teachSclass: selectedClass._id,
+            // include additional classes for multi-class teaching
+            ...(additionalClasses.length > 0 ? { teachSclasses: Array.from(new Set([selectedClass._id, ...additionalClasses])) } : {}),
             teachSections: selectedSections,
             attendanceSections: validAttendanceSections,
             ...(selectedSections.length === 0 && isClassAttendanceResponsible && { attendanceClass: selectedClass._id }),
@@ -533,6 +536,37 @@ const AddTeacherModern = () => {
                             </Typography>
                             
                             <Grid container spacing={3}>
+                                {/* Multi-class selection */}
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle1" gutterBottom>
+                                        Additional Teaching Classes (Optional)
+                                    </Typography>
+                                    <FormControl fullWidth>
+                                        <InputLabel id="additional-classes-label">Select Additional Classes</InputLabel>
+                                        <Select
+                                            labelId="additional-classes-label"
+                                            multiple
+                                            value={additionalClasses}
+                                            onChange={(e) => setAdditionalClasses(typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value)}
+                                            input={<OutlinedInput label="Select Additional Classes" />}
+                                            renderValue={(selected) => (
+                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                    {selected.map((value) => {
+                                                        const cls = (sclassesList || []).find(c => c._id === value);
+                                                        return <Chip key={value} label={cls ? cls.sclassName : value} size="small" />;
+                                                    })}
+                                                </Box>
+                                            )}
+                                        >
+                                            {(sclassesList || []).filter(c => c._id !== selectedClass._id).map((cls) => (
+                                                <MenuItem key={cls._id} value={cls._id}>
+                                                    <Checkbox checked={additionalClasses.indexOf(cls._id) > -1} />
+                                                    <ListItemText primary={cls.sclassName} />
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
                                 <Grid item xs={12}>
                                     <TextField
                                         required
