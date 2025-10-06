@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Box, Typography, Grid, CircularProgress, Card, CardContent, Avatar, Container, Pagination, Chip, Paper, Button, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, Grid, CircularProgress, Card, CardContent, Avatar, Container, Pagination, Chip, Paper, Button, Snackbar, Alert, Divider } from '@mui/material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import PersonIcon from '@mui/icons-material/Person';
 import SchoolIcon from '@mui/icons-material/School';
 import GradeIcon from '@mui/icons-material/Grade';
 import { useTranslation } from 'react-i18next';
-import { getAllNotices } from '../../redux/noticeRelated/noticeHandle';
-import DashboardStats from '../../components/DashboardStats';
-import QuickActions from '../../components/QuickActions';
-import RecentActivity from '../../components/RecentActivity';
+import { getAllNotices } from '../../redux/noticeRelated/noticeHandle'; 
+import CountUp from 'react-countup';
+import styled from 'styled-components';
+import Students from "../../assets/img1.png";
+import Notices from "../../assets/assignment.svg";
+import SeeNotice from '../../components/SeeNotice';
 
 const ParentHomePage = () => {
     const dispatch = useDispatch();
@@ -19,14 +21,19 @@ const ParentHomePage = () => {
     const navigate = useNavigate();
     const [showPwdChanged, setShowPwdChanged] = useState(false);
     const { noticesList } = useSelector((state) => state.notice);
-    const [page, setPage] = useState(1);
-    const childrenPerPage = 4; // Show fewer children on dashboard
     const { t } = useTranslation();
+
     useEffect(() => {
         if (currentUser && currentUser.school) {
             dispatch(getAllNotices(currentUser.school._id, "Notice"));
         }
     }, [dispatch, currentUser]);
+
+    // Count unread notices
+    const unreadNoticesCount = noticesList ? noticesList.filter(notice =>
+        !notice.readBy || !notice.readBy.includes(currentUser?._id)
+    ).length : 0;
+
 
     // Show success message if redirected after password change
     useEffect(() => {
@@ -69,13 +76,6 @@ const ParentHomePage = () => {
     }
 
     const children = currentUser.children || [];
-    const totalPages = Math.ceil(children.length / childrenPerPage);
-    const startIndex = (page - 1) * childrenPerPage;
-    const currentChildren = children.slice(startIndex, startIndex + childrenPerPage);
-
-    const handlePageChange = (event, value) => {
-        setPage(value);
-    };
 
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -134,129 +134,54 @@ const ParentHomePage = () => {
                 </Box>
             </Box>
 
-
-
-            {/* Dashboard Statistics */}
-            <DashboardStats children={children} noticesList={noticesList} />
-
-            {/* Quick Actions */}
-            <QuickActions noticesList={noticesList} />
-
-            {/* Recent Activity */}
-            <RecentActivity noticesList={noticesList} />
-
-            {/* Recent Children Section */}
-            <Typography variant="h5" gutterBottom sx={{ 
-                fontWeight: 'bold', 
-                mb: 3,
-                background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-            }}>
-                {t('parentHomePage.recentChildren')}
-            </Typography>
-
-            <Grid container spacing={4}>
-                {currentChildren.length > 0 ? currentChildren.map((child, idx) => (
-                    <Grid item xs={12} sm={6} md={4} key={idx}>
-                        <Card 
-                            component={Link} 
-                            to={`/Parent/child/${child._id}`} 
-                            sx={{ 
-                                textDecoration: 'none', 
-                                display: 'block',
-                                borderRadius: 3,
-                                '&:hover': { 
-                                    transform: 'translateY(-4px)',
-                                    boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
-                                },
-                                transition: 'all 0.3s ease-in-out'
-                            }}
-                        >
-                            <Box sx={{
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                color: 'white',
-                                p: 2,
-                                textAlign: 'center'
-                            }}>
-                                <Avatar sx={{ 
-                                    width: 60, 
-                                    height: 60, 
-                                    mx: 'auto',
-                                    bgcolor: 'white',
-                                    color: 'primary.main',
-                                    fontSize: '1.5rem',
-                                    fontWeight: 'bold'
-                                }}>
-                                    {child.name?.charAt(0).toUpperCase()}
-                                </Avatar>
-                            </Box>
-                            <CardContent sx={{ p: 3, textAlign: 'center' }}>
-                                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
-                                    {child.name}
-                                </Typography>
-                                <Chip 
-                                    label={`${t('parentHomePage.roll')}: ${child.rollNum}`}
-                                    size="small" 
-                                    color="primary" 
-                                    sx={{ mb: 1 }}
-                                />
-                                {getClassName(child.sclassName) && (
-                                    <Typography variant="body2" color="text.secondary">
-                                        {t('parentHomePage.class')}: {getClassName(child.sclassName)}
-                                    </Typography>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </Grid>
-                )) : (
-                    <Grid item xs={12}>
-                        <Paper sx={{ p: 4, textAlign: 'center' }}>
-                            <PersonIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                            <Typography variant="h6">{t('parentHomePage.noChildDetails')}</Typography>
-                        </Paper>
-                    </Grid>
-                )}
+            <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid item xs={12} md={6} lg={6}>
+                    <StyledPaper>
+                        <img src={Students} alt="Children" />
+                        <Title>
+                            {t('parentHomePage.childrenCount')}
+                        </Title>
+                        <Data start={0} end={children.length} duration={2.5} />
+                    </StyledPaper>
+                </Grid>
+                <Grid item xs={12} md={6} lg={6}>
+                    <StyledPaper>
+                        <img src={Notices} alt="Notices" />
+                        <Title>
+                            {t('parentHomePage.noticesCount')}
+                        </Title>
+                        <Data start={0} end={unreadNoticesCount} duration={2.5} />
+                    </StyledPaper>
+                </Grid>
+                <Grid item xs={12}>
+                    <Paper sx={{ p: 2, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'auto' }}>
+                        <Typography variant="h6" sx={{ mb: 1, fontWeight: 'bold' }}>{t('parentHomePage.schoolNotices')}</Typography>
+                        <Box sx={{ flexGrow: 1, overflowY: 'auto' }}><SeeNotice /></Box>
+                    </Paper>
+                </Grid>
             </Grid>
 
-            {/* View All Children Link */}
-            <Box sx={{ textAlign: 'center', mt: 4 }}>
-                <Button
-                    component={Link}
-                    to="/Parent/children"
-                    variant="outlined"
-                    size="large"
-                    sx={{ 
-                        borderRadius: 3,
-                        px: 4,
-                        py: 1.5,
-                        borderWidth: 2,
-                        '&:hover': {
-                            borderWidth: 2,
-                            transform: 'translateY(-2px)',
-                            boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
-                        },
-                        transition: 'all 0.3s ease-in-out'
-                    }}
-                >
-                    {t('parentHomePage.viewAllChildren')} ({children.length})
-                </Button>
-            </Box>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                    <Pagination 
-                        count={totalPages} 
-                        page={page} 
-                        onChange={handlePageChange} 
-                        color="primary"
-                    />
-                </Box>
-            )}
         </Container>
     );
 };
+
+const StyledPaper = styled(Paper)`
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  height: 200px;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+`;
+
+const Title = styled.p`
+  font-size: 1.25rem;
+`;
+
+const Data = styled(CountUp)`
+  font-size: calc(1.3rem + .6vw);
+  color: green;
+`;
 
 export default ParentHomePage;
