@@ -56,7 +56,7 @@ const StudentHomePage = () => {
         const dueDate = assignment ? new Date(assignment.dueDate) : null;
         if (dueDate && dueDate < now) {
             // Deadline passed, do not allow editing or deleting
-            alert('The deadline for this assignment has passed. You cannot edit or delete your submission.');
+            alert(t('studentHomePage.deadlinePassed'));
             return;
         }
         if (existingSubmission) {
@@ -121,13 +121,13 @@ const StudentHomePage = () => {
             }
             await fetchSubmissions();
             // After submission, show success message and close form
-            const message = editingSubmission ? 'Assignment updated successfully.' : 'Assignment submitted successfully.';
+            const message = editingSubmission ? t('studentHomePage.assignmentUpdated') : t('studentHomePage.assignmentSubmitted');
             setSuccessMessage(message);
             setErrorMessage('');
             handleCloseSubmissionForm();
         } catch (error) {
             console.error('Error submitting assignment:', error);
-            setErrorMessage('Failed to submit assignment. Please try again.');
+            setErrorMessage(t('studentHomePage.submitFailed'));
             setSuccessMessage('');
         } finally {
             setSubmitting(false);
@@ -140,12 +140,12 @@ const StudentHomePage = () => {
         try {
             await axios.delete(`${API_BASE_URL}/submissions/${submission._id}`);
             await fetchSubmissions();
-            setSuccessMessage('Submission deleted successfully.');
+            setSuccessMessage(t('studentHomePage.submissionDeleted'));
             setErrorMessage('');
             handleCloseSubmissionForm();
         } catch (error) {
             console.error('Error deleting submission:', error);
-            setErrorMessage('Failed to delete submission. Please try again.');
+            setErrorMessage(t('studentHomePage.deleteFailed'));
             setSuccessMessage('');
         } finally {
             setSubmitting(false);
@@ -180,11 +180,11 @@ const StudentHomePage = () => {
     };
 
     const calculateTimeLeft = (dueDate) => {
-        if (!dueDate) return 'No due date';
+        if (!dueDate) return t('studentHomePage.noDueDate');
         const now = new Date();
         const due = new Date(dueDate);
         const diff = due - now;
-        if (diff <= 0) return 'Overdue';
+        if (diff <= 0) return t('studentHomePage.overdue');
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -211,13 +211,12 @@ const StudentHomePage = () => {
         : 0;
     const overallAbsentPercentage = 100 - overallAttendancePercentage;
 
-
+    const { t } = useTranslation();
     const chartData = [
-        { name: 'Present', value: overallAttendancePercentage },
-        { name: 'Absent', value: overallAbsentPercentage }
+        { name: t('studentHomePage.present'), value: overallAttendancePercentage },
+        { name: t('studentHomePage.absent'), value: overallAbsentPercentage }
     ];
 
-    const { t } = useTranslation();
     return (
         <>
             <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -226,7 +225,7 @@ const StudentHomePage = () => {
                         <StyledPaper>
                             <img src={Subject} alt="Subjects" />
                             <Title>
-                                {t('student_total_subjects')}
+                                {t('studentHomePage.totalSubjects')}
                             </Title>
                             <Data><CountUp start={0} end={numberOfSubjects} duration={2.5} /></Data>
                         </StyledPaper>
@@ -235,14 +234,14 @@ const StudentHomePage = () => {
                         <StyledPaper>
                             <img src={Assignment} alt="Assignments" />
                             <Title>
-                                {t('student_total_assignments')}
+                                {t('studentHomePage.totalAssignments')}
                             </Title>
                             <Data><CountUp start={0} end={assignments.length} duration={4} /></Data>
                         </StyledPaper>
                     </Grid>
                     <Grid item xs={12} md={3} lg={3}>
                         <StyledPaper>
-                            <Title>Overall Attendance</Title>
+                            <Title>{t('studentHomePage.overallAttendance')}</Title>
                             <Data>
                                 <CountUp
                                     start={0}
@@ -252,7 +251,7 @@ const StudentHomePage = () => {
                                 />
                             </Data>
                             <Chip
-                                label={overallAttendancePercentage >= 75 ? 'Good' : 'Low'}
+                                label={overallAttendancePercentage >= 75 ? t('studentHomePage.good') : t('studentHomePage.low')}
                                 color={overallAttendancePercentage >= 75 ? 'success' : 'error'}
                                 size="small"
                                 sx={{ mt: 1 }}
@@ -268,7 +267,7 @@ const StudentHomePage = () => {
                                     <>
                                         {loading
                                             ? (
-                                                <Typography variant="h6">Loading...</Typography>
+                                                <Typography variant="h6">{t('studentHomePage.loading')}</Typography>
                                             )
                                             :
                                             <>
@@ -290,7 +289,7 @@ const StudentHomePage = () => {
                     <Grid item xs={12}>
                         <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', maxHeight: 400, overflow: 'auto' }}>
                             <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
-                                School Notices
+                                {t('studentHomePage.schoolNotices')}
                             </Typography>
                             <SeeNotice />
                         </Paper>
@@ -298,10 +297,10 @@ const StudentHomePage = () => {
                     <Grid item xs={12}>
                         <Paper sx={{ p: 3, width: "100%", maxWidth: 1200, boxShadow: 2, display: 'flex', flexDirection: 'column' }}>
                             <Typography variant="h6" gutterBottom>
-                                Recent Assignments
+                                {t('studentHomePage.recentAssignments')}
                             </Typography>
                             {assignmentsLoading ? (
-                                <Typography>Loading assignments...</Typography>
+                                <Typography>{t('studentHomePage.loadingAssignments')}</Typography>
                             ) : assignments.length > 0 ? (
                                 <Box sx={{ width: "100%" }}>
                                     <Box sx={{ maxHeight: 600, overflowY: "auto", width: "100%" }}>
@@ -309,11 +308,11 @@ const StudentHomePage = () => {
                                             <Table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
                                                 <TableHead>
                                                     <TableRow>
-                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "25%", fontWeight: "bold" }}>Title</TableCell>
-                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Due Date</TableCell>
-                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "15%", fontWeight: "bold" }}>Status</TableCell>
-                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Time Left</TableCell>
-                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold", verticalAlign: "middle" }}>Actions</TableCell>
+                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "25%", fontWeight: "bold" }}>{t('studentHomePage.title')}</TableCell>
+                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>{t('studentHomePage.dueDate')}</TableCell>
+                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "15%", fontWeight: "bold" }}>{t('studentHomePage.status')}</TableCell>
+                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>{t('studentHomePage.timeLeft')}</TableCell>
+                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold", verticalAlign: "middle" }}>{t('studentHomePage.actions')}</TableCell>
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
@@ -330,7 +329,7 @@ const StudentHomePage = () => {
                                                             month: 'short',
                                                             day: 'numeric'
                                                         });
-                                                        const status = isSubmitted ? 'Submitted' : (isOverdue ? 'Missing' : 'Pending');
+                                                        const status = isSubmitted ? t('studentHomePage.submitted') : (isOverdue ? t('studentHomePage.missing') : t('studentHomePage.pending'));
 
                                                         return (
                                                             <TableRow key={assignment._id} hover>
@@ -338,22 +337,20 @@ const StudentHomePage = () => {
                                                                 <TableCell sx={{ color: 'text.secondary' }}>{dueDateDisplay}</TableCell>
                                                                 <TableCell sx={{ textAlign: 'center' }}>
                                                                     <Chip
-                                                                        label={status}
-                                                                        color={isSubmitted ? 'success' : status === 'Pending' ? 'warning' : 'error'}
-                                                                        variant="filled"
-                                                                        sx={{
-                                                                            borderRadius: '16px',
-                                                                            fontWeight: 'bold',
-                                                                            minWidth: 90,
-                                                                            justifyContent: 'center',
-                                                                            backgroundColor: isSubmitted ? '#388e3c' : status === 'Pending' ? '#ffb74d' : '#d32f2f',
-                                                                            color: 'white',
-                                                                        }}
-                                                                    />
+                                                                            label={status}
+                                                                            color={isSubmitted ? 'success' : isOverdue ? 'error' : 'warning'}
+                                                                            variant="filled"
+                                                                            sx={{
+                                                                                borderRadius: '16px',
+                                                                                fontWeight: 'bold',
+                                                                                minWidth: 90,
+                                                                                justifyContent: 'center',
+                                                                            }}
+                                                                        />
                                                                 </TableCell>
                                                                 <TableCell sx={{ textAlign: 'center' }}>
                                                                     <Chip
-                                                                        label={isOverdue ? 'Overdue' : `${timeLeft}`}
+                                                                        label={isOverdue ? t('studentHomePage.overdue') : `${timeLeft}`}
                                                                         variant="filled"
                                                                         sx={{
                                                                             borderRadius: '16px',
@@ -384,7 +381,7 @@ const StudentHomePage = () => {
                                                                                             disabled={!assignment.fileUrl}
                                                                                             sx={{ minWidth: 100, textTransform: 'uppercase' }}
                                                                                         >
-                                                                                            Download
+                                                                                            {t('studentHomePage.download')}
                                                                                         </Button>
                                                                                         <Button
                                                                                             variant="contained"
@@ -392,7 +389,7 @@ const StudentHomePage = () => {
                                                                                             onClick={() => handleOpenSubmissionForm(assignment._id)}
                                                                                             sx={{ minWidth: 100, textTransform: 'uppercase' }}
                                                                                         >
-                                                                                            Submit
+                                                                                            {t('studentHomePage.submit')}
                                                                                         </Button>
                                                                                     </>
                                                                                 );
@@ -407,7 +404,7 @@ const StudentHomePage = () => {
                                                                                             disabled={!assignment.fileUrl}
                                                                                             sx={{ minWidth: 100, textTransform: 'uppercase' }}
                                                                                         >
-                                                                                            Download
+                                                                                            {t('studentHomePage.download')}
                                                                                         </Button>
                                                                                         <Button
                                                                                             variant="outlined"
@@ -415,7 +412,7 @@ const StudentHomePage = () => {
                                                                                             onClick={() => handleOpenSubmissionForm(assignment._id)}
                                                                                             sx={{ minWidth: 100, textTransform: 'uppercase', ml: 1 }}
                                                                                         >
-                                                                                            Edit
+                                                                                            {t('studentHomePage.edit')}
                                                                                         </Button>
                                                                                         <Button
                                                                                             variant="outlined"
@@ -424,7 +421,7 @@ const StudentHomePage = () => {
                                                                                             onClick={() => handleDelete(submission)}
                                                                                             sx={{ minWidth: 100, textTransform: 'uppercase', ml: 1 }}
                                                                                         >
-                                                                                            Delete
+                                                                                            {t('studentHomePage.delete')}
                                                                                         </Button>
                                                                                     </>
                                                                                 );
@@ -439,7 +436,7 @@ const StudentHomePage = () => {
                                                                                             disabled={!assignment.fileUrl}
                                                                                             sx={{ minWidth: 100, textTransform: 'uppercase' }}
                                                                                         >
-                                                                                            Download
+                                                                                            {t('studentHomePage.download')}
                                                                                         </Button>
                                                                                     </>
                                                                                 );
@@ -456,7 +453,7 @@ const StudentHomePage = () => {
                                     </Box>
                                 </Box>
                             ) : (
-                                <Typography>No assignments found.</Typography>
+                                <Typography>{t('studentHomePage.noAssignments')}</Typography>
                             )}
                         </Paper>
                     </Grid>
@@ -465,9 +462,9 @@ const StudentHomePage = () => {
                 {/* Submission Form Inline Below Assignments */}
                 {showSubmissionForm && (
                     <Paper id="submissionForm" sx={{ p: 3, mt: 2, width: "100%", maxWidth: 1200, boxShadow: 2, display: 'flex', flexDirection: 'column' }}>
-                        <Typography variant="h6" gutterBottom>{editingSubmission ? 'Edit Submission' : 'Submit Assignment'}</Typography>
+                        <Typography variant="h6" gutterBottom>{editingSubmission ? t('studentHomePage.editSubmission') : t('studentHomePage.submitAssignment')}</Typography>
                         <textarea
-                            placeholder="Answer Text (optional)"
+                            placeholder={t('studentHomePage.answerTextPlaceholder')}
                             value={submissionAnswer}
                             onChange={(e) => setSubmissionAnswer(e.target.value)}
                             rows={4}
@@ -499,7 +496,7 @@ const StudentHomePage = () => {
                             }}
                             onClick={() => document.getElementById('fileInput').click()}
                         >
-                            {submissionFile ? submissionFile.name : 'Drag & drop a file here, or click to select file (Max 5MB)'}
+                            {submissionFile ? submissionFile.name : t('studentHomePage.fileUploadPrompt')}
                         </Box>
                         <input
                             id="fileInput"
@@ -512,7 +509,7 @@ const StudentHomePage = () => {
                         {successMessage && <Typography color="success" sx={{ mb: 2 }}>{successMessage}</Typography>}
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                             <Button variant="outlined" onClick={handleCloseSubmissionForm} disabled={submitting}>
-                                Cancel
+                                {t('studentHomePage.cancel')}
                             </Button>
                             <Box sx={{ display: 'flex', gap: 1 }}>
                                 {editingSubmission ? (
@@ -523,14 +520,14 @@ const StudentHomePage = () => {
                                             onClick={() => handleDelete()} // Pass no argument, will use editingSubmission state
                                             disabled={submitting}
                                         >
-                                            Delete
+                                            {t('studentHomePage.delete')}
                                         </Button>
                                         <Button
                                             variant="contained"
                                             onClick={handleSubmit}
                                             disabled={submitting}
                                         >
-                                            Update
+                                            {t('studentHomePage.update')}
                                         </Button>
                                     </>
                                 ) : (
@@ -539,7 +536,7 @@ const StudentHomePage = () => {
                                         onClick={handleSubmit}
                                         disabled={submitting}
                                     >
-                                        Submit
+                                        {t('studentHomePage.submit')}
                                     </Button>
                                 )}
                             </Box>
