@@ -96,6 +96,9 @@
     "profile": "පැතිකඩ",
     "logout": "පිටවන්න"
   },
+  "studentDashboard": {
+    "title": "ශිෂ්‍ය පුවරුව"
+  },
   "studentHomePage": {
     "totalSubjects": "මුළු විෂයයන්",
     "totalAssignments": "මුළු පැවරීම්",
@@ -150,6 +153,9 @@
     "user": "පරිශීලක",
     "profile": "පැතිකඩ",
     "logout": "පිටවන්න"
+  },
+  "teacherDashboard": {
+    "title": "ගුරු පුවරුව"
   },
   "teacherSideBar": {
     "home": "මුල් පිටුව",

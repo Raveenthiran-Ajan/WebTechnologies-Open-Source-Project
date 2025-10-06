@@ -96,6 +96,9 @@
     "profile": "சுயவிவரம்",
     "logout": "வெளியேறு"
   },
+  "studentDashboard": {
+    "title": "மாணவர் முகப்பலகை"
+  },
   "studentHomePage": {
     "totalSubjects": "மொத்த பாடங்கள்",
     "totalAssignments": "மொத்த பணிகள்",
@@ -150,6 +153,9 @@
     "user": "பயனர்",
     "profile": "சுயவிவரம்",
     "logout": "வெளியேறு"
+  },
+  "teacherDashboard": {
+    "title": "ஆசிரியர் முகப்பலகை"
   },
   "teacherSideBar": {
     "home": "முகப்பு",

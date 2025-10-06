@@ -96,6 +96,9 @@
     "profile": "Profile",
     "logout": "Logout"
   },
+   "studentDashboard": {
+    "title": "Student Dashboard"
+  },
   "studentHomePage": {
     "totalSubjects": "Total Subjects",
     "totalAssignments": "Total Assignments",
@@ -150,6 +153,9 @@
     "user": "User",
     "profile": "Profile",
     "logout": "Logout"
+  },
+  "teacherDashboard": {
+    "title": "Teacher Dashboard"
   },
   "teacherSideBar": {
     "home": "Home",
