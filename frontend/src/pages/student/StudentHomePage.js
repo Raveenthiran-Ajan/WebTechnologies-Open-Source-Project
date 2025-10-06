@@ -262,7 +262,7 @@ const StudentHomePage = () => {
                         <ChartContainer>
                             {
                                 response ?
-                                    <Typography variant="h6">{t('student_no_attendance')}</Typography>
+                                    <Typography variant="h6">{t('studentHomePage.noAttendance')}</Typography>
                                     :
                                     <>
                                         {loading
@@ -278,7 +278,7 @@ const StudentHomePage = () => {
                                                         </>
                                                     )
                                                         :
-                                                        <Typography variant="h6">{t('student_no_attendance')}</Typography>
+                                                        <Typography variant="h6">{t('studentHomePage.noAttendance')}</Typography>
                                                 }
                                             </>
                                         }

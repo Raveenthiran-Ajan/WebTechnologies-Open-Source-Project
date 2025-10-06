@@ -57,7 +57,7 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <HomeIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_home')} />
+                    <ListItemText primary={t('studentSideBar.home')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -68,7 +68,7 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <AssignmentIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_subjects')} />
+                    <ListItemText primary={t('studentSideBar.subjects')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -79,7 +79,7 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <ScheduleIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_timetable') || 'Timetable'} />
+                    <ListItemText primary={t('studentSideBar.timetable')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -90,7 +90,7 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <ClassOutlinedIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_attendance')} />
+                    <ListItemText primary={t('studentSideBar.attendance')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -101,7 +101,7 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <AssignmentIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_grades') || 'Grades'} />
+                    <ListItemText primary={t('studentSideBar.grades')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -112,7 +112,7 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <AssignmentIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_term_report')} />
+                    <ListItemText primary={t('studentSideBar.termReport')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -124,7 +124,7 @@ const StudentSideBar = () => {
                         <NotificationsIcon />
                     </ListItemIcon>
                     <Badge badgeContent={unreadNoticesCount} color="error" max={99}>
-                        <ListItemText primary={t('menu_notices')} />
+                        <ListItemText primary={t('studentSideBar.notices')} />
                     </Badge>
                 </ListItemButton>
                 <ListItemButton 
@@ -136,7 +136,7 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <AssignmentIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_complain') || 'Complain'} />
+                    <ListItemText primary={t('studentSideBar.complain')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -147,13 +147,13 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <AssignmentIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_assignment_submission')} />
+                    <ListItemText primary={t('studentSideBar.assignments')} />
                 </ListItemButton>
             </React.Fragment>
             <Divider sx={{ my: 1 }} />
             <React.Fragment>
                 <ListSubheader component="div" inset>
-                    {t('menu_user')}
+                    {t('studentSideBar.user')}
                 </ListSubheader>
                 <ListItemButton 
                     component={Link} 
@@ -164,7 +164,7 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <AccountCircleOutlinedIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_profile')} />
+                    <ListItemText primary={t('studentSideBar.profile')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -175,7 +175,7 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <ExitToAppIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_logout')} />
+                    <ListItemText primary={t('studentSideBar.logout')} />
                 </ListItemButton>
             </React.Fragment>
         </>
