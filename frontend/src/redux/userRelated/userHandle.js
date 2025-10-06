@@ -41,7 +41,7 @@ export const registerUser = (fields, role) => async (dispatch) => {
             dispatch(authSuccess(result.data));
         }
         else if (result.data.school) {
-            dispatch(stuffAdded());
+            dispatch(stuffAdded(result.data));
         }
         else {
             dispatch(authFailed(result.data.message));

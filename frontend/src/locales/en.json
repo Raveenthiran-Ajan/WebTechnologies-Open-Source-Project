@@ -86,6 +86,8 @@
     "classes": "Classes",
     "subjects": "Subjects",
     "teachers": "Teachers",
+    "viewTeachers": "View Teachers",
+    "addTeacher": "Add Teacher",
     "students": "Students",
     "addStudents": "Add Students",
     "attendanceReports": "Attendance Reports",

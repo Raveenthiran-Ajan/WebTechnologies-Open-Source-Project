@@ -56,6 +56,7 @@ const ClassAttendance = () => {
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
     const [bulkActionMode, setBulkActionMode] = useState('present'); // 'present', 'absent', 'holiday'
+    const [selectedSection, setSelectedSection] = useState('');
     
     useEffect(() => {
         if (classId) {
@@ -66,22 +67,22 @@ const ClassAttendance = () => {
     useEffect(() => {
         // Initialize attendance data for all students as present by default
         if (sclassStudents && sclassStudents.length > 0) {
+            const sectionFiltered = selectedSection ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
             const initialData = {};
-            
-            // Filter students by teacher's attendance responsibility sections
-            const teacherAttendanceSections = currentUser?.attendanceSections || [];
-            const filteredStudents = teacherAttendanceSections.length > 0 
-                ? sclassStudents.filter(student => 
-                    teacherAttendanceSections.includes(student.sectionName)
-                  )
-                : sclassStudents; // If no sections assigned, show all (for backward compatibility)
-            
-            filteredStudents.forEach(student => {
+            sectionFiltered.forEach(student => {
                 initialData[student._id] = 'Present';
             });
             setAttendanceData(initialData);
         }
-    }, [sclassStudents, currentUser]);
+    }, [sclassStudents, selectedSection]);
+    
+    useEffect(() => {
+        if (!selectedSection && currentUser?.attendanceSections && currentUser.attendanceSections.length > 0) {
+            setSelectedSection(currentUser.attendanceSections[0]);
+        }
+    }, [currentUser, selectedSection]);
+    
+    const filteredStudents = selectedSection ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
     
     const handleAttendanceChange = (studentId, status) => {
         setAttendanceData(prev => ({
@@ -91,27 +92,30 @@ const ClassAttendance = () => {
     };
     
     const markAllPresent = () => {
-        const allPresentData = {};
-        sclassStudents.forEach(student => {
-            allPresentData[student._id] = 'Present';
+        const newData = { ...attendanceData };
+        const sectionFiltered = selectedSection ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
+        sectionFiltered.forEach(student => {
+            newData[student._id] = 'Present';
         });
-        setAttendanceData(allPresentData);
+        setAttendanceData(newData);
     };
     
     const markAllAbsent = () => {
-        const allAbsentData = {};
-        sclassStudents.forEach(student => {
-            allAbsentData[student._id] = 'Absent';
+        const newData = { ...attendanceData };
+        const sectionFiltered = selectedSection ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
+        sectionFiltered.forEach(student => {
+            newData[student._id] = 'Absent';
         });
-        setAttendanceData(allAbsentData);
+        setAttendanceData(newData);
     };
     
     const markAllHoliday = () => {
-        const allHolidayData = {};
-        sclassStudents.forEach(student => {
-            allHolidayData[student._id] = 'Holiday';
+        const newData = { ...attendanceData };
+        const sectionFiltered = selectedSection ? sclassStudents.filter(student => student.sectionName === selectedSection) : sclassStudents;
+        sectionFiltered.forEach(student => {
+            newData[student._id] = 'Holiday';
         });
-        setAttendanceData(allHolidayData);
+        setAttendanceData(newData);
     };
     
     const handleBulkAction = () => {
@@ -316,6 +320,20 @@ const ClassAttendance = () => {
                     Student Attendance List
                 </Typography>
                 
+                {/* New Section Selector */}
+                <Box sx={{ my: 2, display: 'flex', justifyContent: 'center' }}>
+                  <FormControl size="small" sx={{ minWidth: 150 }}>
+                    <Select
+                      value={selectedSection}
+                      onChange={(e) => setSelectedSection(e.target.value)}
+                    >
+                      {currentUser?.attendanceSections && currentUser.attendanceSections.map((sec) => (
+                        <MenuItem key={sec} value={sec}>{sec}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+                
                 <TableContainer component={Paper} sx={{ mt: 2 }}>
                     <Table>
                         <TableHead>
@@ -327,35 +345,25 @@ const ClassAttendance = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {(() => {
-                                // Filter students by teacher's attendance responsibility sections
-                                const teacherAttendanceSections = currentUser?.attendanceSections || [];
-                                const filteredStudents = teacherAttendanceSections.length > 0 
-                                    ? sclassStudents.filter(student => 
-                                        teacherAttendanceSections.includes(student.sectionName)
-                                      )
-                                    : sclassStudents; // If no sections assigned, show all (for backward compatibility)
-                                
-                                return filteredStudents && filteredStudents.map((student) => (
-                                    <TableRow key={student._id}>
-                                        <TableCell>{student.rollNum}</TableCell>
-                                        <TableCell>{student.name}</TableCell>
-                                        <TableCell>{student.email || 'N/A'}</TableCell>
-                                        <TableCell>
-                                            <FormControl size="small" sx={{ minWidth: 120 }}>
-                                                <Select
-                                                    value={attendanceData[student._id] || 'Present'}
-                                                    onChange={(e) => handleAttendanceChange(student._id, e.target.value)}
-                                                >
-                                                    <MenuItem value="Present">Present</MenuItem>
-                                                    <MenuItem value="Absent">Absent</MenuItem>
-                                                    <MenuItem value="Holiday">Holiday</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </TableCell>
-                                    </TableRow>
-                                ));
-                            })()}
+                            {filteredStudents && filteredStudents.map((student) => (
+                                <TableRow key={student._id}>
+                                    <TableCell>{student.rollNum}</TableCell>
+                                    <TableCell>{student.name}</TableCell>
+                                    <TableCell>{student.email || 'N/A'}</TableCell>
+                                    <TableCell>
+                                        <FormControl size="small" sx={{ minWidth: 120 }}>
+                                            <Select
+                                                value={attendanceData[student._id] || 'Present'}
+                                                onChange={(e) => handleAttendanceChange(student._id, e.target.value)}
+                                            >
+                                                <MenuItem value="Present">Present</MenuItem>
+                                                <MenuItem value="Absent">Absent</MenuItem>
+                                                <MenuItem value="Holiday">Holiday</MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
                         </TableBody>
                     </Table>
                 </TableContainer>

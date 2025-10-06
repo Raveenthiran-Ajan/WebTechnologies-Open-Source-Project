@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getClassStudents } from '../../redux/sclassRelated/sclassHandle';
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation } from 'react-router-dom'
 import axios from 'axios';
 import { BottomNavigation, BottomNavigationAction, Box, Button, Collapse, Paper, Table, TableBody, TableHead, Typography } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
@@ -20,6 +20,9 @@ const TeacherViewStudent = () => {
     const { sclassStudents, loading: classLoading } = useSelector((state) => state.sclass);
 
     const classId = params.classId;
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const sectionParam = queryParams.get('section');
     const subjectId = currentUser.teachSubject?._id;
     const subjectName = currentUser.teachSubject?.subName;
 
@@ -122,6 +125,9 @@ const TeacherViewStudent = () => {
             window.removeEventListener('focus', handleFocus);
         };
     }, []);
+
+    // Apply section filter if provided
+    const sectionFiltered = sectionParam ? sclassStudents.filter(s => s.sectionName === sectionParam) : sclassStudents;
 
     const chartData = studentAttendances.map(s => ({
         name: s.name,
@@ -261,7 +267,7 @@ const TeacherViewStudent = () => {
                 </>
             ) : (
                 <Typography variant="h6" gutterBottom component="div">
-                    No attendance data available for the class.
+                    No attendance data available for {sectionParam ? `section ${sectionParam}` : 'the class'}.
                 </Typography>
             )}
         </div>

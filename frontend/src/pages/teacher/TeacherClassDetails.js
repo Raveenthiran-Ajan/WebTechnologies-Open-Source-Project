@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getClassStudents } from "../../redux/sclassRelated/sclassHandle";
 import { Paper, Box, Typography, Container, Button, Grid, TextField, Alert, CircularProgress } from '@mui/material';
 import { updateStudentTermMarks } from '../../redux/studentRelated/studentHandle';
@@ -29,6 +29,9 @@ const TeacherClassDetails = () => {
     const dispatch = useDispatch();
     const { sclassStudents, loading, error: classError, getresponse } = useSelector((state) => state.sclass);
     const { classId } = useParams();
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const sectionParam = queryParams.get('section');
     const { statestatus, response, error: studentError, loading: studentLoading } = useSelector((state) => state.student);
 
     const [marks, setMarks] = useState({});
@@ -41,9 +44,9 @@ const TeacherClassDetails = () => {
 
     useEffect(() => {
         if (classID) {
-            dispatch(getClassStudents(classID));
+            dispatch(getClassStudents(classID, sectionParam || undefined));
         }
-    }, [dispatch, classID]);
+    }, [dispatch, classID, sectionParam]);
 
     useEffect(() => {
         if (sclassStudents && sclassStudents.length > 0 && currentUser.teachSubject) {
@@ -180,7 +183,10 @@ const TeacherClassDetails = () => {
             )
         }
     ];
-    const studentRows = sclassStudents.map((student) => {
+    // Optionally filter students by section from query param if provided
+    const filteredStudents = sectionParam ? sclassStudents.filter(s => s.sectionName === sectionParam) : sclassStudents;
+
+    const studentRows = filteredStudents.map((student) => {
         return {
             rollNum: student.rollNum,
             name: student.name,
@@ -246,7 +252,7 @@ const TeacherClassDetails = () => {
                                 ) : (
                                     <>
                                         <Typography variant="h5" component="h2" gutterBottom>
-                                            Students List
+                                            Students List {sectionParam ? `(Section ${sectionParam})` : ''}
                                         </Typography>
                                         <Button variant="contained" onClick={() => setMarksMode(true)}>Add Marks</Button>
                                     </>

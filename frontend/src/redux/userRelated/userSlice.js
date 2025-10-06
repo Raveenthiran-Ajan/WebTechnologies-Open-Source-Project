@@ -79,6 +79,11 @@ const userSlice = createSlice({
         },
         toggleDarkMode: (state) => {
             state.darkMode = !state.darkMode;
+        },
+        RESET_STATUS: (state) => {
+            state.status = 'idle';
+            state.error = null;
+            state.response = null;
         }
     },
 });
@@ -96,7 +101,8 @@ export const {
     getRequest,
     getFailed,
     getError,
-    toggleDarkMode
+    toggleDarkMode,
+    RESET_STATUS
 } = userSlice.actions;
 
 export const userReducer = userSlice.reducer;

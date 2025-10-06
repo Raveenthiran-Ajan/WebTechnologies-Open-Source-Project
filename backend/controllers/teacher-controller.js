@@ -3,7 +3,7 @@ const Teacher = require('../models/teacherSchema.js');
 const Subject = require('../models/subjectSchema.js');
 
 const teacherRegister = async (req, res) => {
-    const { name, email, password, role, school, teachSubject, teachSclass, teachSections, attendanceSections } = req.body;
+    const { name, email, password, role, school, teachSubjects, teachSclass, teachSections, attendanceSections } = req.body;
     try {
         const salt = await bcrypt.genSalt(10);
         const hashedPass = await bcrypt.hash(password, salt);
@@ -11,49 +11,51 @@ const teacherRegister = async (req, res) => {
         // Check for existing attendance responsibility in the same sections
         if (attendanceSections && attendanceSections.length > 0) {
             const existingAttendanceTeacher = await Teacher.findOne({
-                "attendanceSections.sectionId": { $in: attendanceSections }
+                "attendanceSections.sectionName": { $in: attendanceSections }
             });
             if (existingAttendanceTeacher) {
                 return res.send({ message: 'Another teacher is already assigned for attendance in one or more of these sections' });
             }
         }
 
-        // Convert section IDs to proper objects
+        // Convert section names to proper objects
         const Sclass = require('../models/sclassSchema.js');
         const teachingSectionDetails = [];
         const attendanceSectionDetails = [];
+        
+        const classObj = await Sclass.findById(teachSclass);
+        if (!classObj) {
+            return res.send({ message: 'Class not found' });
+        }
 
         if (teachSections && teachSections.length > 0) {
-            for (const sectionId of teachSections) {
-                const section = await Sclass.findOne(
-                    { "sections._id": sectionId },
-                    { "sections.$": 1, sclassName: 1 }
-                );
-                if (section && section.sections && section.sections.length > 0) {
+            for (const sectionName of teachSections) {
+                const section = classObj.sections.find(s => s.sectionName === sectionName);
+                if (section) {
                     teachingSectionDetails.push({
-                        sectionId: sectionId,
-                        sectionName: section.sections[0].sectionName,
-                        sclassName: section._id
+                        sectionId: section._id,
+                        sectionName: sectionName,
+                        sclassName: teachSclass
                     });
                 }
             }
         }
 
         if (attendanceSections && attendanceSections.length > 0) {
-            for (const sectionId of attendanceSections) {
-                const section = await Sclass.findOne(
-                    { "sections._id": sectionId },
-                    { "sections.$": 1, sclassName: 1 }
-                );
-                if (section && section.sections && section.sections.length > 0) {
+            for (const sectionName of attendanceSections) {
+                const section = classObj.sections.find(s => s.sectionName === sectionName);
+                if (section) {
                     attendanceSectionDetails.push({
-                        sectionId: sectionId,
-                        sectionName: section.sections[0].sectionName,
-                        sclassName: section._id
+                        sectionId: section._id,
+                        sectionName: sectionName,
+                        sclassName: teachSclass
                     });
                 }
             }
         }
+
+        // Support for multiple subjects and backward compatibility
+        const teachSubject = teachSubjects && teachSubjects.length > 0 ? teachSubjects[0] : null;
 
         const teacherData = { 
             name, 
@@ -61,8 +63,10 @@ const teacherRegister = async (req, res) => {
             password: hashedPass, 
             role, 
             school, 
+            teachSubjects: teachSubjects || [], 
             teachSubject, 
             teachSclass,
+            teachSclasses: teachSclass ? [teachSclass] : [],
             teachSections: teachingSectionDetails,
             attendanceSections: attendanceSectionDetails
         };
@@ -77,7 +81,18 @@ const teacherRegister = async (req, res) => {
         }
         else {
             let result = await teacher.save();
-            await Subject.findByIdAndUpdate(teachSubject, { teacher: teacher._id });
+            
+            // Update all subjects with this teacher
+            if (teachSubjects && teachSubjects.length > 0) {
+                await Promise.all(teachSubjects.map(async (subjectId) => {
+                    await Subject.findByIdAndUpdate(subjectId, { teacher: teacher._id });
+                }));
+            } 
+            // Backward compatibility for single subject
+            else if (teachSubject) {
+                await Subject.findByIdAndUpdate(teachSubject, { teacher: teacher._id });
+            }
+            
             result.password = undefined;
             res.send(result);
         }

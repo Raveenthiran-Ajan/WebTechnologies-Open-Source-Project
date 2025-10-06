@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getClassStudents } from '../../redux/sclassRelated/sclassHandle';
 import {
     Box,
@@ -43,6 +43,9 @@ const SimpleTermAttendance = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { classId } = useParams();
+    const location = useLocation();
+    const queryParams = new URLSearchParams(location.search);
+    const sectionParam = queryParams.get('section');
     
     const { sclassStudents, loading, error } = useSelector((state) => state.sclass);
     
@@ -67,38 +70,40 @@ const SimpleTermAttendance = () => {
     
     useEffect(() => {
         if (classId) {
-            dispatch(getClassStudents(classId));
+            dispatch(getClassStudents(classId, sectionParam || undefined));
         }
-    }, [dispatch, classId]);
+    }, [dispatch, classId, sectionParam]);
     
     useEffect(() => {
         // Initialize all students as present
-        if (sclassStudents && sclassStudents.length > 0) {
+        const baseList = sectionParam ? sclassStudents.filter(s => s.sectionName === sectionParam) : sclassStudents;
+        if (baseList && baseList.length > 0) {
             const initialData = {};
-            sclassStudents.forEach(student => {
+            baseList.forEach(student => {
                 initialData[student._id] = 'Present';
             });
             setAttendanceData(initialData);
         }
-    }, [sclassStudents]);
+    }, [sclassStudents, sectionParam]);
     
     // Check if attendance is already submitted for the selected date
     useEffect(() => {
         const checkAttendanceSubmission = async () => {
-            if (!sclassStudents || sclassStudents.length === 0 || !attendanceDate) return;
+            const baseList = sectionParam ? sclassStudents.filter(s => s.sectionName === sectionParam) : sclassStudents;
+            if (!baseList || baseList.length === 0 || !attendanceDate) return;
             
             setCheckingSubmission(true);
             
             // Reset attendance data while checking
             const resetData = {};
-            sclassStudents.forEach(student => {
+            baseList.forEach(student => {
                 resetData[student._id] = 'Present';
             });
             setAttendanceData(resetData);
             
             try {
                 // Check first student's attendance for the selected date
-                const firstStudent = sclassStudents[0];
+                const firstStudent = baseList[0];
                 const response = await axios.get(`http://localhost:5000/Student/${firstStudent._id}`);
                 
                 if (response.data && response.data.attendance) {
@@ -114,7 +119,7 @@ const SimpleTermAttendance = () => {
                         
                         // Load existing attendance data
                         const existingData = {};
-                        for (let student of sclassStudents) {
+                        for (let student of baseList) {
                             try {
                                 const studentResponse = await axios.get(`http://localhost:5000/Student/${student._id}`);
                                 const studentRecord = studentResponse.data.attendance.find(record => {
@@ -459,7 +464,7 @@ const SimpleTermAttendance = () => {
                     <Paper sx={{ p: 3, backgroundColor: 'white', borderRadius: 2, boxShadow: 1 }}>
                         <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: '#1a237e', display: 'flex', alignItems: 'center', gap: 1 }}>
                             <People sx={{ color: '#2196f3' }} />
-                            Student Attendance List
+                            Student Attendance List {sectionParam ? `(Section ${sectionParam})` : ''}
                         </Typography>
 
                         <TableContainer sx={{ mt: 2, borderRadius: 1, border: '1px solid #e0e0e0' }}>
@@ -472,7 +477,7 @@ const SimpleTermAttendance = () => {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {sclassStudents && sclassStudents.map((student) => (
+                                    {(sectionParam ? sclassStudents?.filter(s => s.sectionName === sectionParam) : sclassStudents) && (sectionParam ? sclassStudents.filter(s => s.sectionName === sectionParam) : sclassStudents).map((student) => (
                                         <TableRow key={student._id} hover sx={{ '&:hover': { backgroundColor: '#fafafa' } }}>
                                             <TableCell sx={{ fontSize: '0.95rem', color: '#424242' }}>{student.rollNum}</TableCell>
                                             <TableCell sx={{ fontSize: '0.95rem', color: '#424242' }}>{student.name}</TableCell>

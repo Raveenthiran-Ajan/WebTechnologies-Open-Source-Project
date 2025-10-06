@@ -50,7 +50,8 @@ const TeacherDetails = () => {
     const isSubjectNamePresent = teacherDetails?.teachSubject?.subName || teachingSubjects?.length > 0;
 
     const handleAddSubject = () => {
-        navigate(`/Admin/teachers/choosesubject/${teacherDetails?.teachSclass?._id}/${teacherDetails?._id}`);
+        // Navigate to the edit assignments page
+        navigate(`/Admin/teachers/edit-assignments/${teacherDetails._id}`);
     };
 
     const handleEditAssignments = () => {

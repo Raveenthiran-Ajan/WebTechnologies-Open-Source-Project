@@ -245,7 +245,7 @@ const TeacherClasses = () => {
                         variant="outlined"
                         size="small"
                         startIcon={<VisibilityIcon />}
-                        onClick={() => navigate(`/Teacher/class/${params.row.sclassId}`)}
+                        onClick={() => navigate(`/teacher/class/${params.row.sclassId}?section=${encodeURIComponent(params.row.sectionName)}`)}
                         sx={{ textTransform: 'none' }}
                     >
                         View
@@ -256,7 +256,7 @@ const TeacherClasses = () => {
                             size="small"
                             color="primary"
                             startIcon={<EventAvailableIcon />}
-                            onClick={() => navigate(`/Teacher/class/${params.row.sclassId}/attendance`)}
+                            onClick={() => navigate(`/teacher/class/${params.row.sclassId}/attendance?section=${encodeURIComponent(params.row.sectionName)}`)}
                             sx={{ textTransform: 'none', minWidth: '100px' }}
                         >
                             Attendance
@@ -500,7 +500,7 @@ const TeacherClasses = () => {
                                                     transition: 'all 0.2s ease-in-out'
                                                 }
                                             }}
-                                            onClick={() => navigate(`/Teacher/class/${selectedClass.sclassId}`)}
+                                            onClick={() => navigate(`/teacher/class/${selectedClass.sclassId}?section=${encodeURIComponent(section.sectionName)}`)}
                                         >
                                             <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
                                                 <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
@@ -541,7 +541,7 @@ const TeacherClasses = () => {
                                                             size="medium"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                navigate(`/Teacher/class/${selectedClass.sclassId}/attendance`);
+                                                                navigate(`/teacher/class/${selectedClass.sclassId}/attendance?section=${encodeURIComponent(section.sectionName)}`);
                                                             }}
                                                             sx={{ 
                                                                 color: 'secondary.main',
