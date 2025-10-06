@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import PersonIcon from '@mui/icons-material/Person';
 import SchoolIcon from '@mui/icons-material/School';
 import GradeIcon from '@mui/icons-material/Grade';
+import { useTranslation } from 'react-i18next';
 import { getAllNotices } from '../../redux/noticeRelated/noticeHandle';
 import DashboardStats from '../../components/DashboardStats';
 import QuickActions from '../../components/QuickActions';
@@ -12,11 +13,12 @@ import RecentActivity from '../../components/RecentActivity';
 
 const ParentHomePage = () => {
     const dispatch = useDispatch();
+
     const { currentUser } = useSelector((state) => state.user);
     const { noticesList } = useSelector((state) => state.notice);
     const [page, setPage] = useState(1);
     const childrenPerPage = 4; // Show fewer children on dashboard
-
+    const { t } = useTranslation();
     useEffect(() => {
         if (currentUser && currentUser.school) {
             dispatch(getAllNotices(currentUser.school._id, "Notice"));
@@ -46,7 +48,7 @@ const ParentHomePage = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <CircularProgress size={60} />
                     <Typography variant="h6" sx={{ mt: 2 }}>
-                        Loading dashboard...
+                        {t('parentHomePage.loading')}
                     </Typography>
                 </Box>
             </Container>
@@ -91,18 +93,18 @@ const ParentHomePage = () => {
                         WebkitTextFillColor: 'transparent',
                     }}
                 >
-                    Welcome, {currentUser.name}
+                    {t('parentHomePage.welcome')} {currentUser.name}
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
                     <Chip 
                         icon={<GradeIcon />}
-                        label={`Parent Portal`} 
+                        label={t('parentHomePage.parentPortal')}
                         color="primary" 
                         size="large"
                     />
                     <Chip 
                         icon={<SchoolIcon />}
-                        label={`${children.length} ${children.length === 1 ? 'Child' : 'Children'}`} 
+                        label={`${children.length} ${t(children.length === 1 ? 'parentHomePage.child' : 'parentHomePage.children')}`}
                         color="secondary" 
                         size="large"
                     />
@@ -129,7 +131,7 @@ const ParentHomePage = () => {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
             }}>
-                Recent Children
+                {t('parentHomePage.recentChildren')}
             </Typography>
 
             <Grid container spacing={4}>
@@ -172,14 +174,14 @@ const ParentHomePage = () => {
                                     {child.name}
                                 </Typography>
                                 <Chip 
-                                    label={`Roll: ${child.rollNum}`} 
+                                    label={`${t('parentHomePage.roll')}: ${child.rollNum}`}
                                     size="small" 
                                     color="primary" 
                                     sx={{ mb: 1 }}
                                 />
                                 {getClassName(child.sclassName) && (
                                     <Typography variant="body2" color="text.secondary">
-                                        Class: {getClassName(child.sclassName)}
+                                        {t('parentHomePage.class')}: {getClassName(child.sclassName)}
                                     </Typography>
                                 )}
                             </CardContent>
@@ -189,7 +191,7 @@ const ParentHomePage = () => {
                     <Grid item xs={12}>
                         <Paper sx={{ p: 4, textAlign: 'center' }}>
                             <PersonIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                            <Typography variant="h6">No child details found.</Typography>
+                            <Typography variant="h6">{t('parentHomePage.noChildDetails')}</Typography>
                         </Paper>
                     </Grid>
                 )}
@@ -215,7 +217,7 @@ const ParentHomePage = () => {
                         transition: 'all 0.3s ease-in-out'
                     }}
                 >
-                    View All Children ({children.length})
+                    {t('parentHomePage.viewAllChildren')} ({children.length})
                 </Button>
             </Box>
 

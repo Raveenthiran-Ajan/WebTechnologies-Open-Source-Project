@@ -189,5 +189,32 @@
     "user": "පරිශීලක",
     "profile": "පැතිකඩ",
     "logout": "පිටවන්න"
+  },
+  "parentDashboard": {
+    "title": "දෙමාපියන්ගේ පුවරුව"
+  },
+  "parentHomePage": {
+    "loading": "පුවරුව පූරණය වෙමින්...",
+    "welcome": "සාදරයෙන් පිළිගනිමු,",
+    "parentPortal": "දෙමාපියන්ගේ ප්‍රවේශ ද්වාරය",
+    "child": "දරුවා",
+    "children": "දරුවන්",
+    "recentChildren": "මෑත දරුවන්",
+    "noChildDetails": "දරුවන්ගේ විස්තර කිසිවක් නොමැත.",
+    "viewAllChildren": "සියලු දරුවන් බලන්න",
+    "roll": "රෝල්",
+    "class": "පන්තිය"
+  },
+  "parentSideBar": {
+    "mainMenu": "ප්‍රධාන මෙනුව",
+    "dashboard": "පුවරුව",
+    "myChildren": "මගේ දරුවන්",
+    "profile": "පැතිකඩ",
+    "schoolServices": "පාසල් සේවාවන්",
+    "notices": "දැන්වීම්",
+    "reports": "වාර්තා",
+    "complaints": "පැමිණිලි",
+    "account": "ගිණුම",
+    "logout": "පිටවන්න"
   }
 }

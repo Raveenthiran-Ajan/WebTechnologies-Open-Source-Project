@@ -189,5 +189,32 @@
     "user": "User",
     "profile": "Profile",
     "logout": "Logout"
+  },
+  "parentDashboard": {
+    "title": "Parent Dashboard"
+  },
+  "parentHomePage": {
+    "loading": "Loading dashboard...",
+    "welcome": "Welcome,",
+    "parentPortal": "Parent Portal",
+    "child": "Child",
+    "children": "Children",
+    "recentChildren": "Recent Children",
+    "noChildDetails": "No child details found.",
+    "viewAllChildren": "View All Children",
+    "roll": "Roll",
+    "class": "Class"
+  },
+  "parentSideBar": {
+    "mainMenu": "Main Menu",
+    "dashboard": "Dashboard",
+    "myChildren": "My Children",
+    "profile": "Profile",
+    "schoolServices": "School Services",
+    "notices": "Notices",
+    "reports": "Reports",
+    "complaints": "Complaints",
+    "account": "Account",
+    "logout": "Logout"
   }
 }
