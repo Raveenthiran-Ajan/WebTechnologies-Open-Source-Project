@@ -40,6 +40,22 @@
     "logout": "Logout",
     "cancel": "Cancel"
   },
+  "forgotPassword": {
+    "title": "Forgot Password",
+    "emailLabel": "Email Address",
+    "sending": "Sending...",
+    "sendButton": "Send Password Reset Email",
+    "successMessage": "Password reset link has been sent to your email."
+  },
+  "resetPassword": {
+    "title": "Reset Password",
+    "newPasswordLabel": "New Password",
+    "confirmPasswordLabel": "Confirm New Password",
+    "resetting": "Resetting...",
+    "resetButton": "Reset Password",
+    "passwordMismatch": "Passwords do not match",
+    "successMessage": "Password reset successfully!"
+  },
   "adminDashboard": {
     "title": "Admin Dashboard"
   },

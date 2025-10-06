@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { resetPassword } from '../redux/userRelated/userHandle';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     Avatar,
     Box,
@@ -18,6 +19,7 @@ const ResetPassword = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { userRole, token } = useParams();
+    const { t } = useTranslation();
 
     const { status, error } = useSelector(state => state.user);
 
@@ -27,7 +29,7 @@ const ResetPassword = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (password !== confirmPassword) {
-            alert("Passwords do not match");
+            alert(t('resetPassword.passwordMismatch'));
             return;
         }
         dispatch(resetPassword(userRole, token, { password }));
@@ -35,7 +37,7 @@ const ResetPassword = () => {
 
     useEffect(() => {
         if (status === 'added') {
-            alert("Password reset successfully!");
+            alert(t('resetPassword.successMessage'));
             navigate(`/${userRole}login`);
             dispatch(stuffAdded());
         }
@@ -56,7 +58,7 @@ const ResetPassword = () => {
                     <LockOutlinedIcon />
                 </Avatar>
                 <Typography component="h1" variant="h5">
-                    Reset Password
+                    {t('resetPassword.title')}
                 </Typography>
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
                     <TextField
@@ -64,7 +66,7 @@ const ResetPassword = () => {
                         required
                         fullWidth
                         name="password"
-                        label="New Password"
+                        label={t('resetPassword.newPasswordLabel')}
                         type="password"
                         id="password"
                         autoComplete="new-password"
@@ -76,7 +78,7 @@ const ResetPassword = () => {
                         required
                         fullWidth
                         name="confirmPassword"
-                        label="Confirm New Password"
+                        label={t('resetPassword.confirmPasswordLabel')}
                         type="password"
                         id="confirmPassword"
                         autoComplete="new-password"
@@ -90,7 +92,7 @@ const ResetPassword = () => {
                         sx={{ mt: 3, mb: 2 }}
                         disabled={status === 'loading'}
                     >
-                        {status === 'loading' ? 'Resetting...' : 'Reset Password'}
+                        {status === 'loading' ? t('resetPassword.resetting') : t('resetPassword.resetButton')}
                     </Button>
                     {error && (
                         <Typography color="error" align="center">

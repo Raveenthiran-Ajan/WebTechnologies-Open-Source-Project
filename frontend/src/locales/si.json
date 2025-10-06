@@ -40,6 +40,22 @@
     "logout": "පිටවන්න",
     "cancel": "අවලංගු කරන්න"
   },
+   "forgotPassword": {
+    "title": "මුරපදය අමතකද?",
+    "emailLabel": "ඊමේල් ලිපිනය",
+    "sending": "පිටත් කරමින්...",
+    "sendButton": "මුරපද නැවත සකසුම් ඊමේල් පිටත් කරන්න",
+    "successMessage": "මුරපද නැවත සකසුම් සබැඳිය ඔබගේ ඊමේල් වෙත පිටත් කර ඇත."
+  },
+  "resetPassword": {
+    "title": "මුරපදය නැවත සකසන්න",
+    "newPasswordLabel": "නව මුරපදය",
+    "confirmPasswordLabel": "නව මුරපදය තහවුරු කරන්න",
+    "resetting": "නැවත සකසමින්...",
+    "resetButton": "මුරපදය නැවත සකසන්න",
+    "passwordMismatch": "මුරපදයන්ගෙන් එකිනෙකාට නොගැලපේ",
+    "successMessage": "මුරපදය සාර්ථකව නැවත සකසන ලදී!"
+  },
   "adminDashboard": {
     "title": "පරිපාලක පුවරුව"
   },

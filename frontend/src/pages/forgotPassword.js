@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { forgotPassword } from '../redux/userRelated/userHandle';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     Avatar,
     Box,
@@ -17,6 +18,7 @@ import { stuffAdded } from '../redux/userRelated/userSlice';
 const ForgotPassword = () => {
     const dispatch = useDispatch();
     const { userRole } = useParams();
+    const { t } = useTranslation();
 
     const { status, error } = useSelector(state => state.user);
 
@@ -31,7 +33,7 @@ const ForgotPassword = () => {
 
     useEffect(() => {
         if (status === 'added') {
-            setMessage("Password reset link has been sent to your email.");
+            setMessage(true);
             dispatch(stuffAdded());
         }
     }, [status, dispatch]);
@@ -51,7 +53,7 @@ const ForgotPassword = () => {
                     <LockOutlinedIcon />
                 </Avatar>
                 <Typography component="h1" variant="h5">
-                    Forgot Password
+                    {t('forgotPassword.title')}
                 </Typography>
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
                     <TextField
@@ -59,7 +61,7 @@ const ForgotPassword = () => {
                         required
                         fullWidth
                         id="email"
-                        label="Email Address"
+                        label={t('forgotPassword.emailLabel')}
                         name="email"
                         autoComplete="email"
                         autoFocus
@@ -73,11 +75,11 @@ const ForgotPassword = () => {
                         sx={{ mt: 3, mb: 2 }}
                         disabled={status === 'loading'}
                     >
-                        {status === 'loading' ? 'Sending...' : 'Send Password Reset Email'}
+                        {status === 'loading' ? t('forgotPassword.sending') : t('forgotPassword.sendButton')}
                     </Button>
                     {message && (
                         <Typography color="green" align="center">
-                            {message}
+                            {t('forgotPassword.successMessage')}
                         </Typography>
                     )}
                     {error && (
