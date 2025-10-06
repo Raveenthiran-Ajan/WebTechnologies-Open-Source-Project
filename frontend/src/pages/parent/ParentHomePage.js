@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Box, Typography, Grid, CircularProgress, Card, CardContent, Avatar, Container, Pagination, Chip, Paper, Button } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Box, Typography, Grid, CircularProgress, Card, CardContent, Avatar, Container, Pagination, Chip, Paper, Button, Snackbar, Alert } from '@mui/material';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import PersonIcon from '@mui/icons-material/Person';
 import SchoolIcon from '@mui/icons-material/School';
 import GradeIcon from '@mui/icons-material/Grade';
@@ -15,6 +15,9 @@ const ParentHomePage = () => {
     const dispatch = useDispatch();
 
     const { currentUser } = useSelector((state) => state.user);
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [showPwdChanged, setShowPwdChanged] = useState(false);
     const { noticesList } = useSelector((state) => state.notice);
     const [page, setPage] = useState(1);
     const childrenPerPage = 4; // Show fewer children on dashboard
@@ -24,6 +27,16 @@ const ParentHomePage = () => {
             dispatch(getAllNotices(currentUser.school._id, "Notice"));
         }
     }, [dispatch, currentUser]);
+
+    // Show success message if redirected after password change
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if (params.get('msg') === 'password-changed') {
+            setShowPwdChanged(true);
+            // Clean up the URL to avoid re-showing on refresh
+            navigate('/Parent/dashboard', { replace: true });
+        }
+    }, [location.search, navigate]);
 
     // Helper function to get class name
     const getClassName = (sclassName) => {
@@ -66,6 +79,16 @@ const ParentHomePage = () => {
 
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
+            <Snackbar
+                open={showPwdChanged}
+                autoHideDuration={4000}
+                onClose={() => setShowPwdChanged(false)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={() => setShowPwdChanged(false)} severity="success" sx={{ width: '100%' }}>
+                    Password changed successfully!
+                </Alert>
+            </Snackbar>
             {/* Header Section */}
             <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Avatar 

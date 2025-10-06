@@ -27,6 +27,7 @@ const userSlice = createSlice({
             state.status = 'added';
             state.response = null;
             state.error = null;
+            state.loading = false;
             state.tempDetails = action.payload;
         },
         authSuccess: (state, action) => {

@@ -1,11 +1,23 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { Box, Typography, Grid, CircularProgress, Card, CardContent, Avatar, Divider, Container, Paper } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Grid, CircularProgress, Card, CardContent, Avatar, Divider, Container, Paper, Button, Modal, TextField, Snackbar, Alert } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
+import { useDispatch } from 'react-redux';
+import { updateUser } from '../../redux/userRelated/userHandle';
+import { underControl } from '../../redux/userRelated/userSlice';
 
 const ParentProfile = () => {
     const { currentUser, loading } = useSelector((state) => state.user);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { status } = useSelector((state) => state.user);
+
+    const [open, setOpen] = React.useState(false);
+    const [oldPassword, setOldPassword] = React.useState('');
+    const [newPassword, setNewPassword] = React.useState('');
+    const [openSnackbar, setOpenSnackbar] = React.useState(false);
 
     // Helper function to get class name
     const getClassName = (sclassName) => {
@@ -21,6 +33,40 @@ const ParentProfile = () => {
         if (typeof sclassName === 'object' && sclassName.name) return sclassName.name;
         return null; // Hide unknown formats
     };
+
+    const handleOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const handlePasswordChange = () => {
+        dispatch(updateUser({ oldPassword, newPassword }, currentUser._id, 'Parent/password'));
+    };
+
+    const handleSnackbarClose = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenSnackbar(false);
+    };
+
+    React.useEffect(() => {
+        if (status === 'added') {
+            // Success UI feedback
+            setOpenSnackbar(true);
+            // Reset fields and close modal
+            setOldPassword('');
+            setNewPassword('');
+            setOpen(false);
+            // Redirect to parent home page with success message flag
+            navigate('/Parent/dashboard?msg=password-changed');
+            // Reset status
+            dispatch(underControl());
+        }
+    }, [status, dispatch, navigate]);
 
     if (loading) {
         return (
@@ -128,6 +174,14 @@ const ParentProfile = () => {
                                     {currentUser.phone || 'Not provided'}
                                 </Typography>
                             </Box>
+                            
+                            <Divider sx={{ my: 2 }} />
+                            
+                            <Box sx={{ textAlign: 'center', mt: 2 }}>
+                                <Button variant="contained" onClick={handleOpen} sx={{ minWidth: 150 }}>
+                                    Change Password
+                                </Button>
+                            </Box>
                         </CardContent>
                     </Card>
                 </Grid>
@@ -188,6 +242,68 @@ const ParentProfile = () => {
                     </Card>
                 </Grid>
             </Grid>
+            
+            {/* Change Password Modal */}
+            <Modal
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 400,
+                    bgcolor: 'background.paper',
+                    border: '2px solid #000',
+                    boxShadow: 24,
+                    p: 4,
+                }}>
+                    <Typography id="modal-modal-title" variant="h6" component="h2" sx={{ mb: 2 }}>
+                        Change Password
+                    </Typography>
+                    <TextField
+                        label="Old Password"
+                        type="password"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        fullWidth
+                        margin="normal"
+                        required
+                    />
+                    <TextField
+                        label="New Password"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        fullWidth
+                        margin="normal"
+                        required
+                    />
+                    <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                        <Button onClick={handleClose} variant="outlined">
+                            Cancel
+                        </Button>
+                        <Button onClick={handlePasswordChange} variant="contained">
+                            Change Password
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
+            
+            {/* Success Snackbar */}
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={6000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+                    Password changed successfully!
+                </Alert>
+            </Snackbar>
         </Container>
     )
 };

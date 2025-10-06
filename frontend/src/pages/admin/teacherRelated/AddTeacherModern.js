@@ -44,7 +44,6 @@ const AddTeacherModern = () => {
     const [attendanceSections, setAttendanceSections] = useState([]);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [loader, setLoader] = useState(false);
     
     const steps = ['Select Class', 'Choose Sections', 'Select Subjects', 'Add Teacher Details'];
@@ -191,7 +190,6 @@ const AddTeacherModern = () => {
         const teacherData = {
             name,
             email,
-            password,
             role: 'Teacher',
             school: currentUser._id,
             teachSubjects: selectedSubjects,
@@ -557,18 +555,6 @@ const AddTeacherModern = () => {
                                         onChange={(e) => setEmail(e.target.value)}
                                     />
                                 </Grid>
-                                <Grid item xs={12} sm={6}>
-                                    <TextField
-                                        required
-                                        fullWidth
-                                        id="password"
-                                        label="Password"
-                                        name="password"
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                    />
-                                </Grid>
                             </Grid>
                             
                             <Divider sx={{ my: 4 }} />
@@ -619,12 +605,12 @@ const AddTeacherModern = () => {
                                     type="submit"
                                     variant="contained"
                                     sx={{ px: 4 }}
-                                    disabled={loader || !name || !email || !password || selectedSections.length === 0 || selectedSubjects.length === 0}
+                                    disabled={loader || !name || !email || selectedSections.length === 0 || selectedSubjects.length === 0}
                                 >
                                     {loader ? (
                                         <CircularProgress size={24} color="inherit" />
                                     ) : (
-                                        'Create Teacher Account'
+                                        'Add Teacher'
                                     )}
                                 </Button>
                             </Box>

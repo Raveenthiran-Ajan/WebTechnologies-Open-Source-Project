@@ -2,7 +2,7 @@ const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
 
-const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChildDetails, addAnotherChild,deleteParent } = require('../controllers/parent-controller.js');
+const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChildDetails, addAnotherChild,deleteParent, changePassword: parentChangePassword } = require('../controllers/parent-controller.js');
 const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
 const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, addSection, deleteSection } = require('../controllers/class-controller.js');
 const { complainCreate, complainList, complainUpdate, complainDelete } = require('../controllers/complain-controller.js');
@@ -93,6 +93,7 @@ router.get('/Parents/:id', getParents);
 router.get('/Parent/:id', getParentDetails);
 router.get('/Parent/Child/:id', getParentChildDetails);
 router.put('/Parent/AddChild/:id', addAnotherChild);
+router.put('/Parent/password/:id', parentChangePassword);
 router.delete("/Parent/:id", deleteParent);
 
 

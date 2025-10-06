@@ -16,7 +16,6 @@ const AddParent = () => {
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [studentId, setStudentId] = useState('');
 
     const [showPopup, setShowPopup] = useState(false);
@@ -32,7 +31,7 @@ const AddParent = () => {
         }
     }, [adminID, dispatch]);
 
-    const fields = { name, email, password, studentId, school };
+    const fields = { name, email, studentId, school };
 
     const submitHandler = (event) => {
         event.preventDefault();
@@ -83,17 +82,6 @@ const AddParent = () => {
                                 variant="outlined"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                fullWidth
-                                label="Password"
-                                type="password"
-                                variant="outlined"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
                         </Grid>
