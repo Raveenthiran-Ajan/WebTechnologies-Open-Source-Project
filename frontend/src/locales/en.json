@@ -157,6 +157,28 @@
   "teacherDashboard": {
     "title": "Teacher Dashboard"
   },
+  "teacherHomePage": {
+    "title": "Teacher Dashboard",
+    "welcome": "Welcome,",
+    "teachingSections": "Teaching Sections",
+    "teachingSubjects": "Teaching Subjects",
+    "school": "School",
+    "attendanceSections": "Attendance Sections",
+    "noSectionsAssigned": "No sections assigned",
+    "noSubjectsAssigned": "No subjects assigned",
+    "noAttendanceSectionsAssigned": "No attendance sections assigned",
+    "moreSections": "+{{count}} more sections",
+    "moreSubjects": "+{{count}} more subjects",
+    "teachingStatistics": "Teaching Statistics",
+    "totalClasses": "Total Classes",
+    "totalSubjects": "Total Subjects",
+    "quickActions": "Quick Actions",
+    "takeAttendance": "Take Attendance",
+    "viewClassDetails": "View Class Details",
+    "uploadAssignment": "Upload Assignment",
+    "submitComplaint": "Submit Complaint",
+    "schoolNotices": "School Notices"
+  },
   "teacherSideBar": {
     "home": "Home",
     "classes": "Classes",
@@ -167,25 +189,5 @@
     "user": "User",
     "profile": "Profile",
     "logout": "Logout"
-  },
-  "class_students": "Class Students",
-  "total_lessons": "Total Lessons",
-  "tests_taken": "Tests Taken",
-  "total_hours": "Total Hours",
-  "hours_suffix": "hrs",
-  "menu_attendance": "Attendance",
-  "menu_assignment_submission": "Assignment Submission",
-  "menu_complain": "Complain",
-  "menu_upload_assignments": "Upload Assignments",
-  "menu_class_label": "Class {{name}}",
-  "menu_home": "Home",
-  "menu_subjects": "Subjects",
-  "menu_classes": "Classes",
-  "menu_notices": "Notices",
-  "menu_term_report": "Term Report",
-  "menu_user": "User",
-  "menu_profile": "Profile",
-  "menu_logout": "Logout",
-  "menu_grades": "Grades",
-  "menu_timetable": "Timetable"
+  }
 }

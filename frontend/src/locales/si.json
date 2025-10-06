@@ -157,6 +157,28 @@
   "teacherDashboard": {
     "title": "ගුරු පුවරුව"
   },
+  "teacherHomePage": {
+    "title": "ගුරු පුවරුව",
+    "welcome": "සාදරයෙන් පිළිගනිමු,",
+    "teachingSections": "ගුරුවරයාගේ කාල විභාගනයන්",
+    "teachingSubjects": "ගුරුවරයාගේ විෂයයන්",
+    "school": "පාසල",
+    "attendanceSections": "හිරැසිය විභාගනයන්",
+    "noSectionsAssigned": "කාල විභාගනයන් නොමැත",
+    "noSubjectsAssigned": "විෂයයන් නොමැත",
+    "noAttendanceSectionsAssigned": "හිරැසිය විභාගනයන් නොමැත",
+    "moreSections": "තවත් {{count}} කාල විභාගනයන්",
+    "moreSubjects": "තවත් {{count}} විෂයයන්",
+    "teachingStatistics": "ගුරුවරයාගේ සංඛ්‍යාලේඛනය",
+    "totalClasses": "මුළු පන්ති",
+    "totalSubjects": "මුළු විෂයයන්",
+    "quickActions": "ඉක්මන් ක්‍රියාකාරකම්",
+    "takeAttendance": "හිරැසිය ලබා ගන්න",
+    "viewClassDetails": "පන්ති විස්තර බලන්න",
+    "uploadAssignment": "පැවරීම උඩුගත කරන්න",
+    "submitComplaint": "පැමිණිල්ල ඉදිරිපත් කරන්න",
+    "schoolNotices": "පාසල් දැන්වීම්"
+  },
   "teacherSideBar": {
     "home": "මුල් පිටුව",
     "classes": "පන්ති",
@@ -167,25 +189,5 @@
     "user": "පරිශීලක",
     "profile": "පැතිකඩ",
     "logout": "පිටවන්න"
-  },
-  "class_students": "පන්ති ශිෂ්‍යයන්",
-  "total_lessons": "මුළු පාඩම්",
-  "tests_taken": "ගත් පරීක්ෂණ",
-  "total_hours": "මුළු පැය",
-  "hours_suffix": "පැය",
-  "menu_attendance": "පැමිණීම",
-  "menu_assignment_submission": "පැවරුම් ඉදිරිපත් කිරීම",
-  "menu_complain": "පැමිණිල්ල",
-  "menu_upload_assignments": "පැවරුම් උඩුගත කරන්න",
-  "menu_class_label": "පන්ති {{name}}",
-  "menu_home": "මුල් පිටුව",
-  "menu_subjects": "විෂයයන්",
-  "menu_classes": "පන්ති",
-  "menu_notices": "දැන්වීම්",
-  "menu_term_report": "සමාපන වාර්තාව",
-  "menu_user": "පරිශීලක",
-  "menu_profile": "පැතිකඩ",
-  "menu_logout": "පිටවන්න",
-  "menu_grades": "ශ්‍රේණි",
-  "menu_timetable": "නියමිත කාලසටහන"
+  }
 }

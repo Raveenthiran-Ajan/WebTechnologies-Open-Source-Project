@@ -50,18 +50,18 @@ const TeacherHomePage = () => {
             {/* Teacher Information Section */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-                    Teacher Dashboard
+                    {t('teacherHomePage.title')}
                 </Typography>
                 
                 <Box sx={{ mt: 3 }}>
                     <Typography variant="h6" gutterBottom color="text.secondary">
-                        Welcome, {currentUser?.name}
+                        {t('teacherHomePage.welcome')} {currentUser?.name}
                     </Typography>
                     
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3, mt: 2 }}>
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Teaching Sections
+                                {t('teacherHomePage.teachingSections')}
                             </Typography>
                             <Box sx={{ mt: 1 }}>
                                 {teachingSections.length > 0 ? (
@@ -87,13 +87,13 @@ const TeacherHomePage = () => {
                                         })}
                                         {teachingSections.length > 3 && (
                                             <Typography variant="body2" color="text.secondary">
-                                                +{teachingSections.length - 3} more sections
+                                                {t('teacherHomePage.moreSections', { count: teachingSections.length - 3 })}
                                             </Typography>
                                         )}
                                     </Box>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary">
-                                        No sections assigned
+                                        {t('teacherHomePage.noSectionsAssigned')}
                                     </Typography>
                                 )}
                             </Box>
@@ -101,7 +101,7 @@ const TeacherHomePage = () => {
                         
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Teaching Subjects
+                                {t('teacherHomePage.teachingSubjects')}
                             </Typography>
                             <Box sx={{ mt: 1 }}>
                                 {teacherData?.teachSubjects?.length > 0 ? (
@@ -113,13 +113,13 @@ const TeacherHomePage = () => {
                                         ))}
                                         {teacherData.teachSubjects.length > 3 && (
                                             <Typography variant="body2" color="text.secondary">
-                                                +{teacherData.teachSubjects.length - 3} more subjects
+                                                {t('teacherHomePage.moreSubjects', { count: teacherData.teachSubjects.length - 3 })}
                                             </Typography>
                                         )}
                                     </Box>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary">
-                                        No subjects assigned
+                                        {t('teacherHomePage.noSubjectsAssigned')}
                                     </Typography>
                                 )}
                             </Box>
@@ -127,7 +127,7 @@ const TeacherHomePage = () => {
                         
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                School
+                                {t('teacherHomePage.school')}
                             </Typography>
                             <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
                                 {currentUser?.school?.schoolName || 'SMS'}
@@ -136,7 +136,7 @@ const TeacherHomePage = () => {
                         
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Attendance Sections
+                                {t('teacherHomePage.attendanceSections')}
                             </Typography>
                             <Box sx={{ mt: 1 }}>
                                 {attendanceSections.length > 0 ? (
@@ -162,13 +162,13 @@ const TeacherHomePage = () => {
                                         })}
                                         {attendanceSections.length > 3 && (
                                             <Typography variant="body2" color="text.secondary">
-                                                +{attendanceSections.length - 3} more sections
+                                                {t('teacherHomePage.moreSections', { count: attendanceSections.length - 3 })}
                                             </Typography>
                                         )}
                                     </Box>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary">
-                                        No attendance sections assigned
+                                        {t('teacherHomePage.noAttendanceSectionsAssigned')}
                                     </Typography>
                                 )}
                             </Box>
@@ -180,7 +180,7 @@ const TeacherHomePage = () => {
             {/* Statistics Section */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom color="text.secondary">
-                    Teaching Statistics
+                    {t('teacherHomePage.teachingStatistics')}
                 </Typography>
                 
                 <Grid container spacing={3} sx={{ mt: 1 }}>
@@ -188,7 +188,7 @@ const TeacherHomePage = () => {
                         <StyledPaper>
                             <img src={Students} alt="Sections" />
                             <Title>
-                                Teaching Sections
+                                {t('teacherHomePage.teachingSections')}
                             </Title>
                             <Data><CountUp key={totalTeachingSections} start={0} end={totalTeachingSections} duration={2.5} /></Data>
                         </StyledPaper>
@@ -197,7 +197,7 @@ const TeacherHomePage = () => {
                         <StyledPaper>
                             <img src={Lessons} alt="Attendance" />
                             <Title>
-                                Attendance Sections
+                                {t('teacherHomePage.attendanceSections')}
                             </Title>
                             <Data><CountUp key={totalAttendanceSections} start={0} end={totalAttendanceSections} duration={2.5} /></Data>
                         </StyledPaper>
@@ -206,7 +206,7 @@ const TeacherHomePage = () => {
                         <StyledPaper>
                             <img src={Tests} alt="Subjects" />
                             <Title>
-                                Total Subjects
+                                {t('teacherHomePage.totalSubjects')}
                             </Title>
                             <Data><CountUp key={totalSubjects} start={0} end={totalSubjects} duration={2.5} /></Data>
                         </StyledPaper>
@@ -215,7 +215,7 @@ const TeacherHomePage = () => {
                         <StyledPaper>
                             <img src={Time} alt="Classes" />
                             <Title>
-                                Total Classes
+                                {t('teacherHomePage.totalClasses')}
                             </Title>
                             <Data><CountUp key={totalTeachingSections} start={0} end={totalUniqueClasses} duration={2.5} /></Data>
                         </StyledPaper>
@@ -226,7 +226,7 @@ const TeacherHomePage = () => {
             {/* Quick Actions Section */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom color="text.secondary">
-                    Quick Actions
+                    {t('teacherHomePage.quickActions')}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 2 }}>
                     <Button 
@@ -235,7 +235,7 @@ const TeacherHomePage = () => {
                         onClick={() => attendanceSections.length > 0 ? window.location.href = `/Teacher/class/${attendanceSections[0].sclassName}/attendance` : null}
                         disabled={attendanceSections.length === 0}
                     >
-                        Take Attendance
+                        {t('teacherHomePage.takeAttendance')}
                     </Button>
                     <Button 
                         variant="contained" 
@@ -243,20 +243,20 @@ const TeacherHomePage = () => {
                         onClick={() => teachingSections.length > 0 ? window.location.href = `/Teacher/class/${teachingSections[0].sclassName}` : null}
                         disabled={teachingSections.length === 0}
                     >
-                        View Class Details
+                        {t('teacherHomePage.viewClassDetails')}
                     </Button>
                     <Button 
                         variant="outlined" 
                         color="success"
                         onClick={() => window.location.href = '/Teacher/upload-assignment'}
                     >
-                        Upload Assignment
+                        {t('teacherHomePage.uploadAssignment')}
                     </Button>
                     <Button 
                         variant="outlined"
                         onClick={() => window.location.href = '/Teacher/complain'}
                     >
-                        Submit Complaint
+                        {t('teacherHomePage.submitComplaint')}
                     </Button>
                 </Box>
             </Box>
@@ -264,7 +264,7 @@ const TeacherHomePage = () => {
             {/* School Notices Section */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom color="text.secondary">
-                    School Notices
+                    {t('teacherHomePage.schoolNotices')}
                 </Typography>
                 <Box sx={{ maxHeight: 400, overflow: 'auto', mt: 2 }}>
                     <SeeNotice />
