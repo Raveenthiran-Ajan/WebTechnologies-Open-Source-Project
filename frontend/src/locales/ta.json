@@ -199,18 +199,18 @@
     "loading": "முகப்பலகை ஏற்றப்படுகிறது...",
     "welcome": "வரவேற்கிறோம்,",
     "parentPortal": "பெற்றோர் போர்டல்",
-    "child": "குழந்தை",
-    "children": "குழந்தைகள்",
-    "recentChildren": "சமீபத்திய குழந்தைகள்",
-    "noChildDetails": "குழந்தை விவரங்கள் எதுவும் கிடைக்கவில்லை.",
-    "viewAllChildren": "அனைத்து குழந்தைகளையும் பார்க்கவும்",
+    "child": "பிள்ளை",
+    "children": "பிள்ளைகள்",
+    "recentChildren": "சமீபத்திய பிள்ளைகள்",
+    "noChildDetails": "பிள்ளை விவரங்கள் எதுவும் கிடைக்கவில்லை.",
+    "viewAllChildren": "அனைத்து பிள்ளைகளையும் பார்க்கவும்",
     "roll": "ரோல்",
     "class": "வகுப்பு"
   },
   "parentSideBar": {
     "mainMenu": "பிரதான மெனு",
     "dashboard": "முகப்பலகை",
-    "myChildren": "எனது குழந்தைகள்",
+    "myChildren": "எனது பிள்ளைகள்",
     "profile": "சுயவிவரம்",
     "schoolServices": "பாடசாலை சேவைகள்",
     "notices": "விவரங்கள்",
@@ -218,5 +218,26 @@
     "complaints": "புகார்கள்",
     "account": "கணக்கு",
     "logout": "வெளியேறு"
+  },
+  "dashboardStats": {
+    "totalChildren": "மொத்த பிள்ளைகள்",
+    "child": "பிள்ளை",
+    "children": "பிள்ளைகள்",
+    "registered": "பதிவு செய்யப்பட்டது",
+    "schoolNotices": "பாடசாலை அறிவிப்புகள்",
+    "activeNotifications": "செயலில் உள்ள அறிவிப்புகள்"
+  },
+  "quickActions": {
+    "title": "விரைவு செயல்கள்",
+    "description": "உங்கள் பெற்றோர் போர்ட்டலை திறமையாக நிர்வகிக்கவும்",
+    "viewAllChildren": "அனைத்து பிள்ளைகளையும் பார்க்கவும்",
+    "editProfile": "சுயவிவரத்தைத் திருத்து",
+    "viewNotices": "அறிவிப்புகளைப் பார்க்கவும்",
+    "submitComplaint": "புகாரை சமர்ப்பிக்கவும்"
+  },
+  "recentActivity": {
+    "title": "சமீபத்திய பாடசாலை அறிவிப்புகள்",
+    "description": "சமீபத்திய அறிவிப்புகளுடன் புதுப்பித்திருங்கள்",
+    "new": "புதியது"
   }
 }

@@ -218,5 +218,26 @@
     "complaints": "පැමිණිලි",
     "account": "ගිණුම",
     "logout": "පිටවන්න"
+  },
+  "dashboardStats": {
+    "totalChildren": "මුළු දරුවන්",
+    "child": "දරුවා",
+    "children": "දරුවන්",
+    "registered": "ලියාපදිංචි කර ඇත",
+    "schoolNotices": "පාසල් දැන්වීම්",
+    "activeNotifications": "සක්‍රීය දැනුම්දීම්"
+  },
+  "quickActions": {
+    "title": "ඉක්මන් ක්‍රියාකාරකම්",
+    "description": "ඔබගේ දෙමාපියන්ගේ ප්‍රවේශ ද්වාරය කාර්යක්ෂමව කළමනාකරණය කරන්න",
+    "viewAllChildren": "සියලු දරුවන් බලන්න",
+    "editProfile": "පැතිකඩ සංස්කරණය කරන්න",
+    "viewNotices": "දැන්වීම් බලන්න",
+    "submitComplaint": "පැමිණිල්ල ඉදිරිපත් කරන්න"
+  },
+  "recentActivity": {
+    "title": "මෑත පාසල් දැන්වීම්",
+    "description": "නවතම නිවේදන සමඟ යාවත්කාලීනව සිටින්න",
+    "new": "නව"
   }
 }

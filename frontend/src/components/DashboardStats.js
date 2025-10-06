@@ -2,9 +2,11 @@ import React from 'react';
 import { Card, CardContent, Box, Typography, Grid } from '@mui/material';
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import { useTranslation } from 'react-i18next';
 
 const DashboardStats = ({ children, noticesList }) => {
     const noticesCount = noticesList ? noticesList.length : 0;
+    const { t } = useTranslation();
 
     return (
         <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -26,7 +28,7 @@ const DashboardStats = ({ children, noticesList }) => {
                     }}>
                         <FamilyRestroomIcon sx={{ fontSize: 40, mb: 1 }} />
                         <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                            Total Children
+                            {t('dashboardStats.totalChildren')}
                         </Typography>
                     </Box>
                     <CardContent sx={{ p: 3, textAlign: 'center' }}>
@@ -37,7 +39,7 @@ const DashboardStats = ({ children, noticesList }) => {
                             {children.length}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            {children.length === 1 ? 'Child' : 'Children'} registered
+                            {t(children.length === 1 ? 'dashboardStats.child' : 'dashboardStats.children')} {t('dashboardStats.registered')}
                         </Typography>
                     </CardContent>
                 </Card>
@@ -61,7 +63,7 @@ const DashboardStats = ({ children, noticesList }) => {
                     }}>
                         <NotificationsIcon sx={{ fontSize: 40, mb: 1 }} />
                         <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                            School Notices
+                            {t('dashboardStats.schoolNotices')}
                         </Typography>
                     </Box>
                     <CardContent sx={{ p: 3, textAlign: 'center' }}>
@@ -72,7 +74,7 @@ const DashboardStats = ({ children, noticesList }) => {
                             {noticesCount}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Active notifications
+                            {t('dashboardStats.activeNotifications')}
                         </Typography>
                     </CardContent>
                 </Card>
