@@ -6,8 +6,10 @@ import PersonIcon from '@mui/icons-material/Person';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import { useTranslation } from 'react-i18next';
 
 const QuickActions = ({ noticesList }) => {
+    const { t } = useTranslation();
     return (
         <Card sx={{ 
             borderRadius: 3,
@@ -26,10 +28,10 @@ const QuickActions = ({ noticesList }) => {
             }}>
                 <AssessmentIcon sx={{ fontSize: 40, mb: 1 }} />
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                    Quick Actions
+                    {t('quickActions.title')}
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    Manage your parent portal efficiently
+                    {t('quickActions.description')}
                 </Typography>
             </Box>
             <CardContent sx={{ p: 3 }}>
@@ -50,7 +52,7 @@ const QuickActions = ({ noticesList }) => {
                                 }
                             }}
                         >
-                            View All Children
+                            {t('quickActions.viewAllChildren')}
                         </Button>
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -71,7 +73,7 @@ const QuickActions = ({ noticesList }) => {
                                 }
                             }}
                         >
-                            Edit Profile
+                            {t('quickActions.editProfile')}
                         </Button>
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -92,7 +94,7 @@ const QuickActions = ({ noticesList }) => {
                                 }
                             }}
                         >
-                            View Notices ({noticesList ? noticesList.length : 0})
+                            {t('quickActions.viewNotices')} ({noticesList ? noticesList.length : 0})
                         </Button>
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -113,7 +115,7 @@ const QuickActions = ({ noticesList }) => {
                                 }
                             }}
                         >
-                            Submit Complaint
+                            {t('quickActions.submitComplaint')}
                         </Button>
                     </Grid>
                 </Grid>

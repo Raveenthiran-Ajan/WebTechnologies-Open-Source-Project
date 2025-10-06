@@ -3,8 +3,10 @@ import { Card, CardContent, Box, Typography, Alert, Chip } from '@mui/material';
 import AnnouncementIcon from '@mui/icons-material/Announcement';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import { useTranslation } from 'react-i18next';
 
 const RecentActivity = ({ noticesList }) => {
+    const { t } = useTranslation();
     // Get recent notices (last 3)
     const getRecentNotices = () => {
         if (!noticesList || !Array.isArray(noticesList)) return [];
@@ -37,10 +39,10 @@ const RecentActivity = ({ noticesList }) => {
             }}>
                 <NotificationsActiveIcon sx={{ fontSize: 40, mb: 1 }} />
                 <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                    Recent School Notices
+                    {t('recentActivity.title')}
                 </Typography>
                 <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                    Stay updated with the latest announcements
+                    {t('recentActivity.description')}
                 </Typography>
             </Box>
             <CardContent sx={{ p: 3 }}>
@@ -63,7 +65,7 @@ const RecentActivity = ({ noticesList }) => {
                                     {notice.title}
                                 </Typography>
                                 <Chip 
-                                    label="New" 
+                                    label={t('recentActivity.new')}
                                     size="small" 
                                     color="primary" 
                                     sx={{ fontSize: '0.65rem', height: 20 }}

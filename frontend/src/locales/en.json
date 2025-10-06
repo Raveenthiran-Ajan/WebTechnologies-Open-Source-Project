@@ -218,5 +218,26 @@
     "complaints": "Complaints",
     "account": "Account",
     "logout": "Logout"
+  },
+  "dashboardStats": {
+    "totalChildren": "Total Children",
+    "child": "Child",
+    "children": "Children",
+    "registered": "registered",
+    "schoolNotices": "School Notices",
+    "activeNotifications": "Active notifications"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "description": "Manage your parent portal efficiently",
+    "viewAllChildren": "View All Children",
+    "editProfile": "Edit Profile",
+    "viewNotices": "View Notices",
+    "submitComplaint": "Submit Complaint"
+  },
+  "recentActivity": {
+    "title": "Recent School Notices",
+    "description": "Stay updated with the latest announcements",
+    "new": "New"
   }
 }
