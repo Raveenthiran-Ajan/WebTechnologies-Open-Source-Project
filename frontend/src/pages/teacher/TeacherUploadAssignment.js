@@ -21,10 +21,21 @@ import {
   TableSortLabel,
   Link,
   Autocomplete,
+  LinearProgress,
+  Stepper,
+  Step,
+  StepLabel,
 } from "@mui/material";
 import {
   Download as DownloadIcon,
   Search as SearchIcon,
+  Assignment as AssignmentIcon,
+  CalendarToday as CalendarIcon,
+  CloudUpload as CloudUploadIcon,
+  Edit as EditIcon,
+  Delete as DeleteIcon,
+  Schedule as ScheduleIcon,
+  Visibility as VisibilityIcon,
 } from "@mui/icons-material";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -65,11 +76,18 @@ const TeacherUploadAssignment = () => {
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [errors, setErrors] = useState({});
   const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadProgress, setUploadProgress] = useState(0); // eslint-disable-line no-unused-vars
   const [students, setStudents] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [gradeFilterRange, setGradeFilterRange] = useState(null);
   const [showOnlyUngraded, setShowOnlyUngraded] = useState(false);
+
+  // New states for class selection
+  const [teacherClasses, setTeacherClasses] = useState([]);
+  const [selectedClassIds, setSelectedClassIds] = useState([]);
+
+  // New state for selected class filter
+  const [selectedClassId, setSelectedClassId] = useState("");
 
   // Remove sortByGrade state usage and handle sorting by grade via order/orderBy states only
 
@@ -78,6 +96,30 @@ const TeacherUploadAssignment = () => {
   const [orderBy, setOrderBy] = useState('name');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  // Stepper states
+  const [activeStep, setActiveStep] = useState(0);
+  const steps = ['Assignment Details', 'Class & Deadline', 'File Upload'];
+
+  // Manage Uploaded Assignments states
+  const [editingAssignment, setEditingAssignment] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editSubject, setEditSubject] = useState('');
+  const [editDueDate, setEditDueDate] = useState('');
+  const [editSelectedClassIds, setEditSelectedClassIds] = useState([]);
+  const [editFile, setEditFile] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showExtendModal, setShowExtendModal] = useState(false);
+  const [extendDueDate, setExtendDueDate] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [assignmentToDelete, setAssignmentToDelete] = useState(null);
+  const [showViewSubmissions, setShowViewSubmissions] = useState(false);
+  const [viewAssignment, setViewAssignment] = useState(null);
+  const [classSubmissions, setClassSubmissions] = useState([]);
+  const [loadingClassSubmissions, setLoadingClassSubmissions] = useState(false);
+
+
 
   const currentUser = useSelector((state) => state.user.currentUser);
 
@@ -93,6 +135,17 @@ const TeacherUploadAssignment = () => {
         })
         .catch((err) => {
           console.error("Failed to fetch assignments", err);
+        });
+
+      // Fetch teacher's classes
+      axios
+        .get(`${API_BASE_URL}/Sclass/TeacherClasses/${currentUser._id}`)
+        .then((res) => {
+          console.log("Teacher classes fetched:", res.data);
+          setTeacherClasses(res.data);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch teacher classes", err);
         });
     }
   }, [currentUser]);
@@ -136,6 +189,14 @@ const TeacherUploadAssignment = () => {
       filtered = filtered.filter((submission) => submission.studentId?._id === selectedStudentId);
     }
 
+    // Filter by selected class
+    if (selectedClassId) {
+      filtered = filtered.filter((submission) => {
+        // Check if submission's student class matches selectedClassId
+        return submission.studentId?.sclassName?._id === selectedClassId || submission.studentId?.sclassName === selectedClassId;
+      });
+    }
+
     if (showOnlyUngraded) {
       filtered = filtered.filter((submission) => !submission.grade);
     }
@@ -148,15 +209,15 @@ const TeacherUploadAssignment = () => {
     }
 
     setFilteredSubmissions(filtered);
-  }, [selectedStudentId, submissions, showOnlyUngraded, gradeFilterRange]);
+  }, [selectedStudentId, submissions, showOnlyUngraded, gradeFilterRange, selectedClassId]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!title || !subject || !dueDate) {
+    if (!title || !subject || !dueDate || selectedClassIds.length === 0) {
       setAlert({
         open: true,
-        message: "Please fill in all required fields (title, subject, deadline).",
+        message: "Please fill in all required fields (title, subject, deadline, and select at least one class).",
         severity: "error",
       });
       return;
@@ -171,7 +232,9 @@ const TeacherUploadAssignment = () => {
     formData.append("subject", subject);
     formData.append("dueDate", dueDate);
     formData.append("teacherId", currentUser._id);
-    formData.append("classId", currentUser.teachSclass._id);
+    selectedClassIds.forEach((classId) => {
+      formData.append("classIds[]", classId);
+    });
     if (file) {
       formData.append("file", file);
     }
@@ -227,7 +290,7 @@ const TeacherUploadAssignment = () => {
     URL.revokeObjectURL(url);
   }
 
-  function handleSaveMarking(submissionId) {
+  const handleSaveMarking = useCallback((submissionId) => {
     const submission = submissions.find((sub) => sub._id === submissionId);
     if (!submission) return;
 
@@ -250,7 +313,7 @@ const TeacherUploadAssignment = () => {
           severity: "error",
         });
       });
-  }
+  }, [submissions]);
 
   // Debounced auto-save for grade and feedback changes
   const debounceRef = useRef({});
@@ -261,7 +324,7 @@ const TeacherUploadAssignment = () => {
     debounceRef.current[submissionId] = setTimeout(() => {
       handleSaveMarking(submissionId);
     }, 1000); // 1 second delay
-  }, []);
+  }, [handleSaveMarking]);
 
   // Sorting function
   const handleRequestSort = (property) => {
@@ -296,73 +359,129 @@ const TeacherUploadAssignment = () => {
       : (a, b) => -descendingComparator(a, b, orderBy);
   };
 
-  // Pagination handlers
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+  const handleNext = (e) => {
+    e.preventDefault(); // Prevents accidental submit
+    // Validation before moving to next step
+    if (activeStep === 0) {
+      if (!title.trim() || !subject.trim()) {
+        setAlert({
+          open: true,
+          message: "Please fill in all required fields: Title and Subject.",
+          severity: "error",
+        });
+        return;
+      }
+    } else if (activeStep === 1) {
+      if (selectedClassIds.length === 0 || !dueDate) {
+        setAlert({
+          open: true,
+          message: "Please select at least one class and set a deadline date.",
+          severity: "error",
+        });
+        return;
+      }
+    }
+    setActiveStep((prev) => prev + 1);
   };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
+  const handleBack = () => {
+    setActiveStep((prev) => prev - 1);
   };
 
-  // Get paginated and sorted submissions
-  const sortedSubmissions = filteredSubmissions.slice().sort(getComparator(order, orderBy));
-  const paginatedSubmissions = sortedSubmissions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  return (
-    <Box sx={{ mt: 2, display: "flex", flexDirection: "column", alignItems: "center", bgcolor: "#f9f9f9", minHeight: "100vh", pb: 4 }}>
-      {/* Upload Assignment */}
-      <Paper sx={{ p: 4, width: "100%", maxWidth: 1200, boxShadow: 4, mb: 5, borderRadius: 3 }}>
-        <Typography variant="h5" mb={3} fontWeight="bold" color="primary">
-          Upload Assignment
-        </Typography>
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <TextField label="Title" fullWidth required value={title} onChange={(e) => setTitle(e.target.value)} />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Subject"
-                fullWidth
-                required
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Description"
-                fullWidth
-                multiline
-                rows={4}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Deadline Date and Time"
-                type="datetime-local"
-                fullWidth
-                required
-                InputLabelProps={{ shrink: true }}
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+  function getStepContent(step) {
+    switch (step) {
+      case 0:
+        return (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#333' }}>Assignment Details</Typography>
+            <Paper sx={{ p: 2, bgcolor: '#f9f9f9', border: '1px solid #e0e0e0' }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Title</Typography>
+                  <TextField fullWidth required value={title} onChange={(e) => setTitle(e.target.value)} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Subject</Typography>
+                  <TextField fullWidth required value={subject} onChange={(e) => setSubject(e.target.value)} />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Description</Typography>
+                  <TextField fullWidth multiline rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
+                </Grid>
+              </Grid>
+            </Paper>
+          </Box>
+        );
+      case 1:
+        return (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#333' }}>Class & Deadline</Typography>
+            <Paper sx={{ p: 2, bgcolor: '#f9f9f9', border: '1px solid #e0e0e0' }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Select Class(es):</Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, p: 2, border: '1px solid #ddd', borderRadius: 2, bgcolor: '#f9f9f9' }}>
+                    {Array.isArray(teacherClasses) && teacherClasses.length > 0 ? (
+                      teacherClasses.map((cls) => (
+                        <label key={cls._id} style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '150px' }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedClassIds.includes(cls._id)}
+                            onChange={() => {
+                              setSelectedClassIds((prev) =>
+                                prev.includes(cls._id)
+                                  ? prev.filter((id) => id !== cls._id)
+                                  : [...prev, cls._id]
+                              );
+                            }}
+                          />
+                          <span>Class {cls.sclassName}</span>
+                        </label>
+                      ))
+                    ) : (
+                      <Typography color="textSecondary" fontStyle="italic">
+                        No classes available to select.
+                      </Typography>
+                    )}
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Deadline Date & Time (Required)</Typography>
+                  <TextField
+                    type="datetime-local"
+                    fullWidth
+                    required
+                    InputLabelProps={{ shrink: true }}
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    InputProps={{
+                      startAdornment: <CalendarIcon sx={{ mr: 1, color: 'action.active' }} />,
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+          </Box>
+        );
+      case 2:
+        return (
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#333' }}>File Upload</Typography>
+            <Paper sx={{ p: 2, bgcolor: '#f9f9f9', border: '1px solid #e0e0e0' }}>
               <Box
                 sx={{
                   border: "2px dashed #1976d2",
-                  borderRadius: 3,
+                  borderRadius: 4,
                   p: 3,
                   textAlign: "center",
                   cursor: "pointer",
-                  bgcolor: file ? "#e3f2fd" : "transparent",
+                  bgcolor: file ? "#e3f2fd" : "#f0f7ff",
                   transition: "background-color 0.3s ease",
                   "&:hover": { bgcolor: "#bbdefb" },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1,
                 }}
                 onClick={() => document.getElementById("fileInput").click()}
                 onDragOver={(e) => e.preventDefault()}
@@ -383,6 +502,7 @@ const TeacherUploadAssignment = () => {
                   }
                 }}
               >
+                <CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main' }} />
                 <input
                   id="fileInput"
                   type="file"
@@ -405,45 +525,265 @@ const TeacherUploadAssignment = () => {
                   <Typography fontWeight="medium" color="primary">{file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</Typography>
                 ) : (
                   <Typography color="textSecondary" fontStyle="italic">
-                    Drag & drop a file here, or click to select file (Max 5MB)
+                    Drag & drop a file here, or click to select file
                   </Typography>
                 )}
+                <Typography variant="caption" color="textSecondary">
+                  Accepted formats: PDF, DOCX, TXT, JPG, PNG (Max 5MB)
+                </Typography>
               </Box>
               {errors.file && (
-                <Typography color="error" variant="caption" sx={{ mt: 0.5 }}>
+                <Typography color="error" variant="caption" sx={{ mt: 1, display: 'block' }}>
                   {errors.file}
                 </Typography>
               )}
-            </Grid>
-            <Grid item xs={6}>
+            </Paper>
+          </Box>
+        );
+      default:
+        return null;
+    }
+  }
+
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  // Get paginated and sorted submissions
+  const sortedSubmissions = filteredSubmissions.slice().sort(getComparator(order, orderBy));
+  const paginatedSubmissions = sortedSubmissions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  // Manage Assignments functions
+  const handleEditAssignment = (assignment) => {
+    setEditingAssignment(assignment);
+    setEditTitle(assignment.title);
+    setEditDescription(assignment.description);
+    setEditSubject(assignment.subject);
+    setEditDueDate(new Date(assignment.dueDate).toISOString().slice(0, 16));
+    setEditSelectedClassIds(assignment.classIds.map(cls => cls.toString()));
+    setEditFile(null);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTitle || !editSubject || !editDueDate || editSelectedClassIds.length === 0) {
+      setAlert({
+        open: true,
+        message: "Please fill in all required fields.",
+        severity: "error",
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("title", editTitle);
+    formData.append("description", editDescription);
+    formData.append("subject", editSubject);
+    formData.append("dueDate", editDueDate);
+    editSelectedClassIds.forEach((classId) => {
+      formData.append("classIds[]", classId);
+    });
+    if (editFile) {
+      formData.append("file", editFile);
+    }
+
+    try {
+      await axios.put(`${API_BASE_URL}/assignments/${editingAssignment._id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setAlert({
+        open: true,
+        message: "Assignment updated successfully!",
+        severity: "success",
+      });
+
+      // Refresh assignments
+      const res = await axios.get(`${API_BASE_URL}/assignments/teacher/${currentUser._id}`);
+      setAssignments(res.data);
+
+      setShowEditModal(false);
+      setEditingAssignment(null);
+    } catch (err) {
+      setAlert({
+        open: true,
+        message: (err.response && err.response.data.error) || "Failed to update assignment.",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleExtendDeadline = (assignment) => {
+    setEditingAssignment(assignment);
+    setExtendDueDate(new Date(assignment.dueDate).toISOString().slice(0, 16));
+    setShowExtendModal(true);
+  };
+
+  const handleSaveExtendDeadline = async () => {
+    if (!extendDueDate) {
+      setAlert({
+        open: true,
+        message: "Please select a new deadline.",
+        severity: "error",
+      });
+      return;
+    }
+
+    try {
+      await axios.put(`${API_BASE_URL}/assignments/${editingAssignment._id}/extend`, {
+        dueDate: extendDueDate,
+      });
+
+      setAlert({
+        open: true,
+        message: "Deadline extended successfully!",
+        severity: "success",
+      });
+
+      // Refresh assignments
+      const res = await axios.get(`${API_BASE_URL}/assignments/teacher/${currentUser._id}`);
+      setAssignments(res.data);
+
+      setShowExtendModal(false);
+      setEditingAssignment(null);
+    } catch (err) {
+      setAlert({
+        open: true,
+        message: (err.response && err.response.data.error) || "Failed to extend deadline.",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleDeleteAssignment = (assignment) => {
+    setAssignmentToDelete(assignment);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await axios.delete(`${API_BASE_URL}/assignments/${assignmentToDelete._id}`);
+
+      setAlert({
+        open: true,
+        message: "Assignment deleted successfully!",
+        severity: "success",
+      });
+
+      // Refresh assignments
+      const res = await axios.get(`${API_BASE_URL}/assignments/teacher/${currentUser._id}`);
+      setAssignments(res.data);
+
+      // If the deleted assignment was selected, reset selection
+      if (selectedAssignmentId === assignmentToDelete._id) {
+        setSelectedAssignmentId(res.data.length > 0 ? res.data[0]._id : "");
+      }
+
+      setShowDeleteDialog(false);
+      setAssignmentToDelete(null);
+    } catch (err) {
+      setAlert({
+        open: true,
+        message: (err.response && err.response.data.error) || "Failed to delete assignment.",
+        severity: "error",
+      });
+    }
+  };
+
+  const handleViewSubmissions = async (assignment) => {
+    setViewAssignment(assignment);
+    setLoadingClassSubmissions(true);
+    setShowViewSubmissions(true);
+
+    try {
+      const res = await axios.get(`${API_BASE_URL}/submissions/assignment/${assignment._id}`);
+      setClassSubmissions(res.data);
+    } catch (err) {
+      console.error("Failed to fetch class submissions", err);
+      setClassSubmissions([]);
+    } finally {
+      setLoadingClassSubmissions(false);
+    }
+  };
+
+  const getStatusChip = (assignment) => {
+    const now = new Date();
+    const dueDate = new Date(assignment.dueDate);
+
+    if (dueDate < now) {
+      return <Chip label="Expired" color="error" size="small" />;
+    } else if (dueDate - now < 24 * 60 * 60 * 1000) { // Less than 24 hours
+      return <Chip label="Due Soon" color="warning" size="small" />;
+    } else {
+      return <Chip label="Active" color="success" size="small" />;
+    }
+  };
+
+  return (
+    <Box sx={{ mt: 2, display: "flex", flexDirection: "column", alignItems: "center", bgcolor: "#f9f9f9", minHeight: "100vh", pb: 4 }}>
+      {/* Upload Assignment */}
+      <Paper sx={{ p: 4, width: "100%", maxWidth: 1200, boxShadow: 4, mb: 5, borderRadius: 3 }}>
+        <Typography variant="h5" mb={3} fontWeight="bold" color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AssignmentIcon /> Upload Assignment
+        </Typography>
+        <form onSubmit={handleSubmit} onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}>
+          <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+          {uploading && <LinearProgress variant="determinate" value={uploadProgress} sx={{ mb: 2 }} />}
+          {getStepContent(activeStep)}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+            <Button
+              type="button"
+              disabled={activeStep === 0}
+              onClick={handleBack}
+              variant="outlined"
+            >
+              Back
+            </Button>
+            <Box sx={{ display: 'flex', gap: 2 }}>
               <Button
-                type="reset"
+                type="button"
                 variant="outlined"
-                color="secondary"
-                fullWidth
-                disabled={uploading}
+                sx={{ borderColor: 'red', color: 'red', '&:hover': { borderColor: 'darkred', color: 'darkred' } }}
                 onClick={() => {
                   setTitle("");
                   setDescription("");
                   setSubject("");
                   setDueDate("");
                   setFile(null);
+                  setSelectedClassIds([]);
+                  setActiveStep(0);
                 }}
               >
                 Cancel
               </Button>
-            </Grid>
-            <Grid item xs={6}>
-              <Button type="submit" variant="contained" color="primary" fullWidth disabled={uploading}>
-                {uploading ? "Uploading..." : "Upload"}
-              </Button>
-            </Grid>
-          </Grid>
+              {activeStep === steps.length - 1 ? (
+                <Button type="submit" variant="contained" color="primary" disabled={uploading} sx={{ fontWeight: 'bold' }}>
+                  {uploading ? "Uploading..." : "Upload"}
+                </Button>
+              ) : (
+                <Button type="button" variant="contained" onClick={handleNext}>
+                  Next
+                </Button>
+              )}
+            </Box>
+          </Box>
         </form>
       </Paper>
 
       {/* Student Submissions */}
-      <Paper sx={{ p: 4, width: "100%", maxWidth: 1200, boxShadow: 4, borderRadius: 3 }}>
+      <Paper sx={{ p: 4, width: "100%", maxWidth: 1200, boxShadow: 4, borderRadius: 3, mt: 4 }}>
         <Typography variant="h5" mb={3} fontWeight="bold" color="primary">
           View Student Submissions
         </Typography>
@@ -493,23 +833,45 @@ const TeacherUploadAssignment = () => {
               disableClearable={false}
             />
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-              <Button variant={showOnlyUngraded ? 'contained' : 'outlined'} onClick={() => setShowOnlyUngraded(!showOnlyUngraded)}>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+              <Button variant={showOnlyUngraded ? 'contained' : 'outlined'} onClick={() => setShowOnlyUngraded(!showOnlyUngraded)} size="small">
                 Show only ungraded
               </Button>
             <Button
               variant={orderBy === 'grade' ? 'contained' : 'outlined'}
               onClick={() => {
                 if (orderBy === 'grade') {
-                  setOrder(order === 'asc' ? 'desc' : 'asc');
+                  setOrderBy('name');
+                  setOrder('asc');
                 } else {
                   setOrderBy('grade');
                   setOrder('desc');
                 }
               }}
+              size="small"
             >
               Sort by grade
             </Button>
+            {/* New Class Filter Dropdown */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 180 }}>
+              <Typography variant="caption" sx={{ mb: 0.5, color: 'text.secondary' }}>
+                Filter by Class
+              </Typography>
+              <TextField
+                select
+                value={selectedClassId}
+                onChange={(e) => setSelectedClassId(e.target.value)}
+                SelectProps={{ native: true }}
+                size="small"
+              >
+                <option value="">All Classes</option>
+                {teacherClasses.map((cls) => (
+                  <option key={cls._id} value={cls._id}>
+                    Class {cls.sclassName}
+                  </option>
+                ))}
+              </TextField>
+            </Box>
               {gradeFilterRange && (
                 <Chip label={`Grade: ${gradeFilterRange[0]}-${gradeFilterRange[1]}`} onDelete={() => setGradeFilterRange(null)} />
               )}
@@ -666,6 +1028,330 @@ const TeacherUploadAssignment = () => {
           <Typography>No assignments found. Please upload an assignment first.</Typography>
         )}
       </Paper>
+
+      {/* Manage Uploaded Assignments */}
+      <Paper sx={{ p: 4, width: "100%", maxWidth: 1200, boxShadow: 4, borderRadius: 3, mt: 4, mb: 4 }}>
+        <Typography variant="h5" mb={3} fontWeight="bold" color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AssignmentIcon /> Manage Uploaded Assignments
+        </Typography>
+
+        {assignments.length > 0 ? (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Title</TableCell>
+                  <TableCell>Subject</TableCell>
+                  <TableCell>Classes</TableCell>
+                  <TableCell>Due Date</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {assignments.map((assignment) => (
+                  <TableRow key={assignment._id}>
+                    <TableCell>{assignment.title}</TableCell>
+                    <TableCell>{assignment.subject}</TableCell>
+                    <TableCell>
+                      {assignment.classIds.map((cls) => `Class ${cls.sclassName}`).join(', ')}
+                    </TableCell>
+                    <TableCell>{new Date(assignment.dueDate).toLocaleString()}</TableCell>
+                    <TableCell>{getStatusChip(assignment)}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <IconButton
+                          color="primary"
+                          onClick={() => handleEditAssignment(assignment)}
+                          title="Edit Assignment"
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          color="secondary"
+                          onClick={() => handleExtendDeadline(assignment)}
+                          title="Extend Deadline"
+                        >
+                          <ScheduleIcon />
+                        </IconButton>
+                        <IconButton
+                          color="info"
+                          onClick={() => handleViewSubmissions(assignment)}
+                          title="View Submissions"
+                        >
+                          <VisibilityIcon />
+                        </IconButton>
+                        <IconButton
+                          color="error"
+                          onClick={() => handleDeleteAssignment(assignment)}
+                          title="Delete Assignment"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <Typography>No assignments uploaded yet.</Typography>
+        )}
+      </Paper>
+
+      {/* Edit Assignment Modal */}
+      {showEditModal && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            bgcolor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1300,
+          }}
+          onClick={() => setShowEditModal(false)}
+        >
+          <Paper
+            sx={{ p: 4, width: '90%', maxWidth: 600, maxHeight: '90vh', overflow: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Typography variant="h6" mb={3}>Edit Assignment</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Title"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Subject"
+                  value={editSubject}
+                  onChange={(e) => setEditSubject(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Description"
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  type="datetime-local"
+                  fullWidth
+                  label="Due Date"
+                  InputLabelProps={{ shrink: true }}
+                  value={editDueDate}
+                  onChange={(e) => setEditDueDate(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography sx={{ mb: 1 }}>Select Classes:</Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {teacherClasses.map((cls) => (
+                    <label key={cls._id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="checkbox"
+                        checked={editSelectedClassIds.includes(cls._id)}
+                        onChange={() => {
+                          setEditSelectedClassIds((prev) =>
+                            prev.includes(cls._id)
+                              ? prev.filter((id) => id !== cls._id)
+                              : [...prev, cls._id]
+                          );
+                        }}
+                      />
+                      <span>Class {cls.sclassName}</span>
+                    </label>
+                  ))}
+                </Box>
+              </Grid>
+              <Grid item xs={12}>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                  onChange={(e) => setEditFile(e.target.files[0])}
+                  style={{ marginBottom: '8px' }}
+                />
+                <Typography variant="caption" color="textSecondary">
+                  Optional: Upload a new file to replace the existing one
+                </Typography>
+              </Grid>
+            </Grid>
+            <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+              <Button variant="contained" onClick={handleSaveEdit}>
+                Save Changes
+              </Button>
+              <Button variant="outlined" onClick={() => setShowEditModal(false)}>
+                Cancel
+              </Button>
+            </Box>
+          </Paper>
+        </Box>
+      )}
+
+      {/* Extend Deadline Modal */}
+      {showExtendModal && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            bgcolor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1300,
+          }}
+          onClick={() => setShowExtendModal(false)}
+        >
+          <Paper
+            sx={{ p: 4, width: '90%', maxWidth: 400 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Typography variant="h6" mb={3}>Extend Deadline</Typography>
+            <TextField
+              type="datetime-local"
+              fullWidth
+              label="New Due Date"
+              InputLabelProps={{ shrink: true }}
+              value={extendDueDate}
+              onChange={(e) => setExtendDueDate(e.target.value)}
+              sx={{ mb: 3 }}
+            />
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button variant="contained" onClick={handleSaveExtendDeadline}>
+                Extend Deadline
+              </Button>
+              <Button variant="outlined" onClick={() => setShowExtendModal(false)}>
+                Cancel
+              </Button>
+            </Box>
+          </Paper>
+        </Box>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            bgcolor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1300,
+          }}
+          onClick={() => setShowDeleteDialog(false)}
+        >
+          <Paper
+            sx={{ p: 4, width: '90%', maxWidth: 400 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Typography variant="h6" mb={2}>Confirm Delete</Typography>
+            <Typography mb={3}>
+              Are you sure you want to delete the assignment "{assignmentToDelete?.title}"? This action cannot be undone.
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button variant="contained" color="error" onClick={confirmDelete}>
+                Delete
+              </Button>
+              <Button variant="outlined" onClick={() => setShowDeleteDialog(false)}>
+                Cancel
+              </Button>
+            </Box>
+          </Paper>
+        </Box>
+      )}
+
+      {/* View Submissions Modal */}
+      {showViewSubmissions && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            bgcolor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1300,
+          }}
+          onClick={() => setShowViewSubmissions(false)}
+        >
+          <Paper
+            sx={{ p: 4, width: '90%', maxWidth: 800, maxHeight: '90vh', overflow: 'auto' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Typography variant="h6" mb={3}>
+              Submissions for "{viewAssignment?.title}"
+            </Typography>
+            {loadingClassSubmissions ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+                <CircularProgress />
+              </Box>
+            ) : classSubmissions.length > 0 ? (
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Student Name</TableCell>
+                      <TableCell>Submission Date</TableCell>
+                      <TableCell>Grade</TableCell>
+                      <TableCell>Status</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {classSubmissions.map((submission) => (
+                      <TableRow key={submission._id}>
+                        <TableCell>{submission.studentId?.name || "Unknown"}</TableCell>
+                        <TableCell>{new Date(submission.submittedAt).toLocaleString()}</TableCell>
+                        <TableCell>{submission.grade || "Not graded"}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={submission.grade ? "Graded" : "Pending"}
+                            color={submission.grade ? "success" : "warning"}
+                            size="small"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Typography>No submissions yet.</Typography>
+            )}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+              <Button variant="outlined" onClick={() => setShowViewSubmissions(false)}>
+                Close
+              </Button>
+            </Box>
+          </Paper>
+        </Box>
+      )}
 
       <Snackbar
         open={alert.open}
