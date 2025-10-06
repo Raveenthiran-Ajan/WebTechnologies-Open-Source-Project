@@ -45,7 +45,7 @@ const TeacherSideBar = () => {
                             }
                         />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_home')} />
+                    <ListItemText primary={t('teacherSideBar.home')} />
                 </ListItemButton>
                 
                 <Divider />
@@ -62,7 +62,7 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/teacher/classes") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_classes')} />
+                    <ListItemText primary={t('teacherSideBar.classes')} />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/timetable">
                     <ListItemIcon>
@@ -70,7 +70,7 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/teacher/timetable") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_timetable')} />
+                    <ListItemText primary={t('teacherSideBar.timetable')} />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/notices">
                     <ListItemIcon>
@@ -79,7 +79,7 @@ const TeacherSideBar = () => {
                         />
                     </ListItemIcon>
                     <Badge badgeContent={unreadNoticesCount} color="error" max={99}>
-                        <ListItemText primary={t('menu_notices')} />
+                        <ListItemText primary={t('teacherSideBar.notices')} />
                     </Badge>
                 </ListItemButton>
                 <ListItemButton component={Link} to="/teacher/complain">
@@ -88,7 +88,7 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/teacher/complain") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_complain')} />
+                    <ListItemText primary={t('teacherSideBar.complains')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -102,7 +102,7 @@ const TeacherSideBar = () => {
                             color={location.pathname === "/teacher/upload-assignment" ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_upload_assignments')} />
+                    <ListItemText primary={t('teacherSideBar.assignments')} />
                 </ListItemButton>
             </React.Fragment>
 
@@ -110,7 +110,7 @@ const TeacherSideBar = () => {
 
             <React.Fragment>
                 <ListSubheader component="div" inset>
-                    {t('menu_user')}
+                    {t('teacherSideBar.user')}
                 </ListSubheader>
                 <ListItemButton 
                     component={Link} 
@@ -124,7 +124,7 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/teacher/profile") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_profile')} />
+                    <ListItemText primary={t('teacherSideBar.profile')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -138,7 +138,7 @@ const TeacherSideBar = () => {
                             color={location.pathname.startsWith("/logout") ? "primary" : "inherit"}
                         />
                     </ListItemIcon>
-                    <ListItemText primary={t('menu_logout')} />
+                    <ListItemText primary={t('teacherSideBar.logout')} />
                 </ListItemButton>
             </React.Fragment>
         </>

@@ -151,6 +151,17 @@
     "profile": "Profile",
     "logout": "Logout"
   },
+  "teacherSideBar": {
+    "home": "Home",
+    "classes": "Classes",
+    "timetable": "Timetable",
+    "notices": "Notices",
+    "complains": "Complains",
+    "assignments": "Upload Assignments",
+    "user": "User",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
   "class_students": "Class Students",
   "total_lessons": "Total Lessons",
   "tests_taken": "Tests Taken",

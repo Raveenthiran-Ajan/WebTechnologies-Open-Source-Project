@@ -151,6 +151,17 @@
     "profile": "පැතිකඩ",
     "logout": "පිටවන්න"
   },
+  "teacherSideBar": {
+    "home": "මුල් පිටුව",
+    "classes": "පන්ති",
+    "timetable": "නියමිත කාලසටහන",
+    "notices": "දැන්වීම්",
+    "complains": "පැමිණිල්ල",
+    "assignments": "පැවරුම් උඩුගත කරන්න",
+    "user": "පරිශීලක",
+    "profile": "පැතිකඩ",
+    "logout": "පිටවන්න"
+  },
   "class_students": "පන්ති ශිෂ්‍යයන්",
   "total_lessons": "මුළු පාඩම්",
   "tests_taken": "ගත් පරීක්ෂණ",

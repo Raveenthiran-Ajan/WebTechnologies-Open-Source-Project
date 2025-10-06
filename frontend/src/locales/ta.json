@@ -151,6 +151,17 @@
     "profile": "சுயவிவரம்",
     "logout": "வெளியேறு"
   },
+  "teacherSideBar": {
+    "home": "முகப்பு",
+    "classes": "வகுப்புகள்",
+    "timetable": "நேர அட்டவணை",
+    "notices": "விவரங்கள்",
+    "complains": "புகார்கள்",
+    "assignments": "பணிகளை பதிவேற்றவும்",
+    "user": "பயனர்",
+    "profile": "சுயவிவரம்",
+    "logout": "வெளியேறு"
+  },
   "class_students": "வகுப்பு மாணவர்கள்",
   "total_lessons": "மொத்த பாடங்கள்",
   "tests_taken": "எடுத்த தேர்வுகள்",
