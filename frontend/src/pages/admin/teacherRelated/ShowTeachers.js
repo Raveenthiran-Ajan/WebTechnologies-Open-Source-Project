@@ -108,48 +108,6 @@ const ShowTeachers = () => {
                         py: 1 
                     }}>
                         {classes && classes.length > 0 ? (
-                            classes.map((sclass, index) => (
-                                <Chip 
-                                    key={sclass._id || index} 
-                                    label={sclass.sclassName} 
-                                    size="small" 
-                                    color="primary" 
-                                    variant="outlined"
-                                    sx={{ fontSize: '0.75rem' }}
-                                />
-                            ))
-                        ) : params.row.teachSclass !== 'No Class' ? (
-                            <Chip 
-                                label={params.row.teachSclass} 
-                                size="small" 
-                                color="primary" 
-                                variant="outlined"
-                                sx={{ fontSize: '0.75rem' }}
-                            />
-                        ) : (
-                            <Typography variant="body2" color="text.secondary">
-                                No classes
-                            </Typography>
-                        )}
-                    </Box>
-                );
-            },
-        },
-        {
-            field: 'teachSclasses',
-            headerName: 'Teaching Classes',
-            flex: 0.8,
-            renderCell: (params) => {
-                const classes = params.row.teachSclasses;
-                return (
-                    <Box sx={{ 
-                        display: 'flex', 
-                        flexWrap: 'wrap', 
-                        gap: 0.5, 
-                        width: '100%',
-                        py: 1 
-                    }}>
-                        {classes && classes.length > 0 ? (
                             classes.slice(0, 3).map((sclass, index) => (
                                 <Chip 
                                     key={sclass._id || index} 
@@ -272,7 +230,6 @@ const ShowTeachers = () => {
     function CustomToolbar() {
         return (
             <GridToolbarContainer>
-                <GridToolbarColumnsButton />
                 <GridToolbarFilterButton />
                 <GridToolbarDensitySelector />
                 <GridToolbarExport />
@@ -417,6 +374,19 @@ const ShowTeachers = () => {
                                 pageSizeOptions={[5, 10, 25]}
                                 disableRowSelectionOnClick
                                 getRowHeight={() => 'auto'}
+                                disableColumnMenu
+                                disableColumnFilter
+                                disableColumnSelector
+                                disableDensitySelector
+                                hideFooterSelectedRowCount
+                                columnVisibilityModel={{
+                                    name: true,
+                                    teachSubjects: true,
+                                    teachSclasses: true,
+                                    attendanceClass: true,
+                                    actions: true
+                                }}
+                                getRowId={(row) => row.id}
                                 sx={{
                                     '& .MuiDataGrid-cell': {
                                         display: 'flex',
