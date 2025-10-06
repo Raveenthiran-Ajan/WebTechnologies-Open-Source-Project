@@ -4,7 +4,7 @@ const path = require('path');
 
 const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChildDetails, addAnotherChild,deleteParent } = require('../controllers/parent-controller.js');
 const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
-const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents } = require('../controllers/class-controller.js');
+const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, addSection, deleteSection, getTeacherClasses, updateTeacherClasses } = require('../controllers/class-controller.js');
 const { complainCreate, complainList, complainUpdate, complainDelete } = require('../controllers/complain-controller.js');
 const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice, markNoticeAsRead } = require('../controllers/notice-controller.js');
 // const { adminRegister, adminLogIn, deleteAdmin, getAdminDetail, updateAdmin } = require('../controllers/admin-controller.js');
@@ -26,10 +26,11 @@ const {
     removeStudentAttendanceBySubject,
     removeStudentAttendance,
     changePassword: studentChangePassword,
-    getStudentTermReport
+    getStudentTermReport,
+    checkSectionAttendanceStatus
 } = require('../controllers/student_controller.js');
 const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects } = require('../controllers/subject-controller.js');
-const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, assignMultipleSubjects, testTeacherAssignment, teacherAttendance, changePassword: teacherChangePassword } = require('../controllers/teacher-controller.js');
+const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, assignMultipleSubjects, updateTeacherAssignments, testTeacherAssignment, teacherAttendance, changePassword: teacherChangePassword } = require('../controllers/teacher-controller.js');
 const {
   submitAssignment,
   getAssignmentsByStudent,
@@ -114,6 +115,7 @@ router.put('/RemoveStudentSubAtten/:id', removeStudentAttendanceBySubject);
 router.put('/RemoveStudentAtten/:id', removeStudentAttendance)
 router.put("/Student/password/:id", studentChangePassword)
 router.get('/Student/termReport/:id', getStudentTermReport);
+router.get('/CheckSectionAttendance/:sclassId/:sectionName', checkSectionAttendanceStatus);
 
 // Teacher
 router.post('/TeacherReg', teacherRegister);
@@ -125,6 +127,7 @@ router.delete("/TeachersClass/:id", deleteTeachersByClass)
 router.delete("/Teacher/:id", deleteTeacher)
 router.put("/TeacherSubject", updateTeacherSubject)
 router.put("/TeacherMultipleSubjects", assignMultipleSubjects)
+router.put("/TeacherAssignments", updateTeacherAssignments)
 router.post("/TestTeacherAssignment", testTeacherAssignment)
 router.post('/TeacherAttendance/:id', teacherAttendance)
 router.put("/Teacher/password/:id", teacherChangePassword)
@@ -155,11 +158,15 @@ router.get("/Sclass/:id", getSclassDetail)
 router.get("/Sclass/Students/:id", getSclassStudents)
 router.delete("/Sclasses/:id", deleteSclasses)
 router.delete("/Sclass/:id", deleteSclass)
+router.post("/Sclass/:id/addSection", addSection)
+router.delete("/Sclass/:id/deleteSection/:sectionName", deleteSection)
 router.get("/Sclass/Teachers/:id", require("../controllers/class-controller").getClassTeachers);
 router.get("/Sclass/Timetable/:id", require("../controllers/class-controller").getTimetable);
 router.put("/Sclass/Timetable/:id", require("../controllers/class-controller").updateTimetable);
 router.get("/Sclass/AvailableSubjects/:id", require("../controllers/class-controller").getAvailableSubjects);
 router.get("/Sclass/AvailableTeachers/:classId/:subjectId/:day/:period", require("../controllers/class-controller").getAvailableTeachers);
+router.get("/Sclass/TeacherClasses/:id", getTeacherClasses);
+router.post("/teacher/update-classes", updateTeacherClasses);
 
 // Subject
 router.post('/SubjectCreate', subjectCreate);
@@ -177,6 +184,9 @@ router.post("/assignments/submit", upload.single('file'), submitAssignment);
 router.get("/assignments/student/:studentId", getAssignmentsByStudent);
 router.get("/assignments", getAllAssignments);
 router.get("/assignments/teacher/:teacherId", getAssignmentsByTeacher);
+router.put("/assignments/:id", upload.single('file'), require("../controllers/assignment-controller").updateAssignment);
+router.put("/assignments/:id/extend", require("../controllers/assignment-controller").extendDeadline);
+router.delete("/assignments/:id", require("../controllers/assignment-controller").deleteAssignment);
 
 // ------------------- Submissions (student side) -------------------
 router.post("/submissions", submissionUpload.single('file'), studentSubmit);

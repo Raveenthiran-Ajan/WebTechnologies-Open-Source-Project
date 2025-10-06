@@ -507,4 +507,8 @@ const TeacherNotices = () => {
         </>
     );
 };
+<<<<<<< HEAD
+=======
+
+>>>>>>> 39282149c94b7d81faef28ddf819ee7c92107da9
 export default TeacherNotices;

@@ -8,6 +8,7 @@ const sclassCreate = async (req, res) => {
         const sclass = new Sclass({
             sclassName: req.body.sclassName,
             school: req.body.adminID,
+            sections: req.body.sections || [],
             timetable: []
         });
 
@@ -130,9 +131,53 @@ const getTimetable = async (req, res) => {
 
 const updateTimetable = async (req, res) => {
     try {
+        const { timetable } = req.body;
+        const classId = req.params.id;
+
+        // Filter out slots where subject is selected but no teacher assigned
+        const filteredTimetable = timetable.filter(slot => {
+            if (slot.subjectId && !slot.teacher) {
+                // Discard this slot
+                return false;
+            }
+            return true;
+        });
+
+        // Validate clashes before saving
+        for (const slot of filteredTimetable) {
+            const { day, period, teacher } = slot;
+            if (!teacher) continue;
+
+            // Convert teacher to string for comparison
+            const teacherIdStr = teacher.toString();
+
+            // Find clashes excluding current class
+            const clashes = await Sclass.find({
+                _id: { $ne: classId },
+                'timetable.day': day,
+                'timetable.period': period,
+                'timetable.teacher': { $exists: true }
+            });
+
+            // Check if any clash has the same teacher assigned
+            const hasClash = clashes.some(sclass =>
+                sclass.timetable.some(slot =>
+                    slot.day === day &&
+                    slot.period === period &&
+                    slot.teacher.toString() === teacherIdStr
+                )
+            );
+
+            if (hasClash) {
+                return res.status(400).json({
+                    message: `Scheduling clash detected for teacher ${teacherIdStr} on ${day} period ${period}`
+                });
+            }
+        }
+
         const sclass = await Sclass.findByIdAndUpdate(
-            req.params.id,
-            { timetable: req.body.timetable },
+            classId,
+            { timetable: filteredTimetable },
             { new: true }
         );
         if (sclass) {
@@ -183,20 +228,27 @@ const getAvailableTeachers = async (req, res) => {
         if (!subject || !subject.teacher) {
             return res.send({ message: "No teachers assigned to this subject" });
         }
-        const subjectTeachers = [subject.teacher]; // Assuming one teacher per subject, but can be array
+        const subjectTeachers = Array.isArray(subject.teacher) ? subject.teacher : [subject.teacher]; // Ensure array
 
-        // Check for clashes: Find if any teacher is already scheduled at this day/period in any class
+        // Check for clashes: Find if any teacher is already scheduled at this day/period in other classes
         const clashes = await Sclass.find({
+            _id: { $ne: classId },
             'timetable.day': day,
             'timetable.period': parseInt(period),
-            'timetable.teacher': { $in: subjectTeachers.map(t => t._id) }
+            'timetable.teacher': { $exists: true }
         });
 
+        // Extract teacher IDs assigned at this slot in other classes
         const clashingTeacherIds = clashes.flatMap(sclass =>
-            sclass.timetable.filter(slot => slot.day === day && slot.period === parseInt(period)).map(slot => slot.teacher)
+            sclass.timetable
+                .filter(slot => slot.day === day && slot.period === parseInt(period))
+                .map(slot => slot.teacher.toString())
         );
 
-        const availableTeachers = subjectTeachers.filter(teacher => !clashingTeacherIds.includes(teacher._id.toString()));
+        // Filter out teachers who have clashes
+        const availableTeachers = subjectTeachers.filter(teacher =>
+            !clashingTeacherIds.includes(teacher._id.toString())
+        );
 
         if (availableTeachers.length > 0) {
             res.send(availableTeachers);
@@ -208,5 +260,118 @@ const getAvailableTeachers = async (req, res) => {
     }
 }
 
+const addSection = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { sectionName } = req.body;
 
-module.exports = { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers };
+        if (!sectionName || !sectionName.trim()) {
+            return res.status(400).send({ message: 'Section name is required' });
+        }
+
+        const sclass = await Sclass.findById(id);
+        if (!sclass) {
+            return res.status(404).send({ message: 'Class not found' });
+        }
+
+        // Check if section name already exists in this class
+        const existingSection = sclass.sections.find(section =>
+            section.sectionName.toLowerCase() === sectionName.trim().toLowerCase()
+        );
+
+        if (existingSection) {
+            return res.status(400).send({ message: 'Section name already exists in this class' });
+        }
+
+        // Add new section
+        sclass.sections.push({ sectionName: sectionName.trim() });
+        const result = await sclass.save();
+
+        res.send(result);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
+const deleteSection = async (req, res) => {
+    try {
+        const { id, sectionName } = req.params;
+
+        const sclass = await Sclass.findById(id);
+        if (!sclass) {
+            return res.status(404).send({ message: 'Class not found' });
+        }
+
+        // Find the section to delete
+        const sectionIndex = sclass.sections.findIndex(section =>
+            section.sectionName.toLowerCase() === sectionName.toLowerCase()
+        );
+
+        if (sectionIndex === -1) {
+            return res.status(404).send({ message: 'Section not found in this class' });
+        }
+
+        // Check if there are students in this section
+        const studentsInSection = await Student.countDocuments({
+            sclassName: id,
+            sectionName: sectionName
+        });
+
+        if (studentsInSection > 0) {
+            return res.status(400).send({
+                message: `Cannot delete section "${sectionName}" because it contains ${studentsInSection} student(s). Please move or remove students from this section first.`
+            });
+        }
+
+        // Remove the section
+        sclass.sections.splice(sectionIndex, 1);
+        const result = await sclass.save();
+
+        res.send(result);
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
+const getTeacherClasses = async (req, res) => {
+    try {
+        console.log("getTeacherClasses called with teacherId:", req.params.id);
+        const teacher = await Teacher.findById(req.params.id).populate('teachSclasses').populate('teachSclass');
+        if (!teacher) {
+            console.log("Teacher not found for id:", req.params.id);
+            return res.status(404).json({ message: "Teacher not found" });
+        }
+        let classes = [];
+        if (teacher.teachSclasses && teacher.teachSclasses.length > 0) {
+            classes = await Sclass.find({ _id: { $in: teacher.teachSclasses.map(c => c._id) } }).select('sclassName');
+        } else if (teacher.teachSclass) {
+            classes = await Sclass.find({ _id: teacher.teachSclass._id }).select('sclassName');
+        }
+        console.log("Teacher found, classes:", classes);
+        res.json(classes);
+    } catch (err) {
+        console.error("Error in getTeacherClasses:", err);
+        res.status(500).json(err);
+    }
+};
+
+
+const updateTeacherClasses = async (req, res) => {
+    try {
+        const { teacherId, classIds } = req.body;
+        if (!teacherId || !Array.isArray(classIds)) {
+            return res.status(400).json({ message: "Invalid input" });
+        }
+        const teacher = await require('../models/teacherSchema.js').findById(teacherId);
+        if (!teacher) {
+            return res.status(404).json({ message: "Teacher not found" });
+        }
+        teacher.teachSclasses = classIds;
+        await teacher.save();
+        res.json({ message: "Teacher classes updated successfully", teachSclasses: teacher.teachSclasses });
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
+module.exports = { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers, addSection, deleteSection, getTeacherClasses, updateTeacherClasses };

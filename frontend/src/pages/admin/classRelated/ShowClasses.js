@@ -14,6 +14,7 @@ import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import GroupIcon from '@mui/icons-material/Group';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -87,6 +88,14 @@ const ShowClasses = () => {
             )
         },
         {
+            field: 'sections',
+            headerName: 'Sections',
+            flex: 0.5,
+            renderCell: (params) => (
+                <Typography>{params.row.sections ? params.row.sections.length : 0}</Typography>
+            ),
+        },
+        {
             field: 'students',
             headerName: 'Students',
             flex: 0.5,
@@ -135,7 +144,9 @@ const ShowClasses = () => {
                             <Delete color="error" />
                         </IconButton>
                         <Button
-                            variant="contained"
+                            size="small"
+                            variant="outlined"
+                            startIcon={<VisibilityIcon />}
                             onClick={() => navigate(`/Admin/classes/class/${params.row.id}`)}
                         >
                             View
@@ -164,6 +175,13 @@ const ShowClasses = () => {
                                 <ListItemIcon><PersonAddAlt1Icon /></ListItemIcon>
                                 Add Student
                             </MenuItem>
+                            <MenuItem onClick={() => {
+                                navigate("/Admin/class/addsection/" + params.row.id);
+                                handleMenuClose(params.row.id);
+                            }}>
+                                <ListItemIcon><GroupIcon /></ListItemIcon>
+                                Add Section
+                            </MenuItem>
                         </Menu>
                     </Box>
                 );
@@ -188,6 +206,7 @@ const ShowClasses = () => {
         name: sclass.sclassName,
         students: sclass.students,
         teachers: sclass.teachers,
+        sections: sclass.sections,
         timetable: sclass._id, // Pass the id for navigation
     }));
 
@@ -223,12 +242,12 @@ const ShowClasses = () => {
                                 <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary', mb: 1 }}>
                                     <GroupIcon sx={{ mr: 1 }} />
                                     <Typography variant="body2">
-                                        {sclass.students} Students, {sclass.teachers} Teachers
+                                        {sclass.students} Students, {sclass.teachers} Teachers, {sclass.sections ? sclass.sections.length : 0} Sections
                                     </Typography>
                                 </Box>
                             </CardContent>
                             <CardActions sx={{ justifyContent: 'space-between', borderTop: '1px solid #eee' }}>
-                                <Button size="small" onClick={() => navigate(`/Admin/classes/class/${sclass._id}`)} sx={{ minWidth: 'auto', p: '4px' }}>View</Button>
+                                <Button size="small" variant="outlined" startIcon={<VisibilityIcon />} onClick={() => navigate(`/Admin/classes/class/${sclass._id}`)}>View</Button>
                                 <IconButton size="small" onClick={() => navigate(`/Admin/classes/class/${sclass._id}?tab=5`)} title="Timetable">
                                     <CalendarMonthIcon />
                                 </IconButton>

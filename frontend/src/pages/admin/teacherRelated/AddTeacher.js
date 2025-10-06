@@ -5,14 +5,18 @@ import { getSubjectDetails } from '../../../redux/sclassRelated/sclassHandle';
 import Popup from '../../../components/Popup';
 import { registerUser } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
-import { CircularProgress, TextField, Button, Container, Box, Typography, Grid, Chip } from '@mui/material';
+import { CircularProgress, TextField, Button, Container, Box, Typography, Grid, Chip, Paper, FormControl, InputLabel, Select, MenuItem, OutlinedInput } from '@mui/material';
 
 const AddTeacher = () => {
   const params = useParams()
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
-  const subjectID = params.id
+  const subjectID = params.subjectID || params.id
+  const sectionNamesParam = params.sectionNames || params.sectionName
+  const sectionNames = sectionNamesParam ? sectionNamesParam.split(',').filter(s => s.trim()) : []
+  console.log('AddTeacher params:', params);
+  console.log('Parsed sectionNames:', sectionNames);
 
   const { status, response, error } = useSelector(state => state.user);
   const { subjectDetails } = useSelector((state) => state.sclass);
@@ -24,7 +28,7 @@ const AddTeacher = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isAttendanceTeacher, setIsAttendanceTeacher] = useState(false);
+  const [selectedAttendanceSections, setSelectedAttendanceSections] = useState([]);
 
   const [showPopup, setShowPopup] = useState(false);
   const [message, setMessage] = useState("");
@@ -34,10 +38,9 @@ const AddTeacher = () => {
   const school = subjectDetails && subjectDetails.school
   const teachSubject = subjectDetails && subjectDetails._id
   const teachSclass = subjectDetails && subjectDetails.sclassName && subjectDetails.sclassName._id;
-  // If teacher is assigned for attendance, set attendanceClass to the same class
-  const attendanceClass = isAttendanceTeacher ? teachSclass : null;
 
-  const fields = { name, email, password, role, school, teachSubject, teachSclass, attendanceClass }
+  const fields = { name, email, password, role, school, teachSubject, teachSclass, teachSections: sectionNames, attendanceSections: selectedAttendanceSections }
+  console.log('Submitting teacher data:', fields);
 
   const submitHandler = (event) => {
     event.preventDefault()
@@ -64,8 +67,8 @@ const AddTeacher = () => {
 
   return (
     <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Box sx={{ p: 3, backgroundColor: 'white', borderRadius: 2, boxShadow: 3 }}>
-        <Typography variant="h4" gutterBottom>
+      <Paper elevation={0} sx={{ p: 4, borderRadius: 2, backgroundColor: 'white', border: '2px solid', borderColor: 'primary.main' }}>
+        <Typography variant="h5" component="h1" color="primary" sx={{ fontWeight: 'bold', mb: 3 }}>
           Add New Teacher
         </Typography>
         <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -79,6 +82,13 @@ const AddTeacher = () => {
             color="secondary" 
             variant="outlined" 
           />
+          {sectionNames.length > 0 && (
+            <Chip 
+              label={`Sections: ${sectionNames.join(', ')}`} 
+              color="info" 
+              variant="outlined" 
+            />
+          )}
         </Box>
         <form onSubmit={submitHandler}>
           <Grid container spacing={2}>
@@ -118,17 +128,32 @@ const AddTeacher = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                <input
-                  type="checkbox"
-                  id="attendanceTeacher"
-                  checked={isAttendanceTeacher}
-                  onChange={(e) => setIsAttendanceTeacher(e.target.checked)}
-                />
-                <Typography>
-                  Assign as attendance teacher for this class
+              <FormControl fullWidth>
+                <InputLabel>Attendance Sections (Optional)</InputLabel>
+                <Select
+                  multiple
+                  value={selectedAttendanceSections}
+                  onChange={(event) => setSelectedAttendanceSections(event.target.value)}
+                  input={<OutlinedInput label="Attendance Sections (Optional)" />}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((value) => (
+                        <Chip key={value} label={value} size="small" />
+                      ))}
+                    </Box>
+                  )}
+                >
+                  {sectionNames.map((section) => (
+                    <MenuItem key={section} value={section}>
+                      {section}
+                    </MenuItem>
+                  ))}
+                </Select>
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                  Select which sections this teacher is responsible for taking attendance. 
+                  Leave empty if not responsible for attendance.
                 </Typography>
-              </Box>
+              </FormControl>
             </Grid>
             <Grid item xs={12}>
               <Button variant="contained" color="primary" type="submit" disabled={loader}>
@@ -137,7 +162,7 @@ const AddTeacher = () => {
             </Grid>
           </Grid>
         </form>
-      </Box>
+      </Paper>
       <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
     </Container>
   )

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     CssBaseline,
     Box,
@@ -18,6 +19,7 @@ import AdminProfile from './AdminProfile';
 import AdminHomePage from './AdminHomePage';
 
 import AddStudent from './studentRelated/AddStudent';
+import AddStudentsBySection from './studentRelated/AddStudentsBySection';
 import SeeComplains from './studentRelated/SeeComplains';
 import ShowStudents from './studentRelated/ShowStudents';
 import ViewStudent from './studentRelated/ViewStudent';
@@ -36,6 +38,7 @@ import AddTeacher from './teacherRelated/AddTeacher';
 import AddTeacherMultiple from './teacherRelated/AddTeacherMultiple';
 import AddTeacherModern from './teacherRelated/AddTeacherModern';
 import ChooseClass from './teacherRelated/ChooseClass';
+import ChooseSection from './teacherRelated/ChooseSection';
 import ChooseSubject from './teacherRelated/ChooseSubject';
 import ShowTeachers from './teacherRelated/ShowTeachers';
 import TeacherDetails from './teacherRelated/TeacherDetails';
@@ -45,6 +48,7 @@ import TeacherClassesView from './teacherRelated/TeacherClassesView';
 import AddClass from './classRelated/AddClass';
 import ClassDetails from './classRelated/ClassDetails';
 import ShowClasses from './classRelated/ShowClasses';
+import AddSection from './classRelated/AddSection';
 import AccountMenu from '../../components/AccountMenu';
 
 import AddParent from './parentRelated/AddParent';
@@ -57,7 +61,7 @@ const AdminDashboard = () => {
     const toggleDrawer = () => {
         setOpen(!open);
     };
-
+    const { t } = useTranslation();
     return (
         <>
             <Box sx={{ display: 'flex' }}>
@@ -87,7 +91,7 @@ const AdminDashboard = () => {
                                 letterSpacing: '0.1rem',
                             }}
                         >
-                            Admin Dashboard
+                            {t('adminDashboard.title')}
                         </Typography>
                         <AccountMenu />
                     </Toolbar>
@@ -130,7 +134,8 @@ const AdminDashboard = () => {
                         <Route path="/Admin/addclass" element={<AddClass />} />
                         <Route path="/Admin/classes" element={<ShowClasses />} />
                         <Route path="/Admin/classes/class/:id" element={<ClassDetails />} />
-                        <Route path="/Admin/class/addstudents/:id" element={<AddStudent situation="Class" />} />
+                        <Route path="/Admin/class/addstudents/:id" element={<AddStudentsBySection />} />
+                        <Route path="/Admin/class/addsection/:id" element={<AddSection />} />
 
                         {/* Student */}
                         <Route path="/Admin/addstudents" element={<AddStudent situation="Student" />} />
@@ -147,9 +152,9 @@ const AdminDashboard = () => {
                         <Route path="/Admin/teachers/edit-assignments/:id" element={<EditTeacherAssignments />} />
                         <Route path="/Admin/teachers/add-multiple" element={<AddTeacherMultiple />} />
                         <Route path="/Admin/teachers/chooseclass" element={<ChooseClass situation="Teacher" />} />
-                        <Route path="/Admin/teachers/choosesubject/:id" element={<ChooseSubject situation="Norm" />} />
-                        <Route path="/Admin/teachers/choosesubject/:classID/:teacherID" element={<ChooseSubject situation="Teacher" />} />
-                        <Route path="/Admin/teachers/addteacher/:id" element={<AddTeacher />} />
+                        <Route path="/Admin/teachers/choosesection/:id" element={<ChooseSection situation="Teacher" />} />
+                        <Route path="/Admin/teachers/choosesubject/:classID/:sectionNames" element={<ChooseSubject situation="Teacher" />} />
+                        <Route path="/Admin/teachers/addteacher/:subjectID/:sectionNames" element={<AddTeacher />} />
 
                         {/* Parent */}
                         <Route path="/Admin/addparent" element={<AddParent />} />

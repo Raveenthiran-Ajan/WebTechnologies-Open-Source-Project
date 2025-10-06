@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTeacherDetails, assignMultipleSubjects } from '../../../redux/teacherRelated/teacherHandle';
+import { getTeacherDetails, updateTeacherAssignments } from '../../../redux/teacherRelated/teacherHandle';
 import { getAllSclasses, getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
 import {
     Container,
@@ -16,7 +16,11 @@ import {
     Button,
     Grid,
     Divider,
-    CircularProgress
+    CircularProgress,
+    FormControlLabel,
+    Checkbox,
+    OutlinedInput,
+    ListItemText
 } from '@mui/material';
 import Popup from '../../../components/Popup';
 
@@ -29,9 +33,11 @@ const EditTeacherAssignments = () => {
     const { sclassesList, subjectsList } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
     
-    const [selectedClasses, setSelectedClasses] = useState([]);
+    const [selectedClass, setSelectedClass] = useState('');
+    const [selectedTeachingSections, setSelectedTeachingSections] = useState([]);
     const [selectedSubjects, setSelectedSubjects] = useState([]);
-    const [attendanceClass, setAttendanceClass] = useState('');
+    const [selectedAttendanceSections, setSelectedAttendanceSections] = useState([]);
+    const [availableSections, setAvailableSections] = useState([]);
     const [availableSubjects, setAvailableSubjects] = useState([]);
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
@@ -49,46 +55,65 @@ const EditTeacherAssignments = () => {
             const currentClasses = teacherDetails.teachSclasses || [teacherDetails.teachSclass].filter(Boolean);
             const currentSubjects = teacherDetails.teachSubjects || [teacherDetails.teachSubject].filter(Boolean);
             
-            setSelectedClasses(currentClasses.map(c => c._id));
+            // For editing, we take the first class (assuming single class assignment for simplicity)
+            // If teacher has multiple classes, we'll show the first one and allow changing
+            const primaryClass = currentClasses.length > 0 ? currentClasses[0]._id : '';
+            
+            setSelectedClass(primaryClass);
             setSelectedSubjects(currentSubjects.map(s => s._id));
-            // Initialize attendance class state with proper validation
-            const currentAttendanceClass = teacherDetails.attendanceClass;
-            if (currentAttendanceClass && currentAttendanceClass._id) {
-                // Verify that attendance class is in selected classes
-                const isValidAttendanceClass = teacherDetails.teachSclasses?.some(c => c._id === currentAttendanceClass._id) ||
-                    (teacherDetails.teachSclass && teacherDetails.teachSclass._id === currentAttendanceClass._id);
-                setAttendanceClass(isValidAttendanceClass ? currentAttendanceClass._id : '');
-            } else {
-                setAttendanceClass('');
-            }
+            setSelectedTeachingSections(teacherDetails.teachSections ? teacherDetails.teachSections.map(s => s.sectionId) : []);
+            setSelectedAttendanceSections(teacherDetails.attendanceSections ? teacherDetails.attendanceSections.map(s => s.sectionId) : []);
         }
     }, [teacherDetails]);
 
     useEffect(() => {
-        console.log('Subjects from Redux:', subjectsList);
-        console.log('Selected classes:', selectedClasses);
-        
-        if (selectedClasses.length > 0 && subjectsList && subjectsList.length > 0) {
-            // Get subjects that belong to selected classes
-            const subjects = subjectsList.filter(subject => {
-                const belongsToClass = selectedClasses.includes(subject.sclassName?._id);
-                console.log(`Subject ${subject.subName} belongs to selected class:`, belongsToClass);
-                return belongsToClass;
-            });
-            console.log('Filtered subjects:', subjects);
-            setAvailableSubjects(subjects);
-        } else if (subjectsList && subjectsList.length > 0) {
-            // If no classes selected, show all subjects
-            console.log('Using all subjects:', subjectsList);
-            setAvailableSubjects(subjectsList);
+        // Get available sections for the selected class
+        if (selectedClass && sclassesList && sclassesList.length > 0) {
+            const sclass = sclassesList.find(c => c._id === selectedClass);
+            if (sclass && sclass.sections) {
+                const sections = sclass.sections.map(section => ({
+                    _id: section._id,
+                    sectionName: section.sectionName,
+                    classId: selectedClass,
+                    className: sclass.sclassName
+                }));
+                setAvailableSections(sections);
+            } else {
+                setAvailableSections([]);
+            }
+        } else {
+            setAvailableSections([]);
         }
-    }, [selectedClasses, subjectsList]);
+    }, [selectedClass, sclassesList]);
+
+    useEffect(() => {
+        // Get available subjects for the selected class
+        if (selectedClass && subjectsList && subjectsList.length > 0) {
+            const subjects = subjectsList.filter(subject => 
+                subject.sclassName?._id === selectedClass
+            );
+            setAvailableSubjects(subjects);
+        } else {
+            setAvailableSubjects([]);
+        }
+    }, [selectedClass, subjectsList]);
 
     const handleClassChange = (event) => {
-        const value = event.target.value;
-        setSelectedClasses(typeof value === 'string' ? value.split(',') : value);
-        // Reset subjects when classes change
+        const newClassId = event.target.value;
+        setSelectedClass(newClassId);
+        // Reset dependent selections when class changes
+        setSelectedTeachingSections([]);
         setSelectedSubjects([]);
+        setSelectedAttendanceSections([]);
+    };
+
+    const handleTeachingSectionsChange = (event) => {
+        const value = event.target.value;
+        setSelectedTeachingSections(typeof value === 'string' ? value.split(',') : value);
+        // Reset attendance sections if they're not in the new teaching sections
+        setSelectedAttendanceSections(prev => 
+            prev.filter(sectionId => value.includes(sectionId))
+        );
     };
 
     const handleSubjectChange = (event) => {
@@ -96,19 +121,23 @@ const EditTeacherAssignments = () => {
         setSelectedSubjects(typeof value === 'string' ? value.split(',') : value);
     };
 
-    const handleAttendanceClassChange = (event) => {
-        setAttendanceClass(event.target.value);
+    const handleAttendanceSectionsChange = (event) => {
+        const value = event.target.value;
+        setSelectedAttendanceSections(typeof value === 'string' ? value.split(',') : value);
     };
 
     const handleSaveAssignments = async () => {
-        if (selectedClasses.length === 0) {
-            setMessage("Please select at least one class");
+        if (!selectedClass) {
+            setMessage("Please select a class");
             setShowPopup(true);
             return;
         }
 
-        // If attendanceClass is an empty string, send null to backend
-        const attendanceClassToSend = attendanceClass || null;
+        if (selectedTeachingSections.length === 0) {
+            setMessage("Please select at least one teaching section");
+            setShowPopup(true);
+            return;
+        }
 
         if (selectedSubjects.length === 0) {
             setMessage("Please select at least one subject");
@@ -116,22 +145,28 @@ const EditTeacherAssignments = () => {
             return;
         }
 
-        // Validate only if an attendance class is selected
-        if (attendanceClass && !selectedClasses.includes(attendanceClass)) {
-            setMessage("Attendance class must be one of the selected teaching classes");
-            setShowPopup(true);
-            return;
+        // Validate that attendance sections are subset of teaching sections (only if attendance sections are selected)
+        if (selectedAttendanceSections.length > 0) {
+            const invalidAttendanceSections = selectedAttendanceSections.filter(sectionId => 
+                !selectedTeachingSections.includes(sectionId)
+            );
+            if (invalidAttendanceSections.length > 0) {
+                setMessage("Attendance sections must be a subset of teaching sections");
+                setShowPopup(true);
+                return;
+            }
         }
 
         setLoader(true);
         try {
-                        const response = await dispatch(assignMultipleSubjects(id, selectedSubjects, attendanceClassToSend));
-            if (response.payload && response.payload.message && response.payload.message.includes('already assigned for attendance')) {
-                setMessage(response.payload.message);
-                setShowPopup(true);
-                setLoader(false);
-                return;
-            }
+            const response = await dispatch(updateTeacherAssignments(
+                id, 
+                selectedSubjects, 
+                selectedTeachingSections, 
+                selectedAttendanceSections,
+                selectedClass
+            ));
+            
             setMessage("Teacher assignments updated successfully!");
             setShowPopup(true);
             
@@ -212,26 +247,39 @@ const EditTeacherAssignments = () => {
                             </Box>
                             
                             <Typography variant="body2" color="text.secondary" gutterBottom>
-                                Attendance Class:
+                                Teaching Sections:
                             </Typography>
-                            {teacherDetails?.attendanceClass ? (
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                                {(teacherDetails?.teachSections || []).map((section, index) => (
                                     <Chip 
-                                        label={teacherDetails.attendanceClass.sclassName}
+                                        key={section.sectionId || index} 
+                                        label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
+                                        size="small" 
+                                        color="primary" 
+                                        variant="outlined" 
+                                    />
+                                ))}
+                            </Box>
+                            
+                            <Typography variant="body2" color="text.secondary" gutterBottom>
+                                Attendance Sections:
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                                {(teacherDetails?.attendanceSections || []).map((section, index) => (
+                                    <Chip 
+                                        key={section.sectionId || index} 
+                                        label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
                                         size="small" 
                                         color="success" 
-                                        variant="filled"
-                                        sx={{ mr: 1 }}
+                                        variant="filled" 
                                     />
-                                    <Typography variant="caption" sx={{ color: 'success.main' }}>
-                                        ✓ Attendance Teacher
+                                ))}
+                                {(teacherDetails?.attendanceSections || []).length === 0 && (
+                                    <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                                        No attendance sections assigned
                                     </Typography>
-                                </Box>
-                            ) : (
-                                <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                                    No attendance duty
-                                </Typography>
-                            )}
+                                )}
+                            </Box>
                         </Box>
                         <Divider sx={{ my: 2 }} />
                     </Grid>
@@ -242,23 +290,13 @@ const EditTeacherAssignments = () => {
                             Edit Assignments
                         </Typography>
                         
+                        {/* Step 1: Select Class */}
                         <FormControl fullWidth sx={{ mb: 3 }}>
-                            <InputLabel>Teaching Classes</InputLabel>
+                            <InputLabel>Select Class</InputLabel>
                             <Select
-                                multiple
-                                value={selectedClasses}
+                                value={selectedClass}
                                 onChange={handleClassChange}
-                                label="Teaching Classes"
-                                renderValue={(selected) => (
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                        {selected.map((value) => {
-                                            const sclass = sclassesList.find(c => c._id === value);
-                                            return (
-                                                <Chip key={value} label={sclass?.sclassName || value} size="small" />
-                                            );
-                                        })}
-                                    </Box>
-                                )}
+                                label="Select Class"
                             >
                                 {sclassesList.map((sclass) => (
                                     <MenuItem key={sclass._id} value={sclass._id}>
@@ -268,50 +306,119 @@ const EditTeacherAssignments = () => {
                             </Select>
                         </FormControl>
 
-                        <FormControl fullWidth sx={{ mb: 3 }}>
-                            <InputLabel>Teaching Subjects</InputLabel>
-                            <Select
-                                multiple
-                                value={selectedSubjects}
-                                onChange={handleSubjectChange}
-                                label="Teaching Subjects"
-                                renderValue={(selected) => (
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                        {selected.map((value) => {
-                                            const subject = availableSubjects.find(s => s._id === value);
-                                            return (
-                                                <Chip key={value} label={subject?.subName || value} size="small" />
-                                            );
-                                        })}
-                                    </Box>
-                                )}
-                            >
-                                {availableSubjects.map((subject) => (
-                                    <MenuItem key={subject._id} value={subject._id}>
-                                        {subject.subName} ({subject.sclassName?.sclassName || 'Unknown Class'})
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <FormControl fullWidth sx={{ mb: 3 }}>
-                            <InputLabel>Attendance Class (Optional)</InputLabel>
-                            <Select
-                                value={attendanceClass}
-                                onChange={handleAttendanceClassChange}
-                                label="Attendance Class (Optional)"
-                            >
-                                <MenuItem value="">None</MenuItem>
-                                {selectedClasses.map((classId) => {
-                                    const sclass = sclassesList.find(c => c._id === classId);
-                                    return (
-                                        <MenuItem key={classId} value={classId}>
-                                            {sclass?.sclassName}
+                        {/* Step 2: Select Teaching Sections */}
+                        {selectedClass && (
+                            <FormControl fullWidth sx={{ mb: 3 }}>
+                                <InputLabel>Teaching Sections</InputLabel>
+                                <Select
+                                    multiple
+                                    value={selectedTeachingSections}
+                                    onChange={handleTeachingSectionsChange}
+                                    label="Teaching Sections"
+                                    renderValue={(selected) => (
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                            {selected.map((value) => {
+                                                const section = availableSections.find(s => s._id === value);
+                                                return (
+                                                    <Chip 
+                                                        key={value} 
+                                                        label={section ? section.sectionName : value} 
+                                                        size="small" 
+                                                    />
+                                                );
+                                            })}
+                                        </Box>
+                                    )}
+                                >
+                                    {availableSections.map((section) => (
+                                        <MenuItem key={section._id} value={section._id}>
+                                            {section.sectionName}
                                         </MenuItem>
-                                    );
-                                })}
-                            </Select>
-                        </FormControl>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        )}
+
+                        {/* Step 3: Select Subjects */}
+                        {selectedClass && (
+                            <FormControl fullWidth sx={{ mb: 3 }}>
+                                <InputLabel>Teaching Subjects</InputLabel>
+                                <Select
+                                    multiple
+                                    value={selectedSubjects}
+                                    onChange={handleSubjectChange}
+                                    label="Teaching Subjects"
+                                    renderValue={(selected) => (
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                            {selected.map((value) => {
+                                                const subject = availableSubjects.find(s => s._id === value);
+                                                return (
+                                                    <Chip key={value} label={subject?.subName || value} size="small" />
+                                                );
+                                            })}
+                                        </Box>
+                                    )}
+                                >
+                                    {availableSubjects.map((subject) => (
+                                        <MenuItem key={subject._id} value={subject._id}>
+                                            {subject.subName}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        )}
+
+                        {/* Step 4: Attendance Sections (Optional) */}
+                        {selectedClass && selectedTeachingSections.length > 0 && (
+                            <Box sx={{ mb: 3 }}>
+                                <Typography variant="subtitle1" gutterBottom>
+                                    Attendance Responsibility (Optional)
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                    Select which sections this teacher should take attendance for. Leave empty if no attendance duty is required.
+                                </Typography>
+
+                                <FormControl fullWidth>
+                                    <InputLabel>Attendance Sections</InputLabel>
+                                    <Select
+                                        multiple
+                                        value={selectedAttendanceSections}
+                                        onChange={handleAttendanceSectionsChange}
+                                        label="Attendance Sections"
+                                        renderValue={(selected) => (
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                {selected.length === 0 ? (
+                                                    <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                                        No attendance duty assigned
+                                                    </Typography>
+                                                ) : (
+                                                    selected.map((value) => {
+                                                        const section = availableSections.find(s => s._id === value);
+                                                        return (
+                                                            <Chip
+                                                                key={value}
+                                                                label={section ? section.sectionName : value}
+                                                                size="small"
+                                                                color="success"
+                                                            />
+                                                        );
+                                                    })
+                                                )}
+                                            </Box>
+                                        )}
+                                    >
+                                        {availableSections
+                                            .filter(section => selectedTeachingSections.includes(section._id))
+                                            .map((section) => (
+                                                <MenuItem key={section._id} value={section._id}>
+                                                    <Checkbox checked={selectedAttendanceSections.indexOf(section._id) > -1} />
+                                                    <ListItemText primary={section.sectionName} />
+                                                </MenuItem>
+                                            ))}
+                                    </Select>
+                                </FormControl>
+                            </Box>
+                        )}
                     </Grid>
 
                     <Grid item xs={12}>

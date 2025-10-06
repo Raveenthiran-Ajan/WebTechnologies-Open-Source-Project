@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom'
 import { getAllTeachers } from '../../../redux/teacherRelated/teacherHandle';
-import { Paper, Box, Typography, Button, IconButton, CircularProgress, Chip, Container } from '@mui/material';
+import { Paper, Box, Typography, Button, IconButton, CircularProgress, Chip, Container, Grid, Card, CardContent, CardActions, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
 import Delete from '@mui/icons-material/Delete';
 import Edit from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -26,6 +29,7 @@ const ShowTeachers = () => {
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
+    const [view, setView] = useState('list');
 
     useEffect(() => {
         dispatch(getAllTeachers(currentUser._id));
@@ -37,14 +41,20 @@ const ShowTeachers = () => {
         });
     };
 
+    const handleViewChange = (event, newView) => {
+        if (newView !== null) {
+            setView(newView);
+        }
+    };
+
 
 
     const columns = [
-        { field: 'name', headerName: 'Teacher Name', width: 200 },
+        { field: 'name', headerName: 'Teacher Name', flex: 0.8 },
         {
             field: 'teachSubjects',
             headerName: 'Teaching Subjects',
-            width: 300,
+            flex: 1,
             renderCell: (params) => {
                 const subjects = params.row.teachSubjects;
                 return (
@@ -86,7 +96,7 @@ const ShowTeachers = () => {
         {
             field: 'teachSclasses',
             headerName: 'Teaching Classes',
-            width: 200,
+            flex: 0.8,
             renderCell: (params) => {
                 const classes = params.row.teachSclasses;
                 return (
@@ -126,30 +136,69 @@ const ShowTeachers = () => {
             },
         },
         {
-            field: 'attendanceClass',
-            headerName: 'Attendance Class',
-            width: 180,
+            field: 'teachSections',
+            headerName: 'Teaching Sections',
+            flex: 0.8,
             renderCell: (params) => {
-                const { attendanceClass } = params.row;
-                if (!attendanceClass) {
-                    return (
-                        <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                            No attendance duty
-                        </Typography>
-                    );
-                }
+                const sections = params.row.teachSections;
                 return (
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Chip 
-                            label={attendanceClass.sclassName} 
-                            size="small" 
-                            color="success" 
-                            variant="filled"
-                            sx={{ mr: 1 }} 
-                        />
-                        <Typography variant="caption" sx={{ color: 'success.main' }}>
-                            ✓ Class Teacher
-                        </Typography>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexWrap: 'wrap', 
+                        gap: 0.5, 
+                        width: '100%',
+                        py: 1 
+                    }}>
+                        {sections && sections.length > 0 ? (
+                            sections.map((section, index) => (
+                                <Chip 
+                                    key={section.sectionId || index} 
+                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
+                                    size="small" 
+                                    color="info" 
+                                    variant="outlined"
+                                    sx={{ fontSize: '0.75rem' }}
+                                />
+                            ))
+                        ) : (
+                            <Typography variant="body2" color="text.secondary">
+                                No sections
+                            </Typography>
+                        )}
+                    </Box>
+                );
+            },
+        },
+        {
+            field: 'attendanceSections',
+            headerName: 'Attendance Sections',
+            flex: 0.8,
+            renderCell: (params) => {
+                const sections = params.row.attendanceSections;
+                return (
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexWrap: 'wrap', 
+                        gap: 0.5, 
+                        width: '100%',
+                        py: 1 
+                    }}>
+                        {sections && sections.length > 0 ? (
+                            sections.map((section, index) => (
+                                <Chip 
+                                    key={section.sectionId || index} 
+                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`} 
+                                    size="small" 
+                                    color="success" 
+                                    variant="filled"
+                                    sx={{ fontSize: '0.75rem' }}
+                                />
+                            ))
+                        ) : (
+                            <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                                No attendance duty
+                            </Typography>
+                        )}
                     </Box>
                 );
             },
@@ -157,26 +206,30 @@ const ShowTeachers = () => {
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 150,
+            flex: 1.2, headerAlign: 'center', align: 'center',
             renderCell: (params) => {
                 return (
-                    <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Box>
                         <IconButton
                             onClick={() => deleteHandler(params.row.id, "Teacher")}
+                            title="Delete Teacher"
                         >
                             <Delete color="error" />
                         </IconButton>
                         <Button
-                            variant="contained"
-                            onClick={() => navigate(`/Admin/teachers/teacher/${params.row.id}`)}>
+                            size="small"
+                            variant="outlined"
+                            startIcon={<VisibilityIcon />}
+                            onClick={() => navigate(`/Admin/teachers/teacher/${params.row.id}`)}
+                            sx={{ mx: 1 }}
+                        >
                             View
                         </Button>
                         <IconButton
-                            color="secondary"
                             onClick={() => navigate(`/Admin/teachers/edit-assignments/${params.row.id}`)}
                             title="Edit Assignments"
                         >
-                            <Edit />
+                            <Edit color="primary" />
                         </IconButton>
                     </Box>
                 );
@@ -185,6 +238,7 @@ const ShowTeachers = () => {
     ];
 
     const rows = teachersList && teachersList.map((teacher) => {
+        console.log('Teacher data:', teacher.name, 'teachSections:', teacher.teachSections, 'attendanceSections:', teacher.attendanceSections);
         let teachingSubjects = [];
         let teachingClasses = [];
         
@@ -205,7 +259,8 @@ const ShowTeachers = () => {
             name: teacher.name,
             teachSubjects: teachingSubjects,
             teachSclasses: teachingClasses,
-            attendanceClass: teacher.attendanceClass || null,
+            teachSections: teacher.teachSections || [],
+            attendanceSections: teacher.attendanceSections || [],
             teachSubject: teacher.teachSubject?.subName || null,
             teachSclass: teacher.teachSclass ? teacher.teachSclass.sclassName : 'No Class',
         };
@@ -231,6 +286,95 @@ const ShowTeachers = () => {
         );
     }
 
+    const TeacherBoxes = () => (
+        <Grid container spacing={3} sx={{ p: 2 }}>
+            {teachersList.map((teacher) => {
+                const row = rows.find(r => r.id === teacher._id);
+                return (
+                    <Grid item xs={12} sm={6} md={4} key={teacher._id}>
+                        <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                            <CardContent sx={{ flexGrow: 1 }}>
+                                <Typography variant="h6" component="div" gutterBottom>
+                                    {teacher.name}
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, color: 'text.secondary' }}>
+                                    {row?.teachSubjects && row.teachSubjects.length > 0 && (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
+                                            <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>Subjects:</Typography>
+                                            {row.teachSubjects.slice(0, 3).map((subject, index) => (
+                                                <Chip
+                                                    key={subject._id || index}
+                                                    label={subject.subName}
+                                                    size="small"
+                                                    variant="outlined"
+                                                    sx={{ fontSize: '0.7rem', height: '20px' }}
+                                                />
+                                            ))}
+                                            {row.teachSubjects.length > 3 && (
+                                                <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                                    +{row.teachSubjects.length - 3} more
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    )}
+                                    {row?.teachSections && row.teachSections.length > 0 && (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
+                                            <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>Teaching:</Typography>
+                                            {row.teachSections.slice(0, 3).map((section, index) => (
+                                                <Chip
+                                                    key={section.sectionId || index}
+                                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`}
+                                                    size="small"
+                                                    color="info"
+                                                    variant="outlined"
+                                                    sx={{ fontSize: '0.7rem', height: '20px' }}
+                                                />
+                                            ))}
+                                            {row.teachSections.length > 3 && (
+                                                <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                                    +{row.teachSections.length - 3} more
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    )}
+                                    {row?.attendanceSections && row.attendanceSections.length > 0 && (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
+                                            <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>Attendance:</Typography>
+                                            {row.attendanceSections.slice(0, 3).map((section, index) => (
+                                                <Chip
+                                                    key={section.sectionId || index}
+                                                    label={`${section.sectionName} (${section.sclassName?.sclassName || 'Unknown'})`}
+                                                    size="small"
+                                                    color="success"
+                                                    variant="filled"
+                                                    sx={{ fontSize: '0.7rem', height: '20px' }}
+                                                />
+                                            ))}
+                                            {row.attendanceSections.length > 3 && (
+                                                <Typography variant="caption" sx={{ ml: 0.5 }}>
+                                                    +{row.attendanceSections.length - 3} more
+                                                </Typography>
+                                            )}
+                                        </Box>
+                                    )}
+                                </Box>
+                            </CardContent>
+                            <CardActions sx={{ justifyContent: 'space-between', borderTop: '1px solid #eee' }}>
+                                <Button size="small" variant="outlined" startIcon={<VisibilityIcon />} onClick={() => navigate(`/Admin/teachers/teacher/${teacher._id}`)}>View</Button>
+                                <IconButton size="small" onClick={() => navigate(`/Admin/teachers/edit-assignments/${teacher._id}`)} title="Edit Assignments">
+                                    <Edit />
+                                </IconButton>
+                                <IconButton size="small" onClick={() => deleteHandler(teacher._id, "Teacher")} color="error" title="Delete Teacher">
+                                    <Delete />
+                                </IconButton>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                );
+            })}
+        </Grid>
+    );
+
     if (loading) {
         return <CircularProgress />;
     }
@@ -254,57 +398,103 @@ const ShowTeachers = () => {
 
     return (
         <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <Typography variant="h6" gutterBottom component="div" sx={{ p: 2 }}>
-                All Teachers
-            </Typography>
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                p: 2,
+                borderBottom: '1px solid #ccc'
+            }}>
+                <Typography variant="h6" component="div">
+                    All Teachers
+                </Typography>
+                <ToggleButtonGroup
+                    value={view}
+                    exclusive
+                    onChange={handleViewChange}
+                    aria-label="view mode"
+                >
+                    <ToggleButton value="list" aria-label="list view">
+                        <ViewListIcon />
+                    </ToggleButton>
+                    <ToggleButton value="box" aria-label="box view">
+                        <ViewModuleIcon />
+                    </ToggleButton>
+                </ToggleButtonGroup>
+            </Box>
             {loading ?
                 <CircularProgress />
                 :
                 (Array.isArray(teachersList) && teachersList.length > 0 ?
-                <Box sx={{ height: 400, width: '100%' }}>
-                    <DataGrid 
-                        rows={rows || []} 
-                        columns={columns} 
-                        slots={{ 
-                            toolbar: CustomToolbar 
-                        }}
-                        initialState={{
-                            pagination: {
-                                paginationModel: {
-                                    pageSize: 10,
-                                },
-                            },
-                        }}
-                        pageSizeOptions={[5, 10, 25]}
-                        disableRowSelectionOnClick
-                        getRowHeight={() => 'auto'}
-                        sx={{
-                            '& .MuiDataGrid-cell': {
-                                display: 'flex',
-                                alignItems: 'center',
-                                lineHeight: 'unset !important',
-                                maxHeight: 'none !important',
-                            },
-                            '& .MuiDataGrid-row': {
-                                maxHeight: 'none !important',
-                            }
-                        }}
-                    />
-                </Box>
-                :
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
-                    <SupervisorAccountOutlinedIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
-                    <Typography variant="h5" gutterBottom>
-                        No teachers found
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        startIcon={<PersonAddAlt1Icon />}
-                        onClick={() => navigate('/Admin/teachers/chooseclass')}
-                    >
-                        Add a Teacher
-                    </Button>
-                </Box>
+                    (view === 'list' ?
+                        <Box sx={{ height: 400, width: '100%', overflow: 'auto', mx: 1, mb: 1 }}>
+                            <DataGrid 
+                                rows={rows || []} 
+                                columns={columns} 
+                                slots={{ 
+                                    toolbar: CustomToolbar 
+                                }}
+                                initialState={{
+                                    pagination: {
+                                        paginationModel: {
+                                            pageSize: 10,
+                                        },
+                                    },
+                                }}
+                                pageSizeOptions={[5, 10, 25]}
+                                disableRowSelectionOnClick
+                                getRowHeight={() => 'auto'}
+                                sx={{
+                                    '& .MuiDataGrid-cell': {
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        lineHeight: 'unset !important',
+                                        maxHeight: 'none !important',
+                                        whiteSpace: 'normal',
+                                        wordWrap: 'break-word',
+                                        padding: '8px 16px',
+                                    },
+                                    '& .MuiDataGrid-row': {
+                                        maxHeight: 'none !important',
+                                        '&:hover': {
+                                            backgroundColor: 'action.hover',
+                                        },
+                                    },
+                                    '& .MuiDataGrid-columnHeader': {
+                                        backgroundColor: 'white',
+                                        color: 'text.primary',
+                                        fontWeight: 'bold',
+                                        padding: '16px',
+                                        borderBottom: '1px solid',
+                                        borderColor: 'divider',
+                                    },
+                                    '& .MuiDataGrid-columnHeaders': {
+                                        borderBottom: '2px solid',
+                                        borderColor: 'divider',
+                                    },
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    borderRadius: 1,
+                                }}
+                            />
+                        </Box>
+                        :
+                        <TeacherBoxes />
+                    )
+                    :
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
+                        <SupervisorAccountOutlinedIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
+                        <Typography variant="h5" gutterBottom>
+                            No teachers found
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            startIcon={<PersonAddAlt1Icon />}
+                            onClick={() => navigate('/Admin/teachers/chooseclass')}
+                        >
+                            Add a Teacher
+                        </Button>
+                    </Box>
                 )
             }
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />

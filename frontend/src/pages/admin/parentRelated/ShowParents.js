@@ -5,6 +5,7 @@ import { getAllParents, deleteParent } from '../../../redux/parentRelated/parent
 import { Paper, Box, Typography, Button, IconButton, CircularProgress, Select, MenuItem } from '@mui/material';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import Delete from '@mui/icons-material/Delete';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -98,7 +99,9 @@ const ShowParents = () => {
                             <Delete color="error" />
                         </IconButton>
                         <Button
-                            variant="contained" sx={{ ml: 1 }}
+                            size="small"
+                            variant="outlined"
+                            startIcon={<VisibilityIcon />}
                             onClick={() => navigate("/Admin/parents/view/" + params.row.id)}>
                             View
                         </Button>

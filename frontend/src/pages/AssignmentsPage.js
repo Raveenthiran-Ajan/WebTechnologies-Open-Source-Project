@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import AssignmentSubmission from "../components/AssignmentSubmission";
 import {
-  Box,
   Paper,
   Table,
   TableBody,
@@ -10,7 +9,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
   Chip,
   Button,
 } from "@mui/material";
@@ -86,6 +84,7 @@ function AssignmentsPage() {
           <TableHead>
             <TableRow>
               <TableCell sx={{ fontWeight: 'bold' }}>Title</TableCell>
+              <TableCell sx={{ fontWeight: 'bold' }}>Subject</TableCell>
               <TableCell sx={{ fontWeight: 'bold' }}>Due Date</TableCell>
               <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Status</TableCell>
               <TableCell sx={{ fontWeight: 'bold', textAlign: 'center' }}>Time Left</TableCell>
@@ -104,6 +103,7 @@ function AssignmentsPage() {
               return (
                 <TableRow key={assignment._id} sx={{ bgcolor: assignment._id % 2 === 0 ? 'action.hover' : 'background.paper' }}>
                   <TableCell sx={{ fontWeight: 'medium' }}>{assignment.title}</TableCell>
+                  <TableCell sx={{ fontWeight: 'medium' }}>{assignment.subjectName || assignment.subject || 'N/A'}</TableCell>
                   <TableCell sx={{ color: 'text.secondary' }}>{dueDate.toLocaleDateString()}</TableCell>
                   <TableCell sx={{ textAlign: 'center' }}>
                     {isSubmitted ? (

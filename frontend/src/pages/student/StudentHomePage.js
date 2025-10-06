@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import {
     Container,
     Grid,
@@ -7,12 +7,7 @@ import {
     Button,
     Box,
     Chip,
-    TableContainer,
-    Table,
-    TableHead,
-    TableRow,
-    TableCell,
-    TableBody
+    // Removed table imports as no longer needed
 } from '@mui/material'
 import { useDispatch, useSelector } from 'react-redux';
 import { calculateOverallAttendancePercentage } from '../../components/attendanceCalculator';
@@ -26,8 +21,8 @@ import Assignment from "../../assets/assignment.svg";
 import { getSubjectList } from '../../redux/sclassRelated/sclassHandle';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import AssignmentSubmission from '../../components/AssignmentSubmission';
 import { API_BASE_URL } from '../../config';
+import StudentSubmissions from './StudentSubmissions';
 
 const StudentHomePage = () => {
     const dispatch = useDispatch();
@@ -37,6 +32,7 @@ const StudentHomePage = () => {
 
     const [subjectAttendance, setSubjectAttendance] = useState([]);
     const [assignments, setAssignments] = useState([]);
+    // eslint-disable-next-line no-unused-vars
     const [assignmentsLoading, setAssignmentsLoading] = useState(false);
     const [submissions, setSubmissions] = useState([]);
     const [showSubmissionForm, setShowSubmissionForm] = useState(null);
@@ -152,9 +148,34 @@ const StudentHomePage = () => {
         }
     };
 
+    const handleViewSubmission = (assignmentId) => {
+        const submission = submissions.find(sub => sub.assignmentId._id === assignmentId);
+        if (submission && submission.fileUrl) {
+            window.open(`${API_BASE_URL}${submission.fileUrl}`, '_blank');
+        } else if (submission && submission.answerText) {
+            alert(`Submission Text:\n\n${submission.answerText}`);
+        } else {
+            alert('No submission content available.');
+        }
+    };
+
+    const handleEditSubmission = (assignmentId) => {
+        handleOpenSubmissionForm(assignmentId);
+    };
+
+    const handleDeleteSubmission = async (assignmentId) => {
+        const submission = submissions.find(sub => sub.assignmentId._id === assignmentId);
+        if (submission) {
+            await handleDelete(submission);
+            // After deletion, refresh assignments and submissions to update status to Pending
+            await fetchAssignments();
+            await fetchSubmissions();
+        }
+    };
+
     const classID = currentUser.sclassName._id
 
-    const fetchAssignments = async () => {
+    const fetchAssignments = useCallback(async () => {
         if (!currentUser._id) return;
         setAssignmentsLoading(true);
         try {
@@ -166,9 +187,9 @@ const StudentHomePage = () => {
         } finally {
             setAssignmentsLoading(false);
         }
-    };
+    }, [currentUser._id]);
 
-    const fetchSubmissions = async () => {
+    const fetchSubmissions = useCallback(async () => {
         if (!currentUser._id) return;
         try {
             const res = await axios.get(`${API_BASE_URL}/submissions/student/${currentUser._id}`);
@@ -177,26 +198,16 @@ const StudentHomePage = () => {
             console.error('Error fetching submissions:', err);
             setSubmissions([]);
         }
-    };
+    }, [currentUser._id]);
 
-    const calculateTimeLeft = (dueDate) => {
-        if (!dueDate) return 'No due date';
-        const now = new Date();
-        const due = new Date(dueDate);
-        const diff = due - now;
-        if (diff <= 0) return 'Overdue';
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        return `${days}d ${hours}h ${minutes}m left`;
-    };
+
 
     useEffect(() => {
         dispatch(getUserDetails(currentUser._id, "Student"));
         dispatch(getSubjectList(classID, "ClassSubjects"));
         fetchAssignments();
         fetchSubmissions();
-    }, [dispatch, currentUser._id, classID]);
+    }, [dispatch, currentUser._id, classID, fetchAssignments, fetchSubmissions]);
 
     const numberOfSubjects = subjectsList && subjectsList.length;
 
@@ -295,171 +306,24 @@ const StudentHomePage = () => {
                             <SeeNotice />
                         </Paper>
                     </Grid>
-                    <Grid item xs={12}>
-                        <Paper sx={{ p: 3, width: "100%", maxWidth: 1200, boxShadow: 2, display: 'flex', flexDirection: 'column' }}>
-                            <Typography variant="h6" gutterBottom>
-                                Recent Assignments
-                            </Typography>
-                            {assignmentsLoading ? (
-                                <Typography>Loading assignments...</Typography>
-                            ) : assignments.length > 0 ? (
-                                <Box sx={{ width: "100%" }}>
-                                    <Box sx={{ maxHeight: 600, overflowY: "auto", width: "100%" }}>
-                                        <TableContainer> {/* Added TableContainer for better scrolling handling */}
-                                            <Table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
-                                                <TableHead>
-                                                    <TableRow>
-                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "25%", fontWeight: "bold" }}>Title</TableCell>
-                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Due Date</TableCell>
-                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "15%", fontWeight: "bold" }}>Status</TableCell>
-                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold" }}>Time Left</TableCell>
-                                                        <TableCell style={{ borderBottom: "1px solid #ccc", padding: "8px", textAlign: "left", width: "20%", fontWeight: "bold", verticalAlign: "middle" }}>Actions</TableCell>
-                                                    </TableRow>
-                                                </TableHead>
-                                                <TableBody>
-                                                    {assignments.map((assignment) => {
-                                                        const submission = submissions.find(
-                                                            (sub) => sub.assignmentId._id === assignment._id
-                                                        );
-                                                        const isSubmitted = !!submission;
-                                                        const timeLeft = calculateTimeLeft(assignment.dueDate);
-                                                        const isOverdue = timeLeft === 'Overdue';
-                                                        // Define 'dueDate' and 'status' here to fix the error
-                                                        const dueDateDisplay = new Date(assignment.dueDate).toLocaleDateString('en-US', {
-                                                            year: 'numeric',
-                                                            month: 'short',
-                                                            day: 'numeric'
-                                                        });
-                                                        const status = isSubmitted ? 'Submitted' : (isOverdue ? 'Missing' : 'Pending');
-
-                                                        return (
-                                                            <TableRow key={assignment._id} hover>
-                                                                <TableCell sx={{ fontWeight: '500', wordBreak: 'break-word' }}>{assignment.title}</TableCell>
-                                                                <TableCell sx={{ color: 'text.secondary' }}>{dueDateDisplay}</TableCell>
-                                                                <TableCell sx={{ textAlign: 'center' }}>
-                                                                    <Chip
-                                                                        label={status}
-                                                                        color={isSubmitted ? 'success' : status === 'Pending' ? 'warning' : 'error'}
-                                                                        variant="filled"
-                                                                        sx={{
-                                                                            borderRadius: '16px',
-                                                                            fontWeight: 'bold',
-                                                                            minWidth: 90,
-                                                                            justifyContent: 'center',
-                                                                            backgroundColor: isSubmitted ? '#388e3c' : status === 'Pending' ? '#ffb74d' : '#d32f2f',
-                                                                            color: 'white',
-                                                                        }}
-                                                                    />
-                                                                </TableCell>
-                                                                <TableCell sx={{ textAlign: 'center' }}>
-                                                                    <Chip
-                                                                        label={isOverdue ? 'Overdue' : `${timeLeft}`}
-                                                                        variant="filled"
-                                                                        sx={{
-                                                                            borderRadius: '16px',
-                                                                            fontSize: '0.8rem',
-                                                                            fontWeight: 'bold',
-                                                                            minWidth: 110,
-                                                                            justifyContent: 'center',
-                                                                            backgroundColor: isOverdue ? '#d32f2f' : '#1976d2',
-                                                                            color: 'white',
-                                                                        }}
-                                                                    />
-                                                                </TableCell>
-                                                                <TableCell sx={{ textAlign: 'center' }}>
-                                                                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                                                                        {(() => {
-                                                                            const submission = submissions.find(sub => sub.assignmentId._id === assignment._id);
-                                                                            const now = new Date();
-                                                                            const deadline = assignment.dueDate ? new Date(assignment.dueDate) : null;
-                                                                            const isDeadlineOver = deadline ? now > deadline : false;
-                                                                            if (!submission) {
-                                                                                return (
-                                                                                    <>
-                                                                                        <Button
-                                                                                            variant="outlined"
-                                                                                            href={`${API_BASE_URL}${assignment.fileUrl}`}
-                                                                                            target="_blank"
-                                                                                            rel="noopener noreferrer"
-                                                                                            disabled={!assignment.fileUrl}
-                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase' }}
-                                                                                        >
-                                                                                            Download
-                                                                                        </Button>
-                                                                                        <Button
-                                                                                            variant="contained"
-                                                                                            disabled={isDeadlineOver}
-                                                                                            onClick={() => handleOpenSubmissionForm(assignment._id)}
-                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase' }}
-                                                                                        >
-                                                                                            Submit
-                                                                                        </Button>
-                                                                                    </>
-                                                                                );
-                                                                            } else if (submission && !isDeadlineOver) {
-                                                                                return (
-                                                                                    <>
-                                                                                        <Button
-                                                                                            variant="outlined"
-                                                                                            href={`${API_BASE_URL}${assignment.fileUrl}`}
-                                                                                            target="_blank"
-                                                                                            rel="noopener noreferrer"
-                                                                                            disabled={!assignment.fileUrl}
-                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase' }}
-                                                                                        >
-                                                                                            Download
-                                                                                        </Button>
-                                                                                        <Button
-                                                                                            variant="outlined"
-                                                                                            size="small"
-                                                                                            onClick={() => handleOpenSubmissionForm(assignment._id)}
-                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase', ml: 1 }}
-                                                                                        >
-                                                                                            Edit
-                                                                                        </Button>
-                                                                                        <Button
-                                                                                            variant="outlined"
-                                                                                            color="error"
-                                                                                            size="small"
-                                                                                            onClick={() => handleDelete(submission)}
-                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase', ml: 1 }}
-                                                                                        >
-                                                                                            Delete
-                                                                                        </Button>
-                                                                                    </>
-                                                                                );
-                                                                            } else if (submission && isDeadlineOver) {
-                                                                                return (
-                                                                                    <>
-                                                                                        <Button
-                                                                                            variant="outlined"
-                                                                                            href={`${API_BASE_URL}${assignment.fileUrl}`}
-                                                                                            target="_blank"
-                                                                                            rel="noopener noreferrer"
-                                                                                            disabled={!assignment.fileUrl}
-                                                                                            sx={{ minWidth: 100, textTransform: 'uppercase' }}
-                                                                                        >
-                                                                                            Download
-                                                                                        </Button>
-                                                                                    </>
-                                                                                );
-                                                                            }
-                                                                        })()}
-                                                                    </Box>
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        );
-                                                    })}
-                                                </TableBody>
-                                            </Table>
-                                        </TableContainer>
-                                    </Box>
-                                </Box>
-                            ) : (
-                                <Typography>No assignments found.</Typography>
-                            )}
-                        </Paper>
-                    </Grid>
+                <Grid item xs={12}>
+                    <StudentSubmissions
+                        assignments={assignments}
+                        submissions={submissions}
+                        onOpenSubmissionForm={handleOpenSubmissionForm}
+                        onDownload={(assignment) => {
+                            if (assignment.fileUrl) {
+                                window.open(`${API_BASE_URL}${assignment.fileUrl}`, '_blank');
+                            }
+                        }}
+                        onViewSubmission={handleViewSubmission}
+                        onEditSubmission={handleEditSubmission}
+                        onDeleteSubmission={handleDeleteSubmission}
+                        onFeedback={(assignmentId) => {
+                            alert(`Feedback feature for assignment ${assignmentId} coming soon!`);
+                        }}
+                    />
+                </Grid>
                 </Grid>
 
                 {/* Submission Form Inline Below Assignments */}
