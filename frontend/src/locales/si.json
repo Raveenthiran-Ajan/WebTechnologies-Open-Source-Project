@@ -205,16 +205,24 @@
     "noChildDetails": "දරුවන්ගේ විස්තර කිසිවක් නොමැත.",
     "viewAllChildren": "සියලු දරුවන් බලන්න",
     "roll": "රෝල්",
-    "class": "පන්තිය"
+    "class": "පන්තිය",
+    "childrenCount": "මුළු දරුවන්",
+    "noticesCount": "නොකියවූ දැන්වීම්",
+    "schoolNotices": "පාසල් දැන්වීම්",
+    "passwordChangedSuccess": "මුරපදය සාර්ථකව වෙනස් කරන ලදී!",
+    "childrenAlt": "දරුවන්",
+    "noticesAlt": "දැන්වීම්"
   },
   "parentSideBar": {
     "mainMenu": "ප්‍රධාන මෙනුව",
-    "dashboard": "පුවරුව",
+    "dashboard": "මුල් පිටුව",
     "myChildren": "මගේ දරුවන්",
     "profile": "පැතිකඩ",
     "schoolServices": "පාසල් සේවාවන්",
     "notices": "දැන්වීම්",
     "reports": "වාර්තා",
+    "timetable": "කාලසටහන",
+    "termReport": "වාර වාර්තාව",
     "complaints": "පැමිණිලි",
     "account": "ගිණුම",
     "logout": "පිටවන්න"

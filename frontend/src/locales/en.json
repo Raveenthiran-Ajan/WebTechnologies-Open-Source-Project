@@ -205,16 +205,24 @@
     "noChildDetails": "No child details found.",
     "viewAllChildren": "View All Children",
     "roll": "Roll",
-    "class": "Class"
+    "class": "Class",
+    "childrenCount": "Total Children",
+    "noticesCount": "Unread Notices",
+    "schoolNotices": "School Notices",
+    "passwordChangedSuccess": "Password changed successfully!",
+    "childrenAlt": "Children",
+    "noticesAlt": "Notices"
   },
   "parentSideBar": {
     "mainMenu": "Main Menu",
-    "dashboard": "Dashboard",
+    "dashboard": "Home",
     "myChildren": "My Children",
     "profile": "Profile",
     "schoolServices": "School Services",
     "notices": "Notices",
     "reports": "Reports",
+    "timetable": "Timetable",
+    "termReport": "Term Report",
     "complaints": "Complaints",
     "account": "Account",
     "logout": "Logout"

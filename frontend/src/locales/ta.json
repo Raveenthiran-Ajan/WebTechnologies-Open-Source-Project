@@ -205,16 +205,24 @@
     "noChildDetails": "பிள்ளை விவரங்கள் எதுவும் கிடைக்கவில்லை.",
     "viewAllChildren": "அனைத்து பிள்ளைகளையும் பார்க்கவும்",
     "roll": "ரோல்",
-    "class": "வகுப்பு"
+    "class": "வகுப்பு",
+    "childrenCount": "மொத்த பிள்ளைகள்",
+    "noticesCount": "படிக்காத அறிவிப்புகள்",
+    "schoolNotices": "பாடசாலை அறிவிப்புகள்",
+    "passwordChangedSuccess": "கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது!",
+    "childrenAlt": "பிள்ளைகள்",
+    "noticesAlt": "அறிவிப்புகள்"
   },
   "parentSideBar": {
     "mainMenu": "பிரதான மெனு",
-    "dashboard": "முகப்பலகை",
+    "dashboard": "முகப்பு",
     "myChildren": "எனது பிள்ளைகள்",
     "profile": "சுயவிவரம்",
     "schoolServices": "பாடசாலை சேவைகள்",
     "notices": "விவரங்கள்",
     "reports": "அறிக்கைகள்",
+    "timetable": "நேர அட்டவணை",
+    "termReport": "கால அறிக்கை",
     "complaints": "புகார்கள்",
     "account": "கணக்கு",
     "logout": "வெளியேறு"
