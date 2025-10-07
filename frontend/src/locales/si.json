@@ -252,5 +252,27 @@
     "title": "මෑත පාසල් දැන්වීම්",
     "description": "නවතම නිවේදන සමඟ යාවත්කාලීනව සිටින්න",
     "new": "නව"
+  },
+  "parentProfile": {
+    "loadingProfile": "පැතිකඩ පූරණය වෙමින්...",
+    "noParentInfo": "පිවිසෙන පුද්ගලයින්ගේ තොරතුරු නොමැත.",
+    "title": "දෙමාපිය පැතිකඩ",
+    "subtitle": "ඔබගේ ගිණුම් තොරතුරු කළමනාකරණය කරන්න",
+    "personalInfo": "පුද්ගලික තොරතුරු",
+    "fullName": "සම්පූර්ණ නම",
+    "emailAddress": "ඊමේල් ලිපිනය",
+    "phoneNumber": "දුරකථන අංකය",
+    "notProvided": "සපයා නොමැත",
+    "changePassword": "මුරපදය වෙනස් කරන්න",
+    "childrenInfo": "දරුවන්ගේ තොරතුරු",
+    "child": "දරුවා",
+    "children": "දරුවන්",
+    "roll": "රෝල්:",
+    "class": "පන්තිය:",
+    "noChildrenLinked": "සම්බන්ධිත දරුවන් නොමැත",
+    "oldPassword": "හරිත මුරපදය",
+    "newPassword": "නව මුරපදය",
+    "cancel": "අවලංගු කරන්න",
+    "passwordChangedSuccess": "මුරපදය සාර්ථකව වෙනස් කරන ලදී!"
   }
 }

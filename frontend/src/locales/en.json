@@ -252,5 +252,27 @@
     "title": "Recent School Notices",
     "description": "Stay updated with the latest announcements",
     "new": "New"
+  },
+  "parentProfile": {
+    "loadingProfile": "Loading profile...",
+    "noParentInfo": "No parent information available.",
+    "title": "Parent Profile",
+    "subtitle": "Manage your account information",
+    "personalInfo": "Personal Information",
+    "fullName": "Full Name",
+    "emailAddress": "Email Address",
+    "phoneNumber": "Phone Number",
+    "notProvided": "Not provided",
+    "changePassword": "Change Password",
+    "childrenInfo": "Children Information",
+    "child": "Child",
+    "children": "Children",
+    "roll": "Roll:",
+    "class": "Class:",
+    "noChildrenLinked": "No children linked",
+    "oldPassword": "Old Password",
+    "newPassword": "New Password",
+    "cancel": "Cancel",
+    "passwordChangedSuccess": "Password changed successfully!"
   }
 }

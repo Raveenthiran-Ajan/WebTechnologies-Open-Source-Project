@@ -7,12 +7,14 @@ import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import { useDispatch } from 'react-redux';
 import { updateUser } from '../../redux/userRelated/userHandle';
 import { underControl } from '../../redux/userRelated/userSlice';
+import { useTranslation } from 'react-i18next';
 
 const ParentProfile = () => {
-    const { currentUser, loading } = useSelector((state) => state.user);
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const { status } = useSelector((state) => state.user);
+     const { currentUser, loading } = useSelector((state) => state.user);
+     const dispatch = useDispatch();
+     const navigate = useNavigate();
+     const { status } = useSelector((state) => state.user);
+     const { t } = useTranslation();
 
     const [open, setOpen] = React.useState(false);
     const [oldPassword, setOldPassword] = React.useState('');
@@ -74,7 +76,7 @@ const ParentProfile = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <CircularProgress size={60} />
                     <Typography variant="h6" sx={{ mt: 2 }}>
-                        Loading profile...
+                        {t('parentProfile.loadingProfile')}
                     </Typography>
                 </Box>
             </Container>
@@ -86,7 +88,7 @@ const ParentProfile = () => {
             <Container maxWidth="lg" sx={{ py: 4 }}>
                 <Paper sx={{ p: 4, textAlign: 'center' }}>
                     <PersonIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                    <Typography variant="h6">No parent information available.</Typography>
+                    <Typography variant="h6">{t('parentProfile.noParentInfo')}</Typography>
                 </Paper>
             </Container>
         );
@@ -121,10 +123,10 @@ const ParentProfile = () => {
                         WebkitTextFillColor: 'transparent',
                     }}
                 >
-                    Parent Profile
+                    {t('parentProfile.title')}
                 </Typography>
                 <Typography variant="h6" color="text.secondary">
-                    Manage your account information
+                    {t('parentProfile.subtitle')}
                 </Typography>
             </Box>
 
@@ -140,13 +142,13 @@ const ParentProfile = () => {
                         <Box sx={{ bgcolor: 'primary.main', color: 'white', p: 2, textAlign: 'center' }}>
                             <PersonIcon sx={{ fontSize: 32, mb: 1 }} />
                             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                Personal Information
+                                {t('parentProfile.personalInfo')}
                             </Typography>
                         </Box>
                         <CardContent sx={{ p: 3 }}>
                             <Box sx={{ mb: 2 }}>
                                 <Typography variant="subtitle2" color="text.secondary">
-                                    Full Name
+                                    {t('parentProfile.fullName')}
                                 </Typography>
                                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                                     {currentUser.name}
@@ -157,7 +159,7 @@ const ParentProfile = () => {
                             
                             <Box sx={{ mb: 2 }}>
                                 <Typography variant="subtitle2" color="text.secondary">
-                                    Email Address
+                                    {t('parentProfile.emailAddress')}
                                 </Typography>
                                 <Typography variant="body1">
                                     {currentUser.email}
@@ -168,10 +170,10 @@ const ParentProfile = () => {
                             
                             <Box>
                                 <Typography variant="subtitle2" color="text.secondary">
-                                    Phone Number
+                                    {t('parentProfile.phoneNumber')}
                                 </Typography>
                                 <Typography variant="body1">
-                                    {currentUser.phone || 'Not provided'}
+                                    {currentUser.phone || t('parentProfile.notProvided')}
                                 </Typography>
                             </Box>
                             
@@ -179,7 +181,7 @@ const ParentProfile = () => {
                             
                             <Box sx={{ textAlign: 'center', mt: 2 }}>
                                 <Button variant="contained" onClick={handleOpen} sx={{ minWidth: 150 }}>
-                                    Change Password
+                                    {t('parentProfile.changePassword')}
                                 </Button>
                             </Box>
                         </CardContent>
@@ -197,12 +199,12 @@ const ParentProfile = () => {
                         <Box sx={{ bgcolor: 'secondary.main', color: 'white', p: 2, textAlign: 'center' }}>
                             <FamilyRestroomIcon sx={{ fontSize: 32, mb: 1 }} />
                             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                Children Information
+                                {t('parentProfile.childrenInfo')}
                             </Typography>
                         </Box>
                         <CardContent sx={{ p: 3 }}>
                             <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
-                                {currentUser.children ? currentUser.children.length : 0} {currentUser.children?.length === 1 ? 'Child' : 'Children'}
+                                {currentUser.children ? currentUser.children.length : 0} {currentUser.children?.length === 1 ? t('parentProfile.child') : t('parentProfile.children')}
                             </Typography>
                             
                             {currentUser.children && currentUser.children.length > 0 ? (
@@ -220,11 +222,11 @@ const ParentProfile = () => {
                                                 {child.name}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
-                                                Roll: {child.rollNum}
+                                                {t('parentProfile.roll')} {child.rollNum}
                                             </Typography>
                                             {getClassName(child.sclassName) && (
                                                 <Typography variant="body2" color="text.secondary">
-                                                    Class: {getClassName(child.sclassName)}
+                                                    {t('parentProfile.class')} {getClassName(child.sclassName)}
                                                 </Typography>
                                             )}
                                         </Box>
@@ -234,7 +236,7 @@ const ParentProfile = () => {
                                 <Box sx={{ textAlign: 'center', py: 3 }}>
                                     <FamilyRestroomIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
                                     <Typography variant="body1" color="text.secondary">
-                                        No children linked
+                                        {t('parentProfile.noChildrenLinked')}
                                     </Typography>
                                 </Box>
                             )}
@@ -262,10 +264,10 @@ const ParentProfile = () => {
                     p: 4,
                 }}>
                     <Typography id="modal-modal-title" variant="h6" component="h2" sx={{ mb: 2 }}>
-                        Change Password
+                        {t('parentProfile.changePassword')}
                     </Typography>
                     <TextField
-                        label="Old Password"
+                        label={t('parentProfile.oldPassword')}
                         type="password"
                         value={oldPassword}
                         onChange={(e) => setOldPassword(e.target.value)}
@@ -274,7 +276,7 @@ const ParentProfile = () => {
                         required
                     />
                     <TextField
-                        label="New Password"
+                        label={t('parentProfile.newPassword')}
                         type="password"
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
@@ -284,10 +286,10 @@ const ParentProfile = () => {
                     />
                     <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
                         <Button onClick={handleClose} variant="outlined">
-                            Cancel
+                            {t('parentProfile.cancel')}
                         </Button>
                         <Button onClick={handlePasswordChange} variant="contained">
-                            Change Password
+                            {t('parentProfile.changePassword')}
                         </Button>
                     </Box>
                 </Box>
@@ -301,7 +303,7 @@ const ParentProfile = () => {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
                 <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
-                    Password changed successfully!
+                    {t('parentProfile.passwordChangedSuccess')}
                 </Alert>
             </Snackbar>
         </Container>
