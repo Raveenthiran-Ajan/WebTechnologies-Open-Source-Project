@@ -117,10 +117,12 @@ export const updateTeacherClasses = (teacherId, classIds) => async (dispatch) =>
     }
 }
 
-export const updateTeacherBulkAssignments = (teacherId, classIds, subjectIds) => async (dispatch) => {
+export const updateTeacherBulkAssignments = (teacherId, classIds, subjectIds, pairs) => async (dispatch) => {
     dispatch(getRequest());
     try {
-        const payload = { teacherId, classIds, subjectIds };
+        const payload = pairs && Array.isArray(pairs)
+            ? { teacherId, pairs }
+            : { teacherId, classIds, subjectIds };
         const result = await axios.put(`${REACT_APP_BASE_URL}/Teacher/BulkAssignments`, payload, {
             headers: { 'Content-Type': 'application/json' },
         });

@@ -199,17 +199,10 @@ const getTeachers = async (req, res) => {
 const getTeacherDetail = async (req, res) => {
     try {
         let teacher = await Teacher.findById(req.params.id)
-            .populate("teachSubject", "subName sessions sclassName")
+            .populate("teachSubject", "subName subCode")
             .populate("school", "schoolName")
             .populate("teachSclass", "sclassName")
-            .populate({
-                path: "teachSubjects",
-                select: "subName sessions sclassName",
-                populate: {
-                    path: "sclassName",
-                    select: "sclassName"
-                }
-            })
+            .populate("teachSubjects", "subName subCode")
             .populate("teachSclasses", "sclassName")
             .populate({
                 path: "teachAssignments",
@@ -218,7 +211,7 @@ const getTeacherDetail = async (req, res) => {
                     { path: "sclass", select: "sclassName" }
                 ]
             })
-            .populate("attendanceClass", "sclassName")
+            .populate("attendanceClass", "sclassName");
 
         if (teacher) {
             const teacherDoc = teacher.toObject();
@@ -238,8 +231,7 @@ const getTeacherDetail = async (req, res) => {
             }
 
             res.send(teacherDoc);
-        }
-        else {
+        } else {
             res.send({ message: "No teacher found" });
         }
     } catch (err) {
@@ -676,7 +668,7 @@ const updateTeacherAttendance = async (req, res) => {
 // Bulk update: classes and subjects only (no sections)
 const updateTeacherBulkAssignments = async (req, res) => {
     try {
-        const { teacherId, classIds = [], subjectIds = [] } = req.body;
+        const { teacherId, classIds = [], subjectIds = [], pairs = [] } = req.body;
 
         if (!teacherId) {
             return res.status(400).json({ message: "teacherId is required" });
@@ -688,9 +680,51 @@ const updateTeacherBulkAssignments = async (req, res) => {
             return res.status(404).json({ message: "Teacher not found" });
         }
 
+        // Build precise teachAssignments pairs for provided classes/subjects
+    const Sclass = require('../models/sclassSchema');
+    const Subject = require('../models/subjectSchema');
+    let validClassIds = Array.isArray(classIds) ? classIds.map(String) : [];
+    let validSubjectIds = Array.isArray(subjectIds) ? subjectIds.map(String) : [];
+
+        // Restrict subjects to those that belong to provided classes
+        // If explicit pairs provided, derive classIds/subjectIds from them
+        let pairList = Array.isArray(pairs) ? pairs.filter(p => p && p.sclass && p.subject) : [];
+        if (pairList.length > 0) {
+            validClassIds = Array.from(new Set(pairList.map(p => String(p.sclass))));
+            validSubjectIds = Array.from(new Set(pairList.map(p => String(p.subject))));
+        }
+
+        const classDocs = await Sclass.find({ _id: { $in: validClassIds } }).select('subjects');
+        const allowedPairs = new Set(); // `${classId}-${subjectId}`
+        classDocs.forEach(c => {
+            const cId = c._id.toString();
+            (c.subjects || []).forEach(cs => {
+                const sId = cs?.subject?.toString();
+                if (sId) allowedPairs.add(`${cId}-${sId}`);
+            });
+        });
+        const finalPairs = [];
+        if (pairList.length > 0) {
+            pairList.forEach(p => {
+                const cId = String(p.sclass);
+                const sId = String(p.subject);
+                if (allowedPairs.has(`${cId}-${sId}`)) finalPairs.push({ sclass: cId, subject: sId });
+            });
+        } else {
+            validClassIds.forEach(cId => {
+                validSubjectIds.forEach(sId => {
+                    if (allowedPairs.has(`${cId}-${sId}`)) {
+                        finalPairs.push({ sclass: cId, subject: sId });
+                    }
+                });
+            });
+        }
+
+        // Update teacher with precise arrays and assignments
         const updateFields = {
-            teachSclasses: Array.isArray(classIds) ? classIds : [],
-            teachSubjects: Array.isArray(subjectIds) ? subjectIds : [],
+            teachSclasses: validClassIds,
+            teachSubjects: validSubjectIds,
+            teachAssignments: finalPairs
         };
 
         const updated = await Teacher.findByIdAndUpdate(
@@ -702,9 +736,14 @@ const updateTeacherBulkAssignments = async (req, res) => {
             .populate("teachSclasses", "sclassName")
             .populate("attendanceClass", "sclassName");
 
-        // Update subject teacher reference
-        if (Array.isArray(subjectIds) && subjectIds.length > 0) {
-            await Subject.updateMany({ _id: { $in: subjectIds } }, { teacher: updated._id });
+        // Clear previous subject links for this teacher, then set for selected pairs only within those classes
+        if (validSubjectIds.length > 0) {
+            // Find all subjects within the provided classes
+            const classSubjectIds = Array.from(new Set(classDocs.flatMap(c => (c.subjects || []).map(cs => cs.subject.toString()))));
+            // Clear teacher link on those class subjects
+            await Subject.updateMany({ _id: { $in: classSubjectIds }, teacher: teacherId }, { $unset: { teacher: "" } });
+            // Set teacher link on selected subjectIds (applies across classes, but effective per-class by UI restriction)
+            await Subject.updateMany({ _id: { $in: validSubjectIds } }, { teacher: teacherId });
         }
 
         res.json(updated);

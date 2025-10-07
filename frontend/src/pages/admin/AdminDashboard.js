@@ -38,7 +38,7 @@ import ChooseClass from './teacherRelated/ChooseClass';
 
 import ShowTeachers from './teacherRelated/ShowTeachers';
 import TeacherDetails from './teacherRelated/TeacherDetails';
-import EditTeacherAssignments from './teacherRelated/EditTeacherAssignments';
+import EditTeacher from './teacherRelated/editTeacher';
 import TeacherClassesView from './teacherRelated/TeacherClassesView';
 
 import AddClass from './classRelated/AddClass';
@@ -149,7 +149,7 @@ const AdminDashboard = () => {
                         <Route path="/Admin/teachers/addteacher/:subjectId" element={<AddTeacher />} />
                         <Route path="/Admin/teachers/classes" element={<TeacherClassesView />} />
                         <Route path="/Admin/teachers/teacher/:id" element={<TeacherDetails />} />
-                        <Route path="/Admin/teachers/edit-assignments/:id" element={<EditTeacherAssignments />} />
+                        <Route path="/Admin/teachers/edit-assignments/:id" element={<EditTeacher />} />
 
                         {/* Parent */}
                         <Route path="/Admin/addparent" element={<AddParent />} />

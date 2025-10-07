@@ -149,14 +149,18 @@ const TeacherDetails = () => {
                                             teachingSubjects.map((subject, index) => (
                                                 <Chip 
                                                     key={subject._id || index} 
-                                                    label={`${subject.subName} (${subject.periodsPerWeek} periods per week)`} 
+                                                    label={
+                                                        subject.subName + (subject.periodsPerWeek ? ` (${subject.periodsPerWeek} periods per week)` : '')
+                                                    }
                                                     color="secondary" 
                                                     variant="outlined" 
                                                 />
                                             ))
                                         ) : teacherDetails?.teachSubject ? (
                                             <Chip 
-                                                label={`${teacherDetails.teachSubject.subName} (${teacherDetails.teachSubject.periodsPerWeek} periods per week)`} 
+                                                label={
+                                                    teacherDetails.teachSubject.subName + (teacherDetails.teachSubject.periodsPerWeek ? ` (${teacherDetails.teachSubject.periodsPerWeek} periods per week)` : '')
+                                                }
                                                 color="secondary" 
                                                 variant="outlined" 
                                             />
@@ -165,23 +169,7 @@ const TeacherDetails = () => {
                                         )}
                                     </Box>
                                     
-                                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                                        Teaching Classes
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-                                        {teacherDetails?.teachSclasses && teacherDetails.teachSclasses.length > 0 ? (
-                                            teacherDetails.teachSclasses.map((sclass, index) => (
-                                                <Chip 
-                                                    key={sclass._id || index} 
-                                                    label={sclass.sclassName || 'Unknown'} 
-                                                    color="info" 
-                                                    variant="outlined" 
-                                                />
-                                            ))
-                                        ) : (
-                                            <Typography color="text.secondary">No classes assigned</Typography>
-                                        )}
-                                    </Box>
+
                                     
                                     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                                         Attendance Class

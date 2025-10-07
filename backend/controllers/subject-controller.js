@@ -49,9 +49,9 @@ const classSubjects = async (req, res) => {
     try {
         // First get the class to find its associated subjects with sessions
         const Sclass = require('../models/sclassSchema.js');
+        const Teacher = require('../models/teacherSchema.js');
         const classData = await Sclass.findById(req.params.id).populate({
-            path: 'subjects.subject',
-            populate: { path: 'teacher', select: 'name' }
+            path: 'subjects.subject'
         });
         
         if (!classData) {
@@ -59,37 +59,36 @@ const classSubjects = async (req, res) => {
         }
 
         // Get all subjects for this class with their session info
-        let subjects = classData.subjects.map(subjectInfo => ({
+        const subjects = classData.subjects.map(subjectInfo => ({
             ...subjectInfo.subject.toObject(),
             sessions: subjectInfo.sessions
         }));
-        
-        console.log(`\n=== DEBUG: classSubjects for class ${req.params.id} ===`);
-        console.log(`Found ${subjects.length} subjects`);
-        
-        if (subjects.length > 0) {
-            // Add hasTeacher field for frontend convenience
-            const subjectsWithStatus = subjects.map((subject, index) => {
-                const hasTeacher = subject.teacher != null && subject.teacher !== undefined;
-                
-                console.log(`Subject ${index + 1}: ${subject.subName}`);
-                console.log(`  - Teacher field:`, subject.teacher);
-                console.log(`  - HasTeacher:`, hasTeacher);
-                console.log(`  - Teacher populated:`, subject.teacher ? subject.teacher.name : 'None');
-                console.log(`  - Sessions:`, subject.sessions);
-                
-                return {
-                    ...subject,
-                    hasTeacher: hasTeacher
-                };
-            });
 
-            console.log(`Sending ${subjectsWithStatus.length} subjects with status`);
-            res.send(subjectsWithStatus);
-        } else {
-            console.log('No subjects found');
-            res.send({ message: "No subjects found" });
-        }
+        // Compute per-class teacher assignment using teachers' teachAssignments
+        const classId = classData._id.toString();
+        const teachers = await Teacher.find({ "teachAssignments.sclass": classId }).select('teachAssignments name');
+        const assignedMap = new Map(); // subjectId -> teacherId
+        teachers.forEach(t => {
+            (t.teachAssignments || []).forEach(a => {
+                const c = a?.sclass?.toString();
+                const s = a?.subject?.toString();
+                if (c === classId && s) {
+                    assignedMap.set(s, t._id.toString());
+                }
+            });
+        });
+        
+        const subjectsWithStatus = subjects.map((subject) => {
+            const sId = subject._id.toString();
+            const tId = assignedMap.get(sId) || null;
+            return {
+                ...subject,
+                hasTeacher: Boolean(tId),
+                teacher: tId
+            };
+        });
+
+        res.send(subjectsWithStatus);
     } catch (err) {
         console.error('Error in classSubjects:', err);
         res.status(500).json(err);
