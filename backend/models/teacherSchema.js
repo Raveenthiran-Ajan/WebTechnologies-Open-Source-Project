@@ -33,6 +33,19 @@ const teacherSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'sclass',
     }],
+    // Specific subject-class assignments
+    teachAssignments: [{
+        subject: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'subject',
+            required: true
+        },
+        sclass: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'sclass',
+            required: true
+        }
+    }],
     // Single class for attendance responsibility
     attendanceClass: {
         type: mongoose.Schema.Types.ObjectId,

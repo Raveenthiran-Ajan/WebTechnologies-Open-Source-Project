@@ -115,7 +115,7 @@ const ChooseSubject = ({ situation }) => {
                             color={hasTeacher ? "success" : "success"}
                             startIcon={<PersonAddIcon />}
                             disabled={hasTeacher}
-                            onClick={() => navigate(`/Admin/teachers/addteacher/${params.row.id}/${sectionNames.join(',')}`)}
+                            onClick={() => navigate(`/Admin/teachers/add`)}
                             sx={{
                                 borderColor: "#4CAF50",
                                 color: "#FFFFFF",

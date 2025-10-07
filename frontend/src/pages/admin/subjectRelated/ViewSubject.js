@@ -216,7 +216,7 @@ const ViewSubject = () => {
                                     Change Teacher
                                   </Button>
                                   <Button variant="outlined" 
-                                    onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
+                                    onClick={() => navigate("/Admin/teachers/add")}>
                                     Add New Teacher
                                   </Button>
                                 </>
@@ -227,7 +227,7 @@ const ViewSubject = () => {
                                     Select Teacher
                                   </Button>
                                   <Button variant="outlined"
-                                    onClick={() => navigate("/Admin/teachers/addteacher/" + subjectDetails._id)}>
+                                    onClick={() => navigate("/Admin/teachers/add")}>
                                     Add New Teacher
                                   </Button>
                                 </>

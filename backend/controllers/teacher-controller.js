@@ -6,7 +6,7 @@ const Subject = require('../models/subjectSchema.js');
 const sendEmail = require('../utils/sendEmail.js');
 
 const teacherRegister = async (req, res) => {
-    const { name, email, role, school, teachSubjects, teachSclass, teachSclasses, attendanceClass, autoGeneratePassword, password } = req.body;
+    const { name, email, role, school, teachSubjects, teachSclass, teachSclasses, teachAssignments, attendanceClass, autoGeneratePassword, password } = req.body;
     try {
         let finalPassword;
         
@@ -31,13 +31,26 @@ const teacherRegister = async (req, res) => {
             }
         }
 
-        // Support for multiple subjects and backward compatibility
-        const teachSubject = teachSubjects && teachSubjects.length > 0 ? teachSubjects[0] : null;
+        // Support for teachAssignments (new way) or teachSubjects/teachSclasses (old way)
+        let initialTeachSubjects = [];
+        let initialTeachSclasses = [];
+        let initialTeachAssignments = [];
 
-        // Determine classes to assign on creation: prefer explicit teachSclasses if provided, fallback to single teachSclass
-        const initialTeachSclasses = Array.isArray(teachSclasses) && teachSclasses.length > 0
-            ? teachSclasses
-            : (teachSclass ? [teachSclass] : []);
+        if (teachAssignments && teachAssignments.length > 0) {
+            // New way: specific assignments
+            initialTeachAssignments = teachAssignments;
+            initialTeachSubjects = [...new Set(teachAssignments.map(a => a.subjectId || a.subject))];
+            initialTeachSclasses = [...new Set(teachAssignments.map(a => a.classId || a.sclass))];
+        } else {
+            // Old way: backward compatibility
+            initialTeachSubjects = teachSubjects || [];
+            initialTeachSclasses = Array.isArray(teachSclasses) && teachSclasses.length > 0
+                ? teachSclasses
+                : (teachSclass ? [teachSclass] : []);
+        }
+
+        // Support for multiple subjects and backward compatibility
+        const teachSubject = initialTeachSubjects.length > 0 ? initialTeachSubjects[0] : null;
 
         const teacherData = { 
             name, 
@@ -45,10 +58,11 @@ const teacherRegister = async (req, res) => {
             password: hashedPass, 
             role, 
             school, 
-            teachSubjects: teachSubjects || [], 
+            teachSubjects: initialTeachSubjects, 
             teachSubject, 
             teachSclass,
             teachSclasses: initialTeachSclasses,
+            teachAssignments: initialTeachAssignments,
             attendanceClass: attendanceClass || null
         };
         console.log('Saving teacher with data:', teacherData);
@@ -64,8 +78,8 @@ const teacherRegister = async (req, res) => {
             let result = await teacher.save();
             
             // Update all subjects with this teacher
-            if (teachSubjects && teachSubjects.length > 0) {
-                await Promise.all(teachSubjects.map(async (subjectId) => {
+            if (initialTeachSubjects && initialTeachSubjects.length > 0) {
+                await Promise.all(initialTeachSubjects.map(async (subjectId) => {
                     await Subject.findByIdAndUpdate(subjectId, { teacher: teacher._id });
                 }));
             } 
@@ -156,6 +170,13 @@ const getTeachers = async (req, res) => {
             .populate("teachSclass", "sclassName")
             .populate("teachSubjects", "subName")
             .populate("teachSclasses", "sclassName")
+            .populate({
+                path: "teachAssignments",
+                populate: [
+                    { path: "subject", select: "subName" },
+                    { path: "sclass", select: "sclassName" }
+                ]
+            })
             .populate("attendanceClass", "sclassName");
         console.log('Teachers found:', teachers.length);
         teachers.forEach((teacher, index) => {
@@ -190,6 +211,13 @@ const getTeacherDetail = async (req, res) => {
                 }
             })
             .populate("teachSclasses", "sclassName")
+            .populate({
+                path: "teachAssignments",
+                populate: [
+                    { path: "subject", select: "subName subCode" },
+                    { path: "sclass", select: "sclassName" }
+                ]
+            })
             .populate("attendanceClass", "sclassName")
 
         if (teacher) {
