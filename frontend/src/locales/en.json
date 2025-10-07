@@ -33,7 +33,11 @@
     "login": "Login",
     "loginGuest": "Login as Guest",
     "noAccount": "Don't have an account?",
-    "signup": "Sign up"
+    "signup": "Sign up",
+    "admin": "Admin",
+    "teacher": "Teacher",
+    "student": "Student",
+    "parent": "Parent"
   },
   "logout": {
     "confirm": "Are you sure you want to log out?",
