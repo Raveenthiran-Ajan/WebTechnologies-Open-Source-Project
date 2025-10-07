@@ -1,13 +1,14 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { 
-    Container, 
-    Typography, 
-    Card, 
-    CardContent, 
-    Box, 
-    Avatar, 
-    Chip, 
+import { useTranslation } from 'react-i18next';
+import {
+    Container,
+    Typography,
+    Card,
+    CardContent,
+    Box,
+    Avatar,
+    Chip,
     Grid,
     Paper,
     Table,
@@ -24,6 +25,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 
 const ParentReports = () => {
+    const { t } = useTranslation();
     const { currentUser } = useSelector((state) => state.user);
     const children = currentUser?.children || [];
 
@@ -70,10 +72,10 @@ const ParentReports = () => {
                 >
                     <AssessmentIcon sx={{ fontSize: 40 }} />
                 </Avatar>
-                <Typography 
-                    variant="h3" 
-                    gutterBottom 
-                    sx={{ 
+                <Typography
+                    variant="h3"
+                    gutterBottom
+                    sx={{
                         fontWeight: 'bold',
                         background: 'linear-gradient(45deg, #f093fb 0%, #f5576c 100%)',
                         backgroundClip: 'text',
@@ -81,13 +83,13 @@ const ParentReports = () => {
                         WebkitTextFillColor: 'transparent',
                     }}
                 >
-                    Academic Reports
+                    {t('parentReports.academicReports')}
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
-                    <Chip 
+                    <Chip
                         icon={<GradeIcon />}
-                        label={`${children.length} ${children.length === 1 ? 'Child' : 'Children'} Reports`} 
-                        color="primary" 
+                        label={`${children.length} ${children.length === 1 ? t('parentReports.child') : t('parentReports.children')} ${t('parentReports.reports')}`}
+                        color="primary"
                         size="large"
                     />
                 </Box>
@@ -129,8 +131,8 @@ const ParentReports = () => {
                                                 {child.name}
                                             </Typography>
                                             <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                                Roll Number: {child.rollNum}
-                                                {getClassName(child.sclassName) !== 'Not Assigned' && ` | Class: ${getClassName(child.sclassName)}`}
+                                                {t('parentReports.rollNumber')} {child.rollNum}
+                                                {getClassName(child.sclassName) !== 'Not Assigned' && ` | ${t('parentReports.class')} ${getClassName(child.sclassName)}`}
                                             </Typography>
                                         </Box>
                                         <Box sx={{ textAlign: 'center' }}>
@@ -138,7 +140,7 @@ const ParentReports = () => {
                                                 {attendancePercentage}%
                                             </Typography>
                                             <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                                                Attendance
+                                                {t('parentReports.attendance')}
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -151,13 +153,13 @@ const ParentReports = () => {
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                                                     <EventAvailableIcon color="primary" />
                                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                                        Attendance Details
+                                                        {t('parentReports.attendanceDetails')}
                                                     </Typography>
                                                 </Box>
                                                 
                                                 <Box sx={{ mt: 2 }}>
                                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                                        <Typography variant="body2">Attendance Rate</Typography>
+                                                        <Typography variant="body2">{t('parentReports.attendanceRate')}</Typography>
                                                         <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                                                             {attendancePercentage}%
                                                         </Typography>
@@ -175,9 +177,9 @@ const ParentReports = () => {
                                                         }}
                                                     />
                                                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                                        {child.attendance ? 
-                                                            `${child.attendance.filter(att => att.status === 'Present').length}/${child.attendance.length} days present` :
-                                                            'No attendance data available'
+                                                        {child.attendance ?
+                                                            `${child.attendance.filter(att => att.status === 'Present').length}/${child.attendance.length} ${t('parentReports.daysPresent')}` :
+                                                            t('parentReports.noAttendanceData')
                                                         }
                                                     </Typography>
                                                 </Box>
@@ -190,7 +192,7 @@ const ParentReports = () => {
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                                                     <TrendingUpIcon color="primary" />
                                                     <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                                        Academic Performance
+                                                        {t('parentReports.academicPerformance')}
                                                     </Typography>
                                                 </Box>
                                                 
@@ -199,8 +201,8 @@ const ParentReports = () => {
                                                         <Table size="small">
                                                             <TableHead>
                                                                 <TableRow>
-                                                                    <TableCell>Subject</TableCell>
-                                                                    <TableCell align="right">Marks</TableCell>
+                                                                    <TableCell>{t('parentReports.subject')}</TableCell>
+                                                                    <TableCell align="right">{t('parentReports.marks')}</TableCell>
                                                                 </TableRow>
                                                             </TableHead>
                                                             <TableBody>
@@ -215,7 +217,7 @@ const ParentReports = () => {
                                                     </TableContainer>
                                                 ) : (
                                                     <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                                                        No exam results available yet
+                                                        {t('parentReports.noExamResults')}
                                                     </Typography>
                                                 )}
                                             </Box>
@@ -229,7 +231,7 @@ const ParentReports = () => {
                     <Grid item xs={12}>
                         <Paper sx={{ p: 4, textAlign: 'center' }}>
                             <AssessmentIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                            <Typography variant="h6">No children data available for reports.</Typography>
+                            <Typography variant="h6">{t('parentReports.noChildrenData')}</Typography>
                         </Paper>
                     </Grid>
                 )}
