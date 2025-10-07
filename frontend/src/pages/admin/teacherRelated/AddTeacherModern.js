@@ -424,12 +424,15 @@ const AddTeacherModern = () => {
                             ) : (
                                 <Box sx={{ textAlign: 'center', py: 8 }}>
                                     <SubjectIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
-                                    <Typography variant="h6" color="text.secondary" gutterBottom>
-                                        No subjects available for selected classes
+                                    <Typography variant="body1" color="text.secondary" gutterBottom>
+                                        All subjects for selected classes are already assigned to teachers
                                     </Typography>
                                     <Button 
                                         variant="contained" 
-                                        onClick={() => navigate('/Admin/addsubject')}
+                                        onClick={() => {
+                                            const classId = selectedClasses[0]?._id || selectedClasses[0];
+                                            navigate(`/Admin/addsubject/${classId}`);
+                                        }}
                                         sx={{ mr: 2 }}
                                     >
                                         Add Subjects First
