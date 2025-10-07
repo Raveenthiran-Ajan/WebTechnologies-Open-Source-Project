@@ -17,6 +17,7 @@ import StudentProfile from './StudentProfile';
 import StudentSubjects from './StudentSubjects';
 import StudentAttendanceDashboard from './StudentAttendanceDashboard.js';
 import TermAttendanceReport from './TermAttendanceReport.js';
+import AssignmentsPage from '../AssignmentsPage.js';
 import SimpleAttendanceReport from './SimpleAttendanceReport.js';
 import StudentComplain from './StudentComplain.js';
 import StudentTimetable from './StudentTimetable.js';
@@ -93,6 +94,7 @@ const StudentDashboard = () => {
                         <Route path="/Student/grades" element={<StudentGrades />} />
                         <Route path="/Student/term-report" element={<StudentTermReport />} />
                         <Route path="/Student/notices" element={<StudentNotices />} />
+                        <Route path="/assignments" element={<AssignmentsPage />} />
 
                         <Route path="/logout" element={<Logout />} />
                     </Routes>

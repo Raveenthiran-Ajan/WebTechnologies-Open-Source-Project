@@ -1,10 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { getSubjectList } from '../../redux/sclassRelated/sclassHandle';
-import { BottomNavigation, BottomNavigationAction, Container, Paper, Table, TableBody, TableHead, Typography } from '@mui/material';
+import { Link } from 'react-router-dom';
+import { BottomNavigation, BottomNavigationAction, Container, Paper, Table, TableBody, TableHead, Typography, Box, CircularProgress } from '@mui/material';
 import { getUserDetails } from '../../redux/userRelated/userHandle';
 import CustomBarChart from '../../components/CustomBarChart'
 
+import axios from 'axios';
+import {
+    DataGrid,
+    GridToolbarContainer,
+    GridToolbarColumnsButton,
+    GridToolbarFilterButton,
+    GridToolbarDensitySelector,
+} from '@mui/x-data-grid';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import TableChartIcon from '@mui/icons-material/TableChart';
@@ -19,7 +28,8 @@ const StudentSubjects = () => {
 
     const [subjectMarks, setSubjectMarks] = useState([]);
     const [submissions, setSubmissions] = useState([]);
-    const [selectedSection, setSelectedSection] = useState('table');
+    const [assignments, setAssignments] = useState([]);
+    const [selectedSection, setSelectedSection] = useState('subjects');
 
     useEffect(() => {
         dispatch(getUserDetails(currentUser._id, "Student"));
@@ -28,28 +38,30 @@ const StudentSubjects = () => {
     useEffect(() => {
         if (userDetails) {
             setSubjectMarks(userDetails.examResult || []);
-        }
-    }, [userDetails])
-
-    useEffect(() => {
-        if (subjectMarks == []) {
-            dispatch(getSubjectList(currentUser.sclassName._id, "ClassSubjects"));
-        }
-    }, [subjectMarks, dispatch, currentUser.sclassName._id]);
-
-    useEffect(() => {
-        // Fetch submissions for current student
-        if (currentUser && currentUser._id) {
-            fetch(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000'}/submissions/student/${currentUser._id}`)
-                .then(res => res.json())
-                .then(data => {
-                    setSubmissions(data);
+ 
+            if (userDetails.sclassName && userDetails.sclassName._id) {
+                dispatch(getSubjectList(userDetails.sclassName._id, "ClassSubjects"));
+ 
+                // Fetch assignments for the student's class
+                axios.get(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000'}/assignments/class/${userDetails.sclassName._id}`)
+                    .then(res => {
+                        setAssignments(res.data || []);
+                    })
+                    .catch(err => {
+                        console.error("Failed to fetch assignments", err);
+                    });
+            }
+ 
+            // Fetch submissions for the student
+            axios.get(`${process.env.REACT_APP_API_BASE_URL || 'http://localhost:3000'}/submissions/student/${currentUser._id}`)
+                .then(res => {
+                    setSubmissions(res.data || []);
                 })
                 .catch(err => {
                     console.error("Failed to fetch submissions", err);
                 });
         }
-    }, [currentUser]);
+    }, [dispatch, currentUser._id, userDetails]);
 
     const handleSectionChange = (event, newSection) => {
         setSelectedSection(newSection);
@@ -125,25 +137,60 @@ const StudentSubjects = () => {
     };
 
     const renderClassDetailsSection = () => {
+        const subjectColumns = [
+            { field: 'subName', headerName: 'Subject Name', width: 250 },
+            { field: 'subCode', headerName: 'Subject Code', width: 150 },
+            { field: 'teacher', headerName: 'Teacher', width: 250 },
+            {
+                field: 'pendingAssignments',
+                headerName: 'Pending Assignments',
+                width: 200,
+                renderCell: (params) => (
+                    <Link to="/assignments" style={{ textDecoration: 'none' }}>
+                        <Typography
+                            color={params.value > 0 ? "error" : "success.main"}
+                            sx={{ '&:hover': { textDecoration: 'underline' } }}
+                        >
+                            {params.value > 0 ? `${params.value} Pending` : 'View All'}
+                        </Typography>
+                    </Link>
+                )
+            },
+        ];
+
+        const subjectRows = Array.isArray(subjectsList) ? subjectsList.map((subject) => {
+            const pendingCount = assignments.filter(
+                (assignment) =>
+                    assignment.subject === subject._id &&
+                    !submissions.some((submission) => submission.assignmentId === assignment._id)
+            ).length;
+            return {
+                id: subject._id,
+                subName: subject.subName,
+                subCode: subject.subCode,
+                teacher: subject.teacher?.name || 'No Teacher Assigned',
+                pendingAssignments: pendingCount,
+            };
+        }) : [];
+
         return (
             <Container>
                 <Typography variant="h4" align="center" gutterBottom>
                     Class Details
                 </Typography>
                 <Typography variant="h5" gutterBottom>
-                    You are currently in Class {sclassDetails && sclassDetails.sclassName}
+                    You are currently in Class: {userDetails?.sclassName?.sclassName}
                 </Typography>
-                <Typography variant="h6" gutterBottom>
-                    And these are the subjects:
-                </Typography>
-                {subjectsList &&
-                    subjectsList.map((subject, index) => (
-                        <div key={index}>
-                            <Typography variant="subtitle1">
-                                {subject.subName} ({subject.subCode})
-                            </Typography>
-                        </div>
-                    ))}
+                {loading ? (
+                    <CircularProgress />
+                ) : (
+                    <Box sx={{ height: 400, width: '100%', mt: 2 }}>
+                        <DataGrid
+                            rows={subjectRows}
+                            columns={subjectColumns}
+                        />
+                    </Box>
+                )}
             </Container>
         );
     };
@@ -153,40 +200,43 @@ const StudentSubjects = () => {
             {loading ? (
                 <div>Loading...</div>
             ) : (
-                <div>
-                    {subjectMarks && Array.isArray(subjectMarks) && subjectMarks.length > 0
-                        ?
-                        (<>
-                            {selectedSection === 'table' && renderTableSection()}
-                            {selectedSection === 'submissions' && renderSubmissionsSection()}
-                            {selectedSection === 'chart' && renderChartSection()}
+                <>
+                    {selectedSection === 'subjects' && renderClassDetailsSection()}
+                    {selectedSection === 'table' && renderTableSection()}
+                    {selectedSection === 'submissions' && renderSubmissionsSection()}
+                    {selectedSection === 'chart' && renderChartSection()}
 
-                            <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
-                                <BottomNavigation value={selectedSection} onChange={handleSectionChange} showLabels>
-                                    <BottomNavigationAction
-                                        label="Table"
-                                        value="table"
-                                        icon={selectedSection === 'table' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
-                                    />
-                                    <BottomNavigationAction
-                                        label="Submissions"
-                                        value="submissions"
-                                        icon={selectedSection === 'submissions' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
-                                    />
-                                    <BottomNavigationAction
-                                        label="Chart"
-                                        value="chart"
-                                        icon={selectedSection === 'chart' ? <InsertChartIcon /> : <InsertChartOutlinedIcon />}
-                                    />
-                                </BottomNavigation>
-                            </Paper>
-                        </>)
-                        :
-                        (<>
-                            {renderClassDetailsSection()}
-                        </>)
-                    }
-                </div>
+                    <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
+                        <BottomNavigation value={selectedSection} onChange={handleSectionChange} showLabels>
+                            <BottomNavigationAction
+                                label="Subjects"
+                                value="subjects"
+                                icon={selectedSection === 'subjects' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
+                            />
+                            {subjectMarks && Array.isArray(subjectMarks) && subjectMarks.length > 0 &&
+                                <BottomNavigationAction
+                                    label="Marks"
+                                    value="table"
+                                    icon={selectedSection === 'table' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
+                                />
+                            }
+                            {submissions && Array.isArray(submissions) && submissions.length > 0 &&
+                                <BottomNavigationAction
+                                    label="Submissions"
+                                    value="submissions"
+                                    icon={selectedSection === 'submissions' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
+                                />
+                            }
+                            {subjectMarks && Array.isArray(subjectMarks) && subjectMarks.length > 0 &&
+                                <BottomNavigationAction
+                                    label="Chart"
+                                    value="chart"
+                                    icon={selectedSection === 'chart' ? <InsertChartIcon /> : <InsertChartOutlinedIcon />}
+                                />
+                            }
+                        </BottomNavigation>
+                    </Paper>
+                </>
             )}
         </>
     );
