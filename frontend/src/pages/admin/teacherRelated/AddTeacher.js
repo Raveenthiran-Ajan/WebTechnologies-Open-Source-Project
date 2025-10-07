@@ -104,18 +104,19 @@ const AddTeacher = () => {
     event.preventDefault()
     setLoader(true)
 
-    const teachSubjects = selectedSubjects.map(key => key.split('-')[1]);
-    const teachSclasses = selectedClasses.map(cls => cls._id);
+    const teachAssignments = selectedSubjects.map(key => {
+      const [classId, subjectId] = key.split('-');
+      return { subject: subjectId, sclass: classId };
+    });
 
     const fields = {
       name,
       email,
       role: "Teacher",
       school: currentUser._id,
-      teachSubjects,
-      teachSclasses,
-      autoGeneratePassword,
+      teachAssignments,
       attendanceClass: attendanceClass || null,
+      autoGeneratePassword,
       ...(autoGeneratePassword ? {} : { password })
     }
 

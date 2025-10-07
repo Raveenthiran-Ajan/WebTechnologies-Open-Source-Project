@@ -243,12 +243,22 @@ const TeacherClasses = () => {
         const classInfo = sclassesList?.find(c => c._id === sclassId);
         const className = classInfo?.sclassName || 'Unknown Class';
         
-        // Show subjects in a cleaner format - limit to 2 subjects with "more" indicator
-        const allSubjects = teacherData?.teachSubjects || [];
-        const subjectDisplay = allSubjects.length > 0 
-            ? allSubjects.length <= 2 
-                ? allSubjects.map(s => s.subName).join(', ')
-                : `${allSubjects.slice(0, 2).map(s => s.subName).join(', ')} +${allSubjects.length - 2} more`
+        // Show subjects assigned to this specific class
+        let subjectsForClass = [];
+        if (teacherData?.teachAssignments && teacherData.teachAssignments.length > 0) {
+            // Use specific assignments
+            subjectsForClass = teacherData.teachAssignments
+                .filter(assignment => assignment.sclass._id === sclassId)
+                .map(assignment => assignment.subject);
+        } else {
+            // Fallback to all subjects (old way)
+            subjectsForClass = teacherData?.teachSubjects || [];
+        }
+        
+        const subjectDisplay = subjectsForClass.length > 0 
+            ? subjectsForClass.length <= 2 
+                ? subjectsForClass.map(s => s.subName).join(', ')
+                : `${subjectsForClass.slice(0, 2).map(s => s.subName).join(', ')} +${subjectsForClass.length - 2} more`
             : 'N/A';
         
         const hasAttendance = attendanceClassId === sclassId;
