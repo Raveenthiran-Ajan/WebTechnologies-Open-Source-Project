@@ -9,6 +9,17 @@ const sclassSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin'
     },
+    subjects: [{
+        subject: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'subject'
+        },
+        sessions: {
+            type: Number,
+            required: true,
+            min: 1
+        }
+    }],
     timetable: [{
 
 

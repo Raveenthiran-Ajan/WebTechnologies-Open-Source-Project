@@ -8,6 +8,7 @@ const sclassCreate = async (req, res) => {
         const sclass = new Sclass({
             sclassName: req.body.sclassName,
             school: req.body.adminID,
+            subjects: req.body.subjects || [],
             timetable: []
         });
 

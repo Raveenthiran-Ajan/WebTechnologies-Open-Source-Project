@@ -334,47 +334,95 @@ const AddTeacherModern = () => {
                             {subjectsList && subjectsList.length > 0 ? (
                                 <Box>
                                     <Typography variant="subtitle1" gutterBottom>
-                                        Available Subjects from Selected Classes
+                                        Assign Teacher to Subjects
                                     </Typography>
-                                    
-                                    <FormControl fullWidth sx={{ mb: 4 }}>
-                                        <InputLabel id="subjects-select-label">Select Subjects</InputLabel>
-                                        <Select
-                                            labelId="subjects-select-label"
-                                            multiple
-                                            value={selectedSubjects}
-                                            onChange={handleSubjectSelect}
-                                            input={<OutlinedInput label="Select Subjects" />}
-                                            renderValue={(selected) => (
-                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                    {selected.map((subjectId) => {
-                                                        const subject = subjectsList.find(s => s._id === subjectId);
-                                                        return (
-                                                            <Chip 
-                                                                key={subjectId} 
-                                                                label={subject ? `${subject.subName} (${subject.subCode})` : subjectId} 
-                                                                size="small" 
-                                                            />
-                                                        );
-                                                    })}
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                        Check the boxes below to assign this teacher to teach specific subjects. The teacher will teach these subjects in all their assigned classes.
+                                    </Typography>
+
+                                    {/* Table-based subject assignment */}
+                                    <Paper sx={{ overflow: 'auto', mb: 4 }}>
+                                        <Box sx={{ minWidth: 600 }}>
+                                            <Box sx={{ display: 'flex', borderBottom: '1px solid #e0e0e0', bgcolor: 'grey.50', p: 2 }}>
+                                                <Box sx={{ flex: 1, fontWeight: 'bold' }}>
+                                                    Subject
                                                 </Box>
-                                            )}
-                                            MenuProps={MenuProps}
-                                        >
-                                            {subjectsList.map((subject) => (
-                                                <MenuItem key={subject._id} value={subject._id}>
-                                                    <Checkbox checked={selectedSubjects.indexOf(subject._id) > -1} />
-                                                    <ListItemText 
-                                                        primary={`${subject.subName} (${subject.subCode})`}
-                                                        secondary={subject.hasTeacher ? `Assigned to: ${subject.teacher?.name || 'Another teacher'}` : 'Available'}
-                                                    />
-                                                    {subject.hasTeacher && (
-                                                        <CheckCircleIcon color="success" sx={{ ml: 1 }} />
-                                                    )}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
+                                                <Box sx={{ flex: 1, fontWeight: 'bold' }}>
+                                                    Code
+                                                </Box>
+                                                <Box sx={{ flex: 1, fontWeight: 'bold' }}>
+                                                    Available Classes
+                                                </Box>
+                                                <Box sx={{ flex: '0 0 120px', fontWeight: 'bold', textAlign: 'center' }}>
+                                                    Assign
+                                                </Box>
+                                            </Box>
+
+                                            {/* Subject rows */}
+                                            {Array.from(new Set(subjectsList.map(s => s._id))).map(subjectId => {
+                                                const subject = subjectsList.find(s => s._id === subjectId);
+                                                if (!subject) return null;
+
+                                                // Get all classes where this subject is available
+                                                const availableClasses = subjectsList
+                                                    .filter(s => s._id === subjectId)
+                                                    .map(s => selectedClasses.find(c => c._id === s.classId)?.sclassName)
+                                                    .filter(Boolean);
+
+                                                return (
+                                                    <Box key={subjectId} sx={{ display: 'flex', borderBottom: '1px solid #f0f0f0', '&:hover': { bgcolor: 'grey.25' }, p: 2 }}>
+                                                        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                                                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                                {subject.subName}
+                                                            </Typography>
+                                                        </Box>
+                                                        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                {subject.subCode}
+                                                            </Typography>
+                                                        </Box>
+                                                        <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                                {availableClasses.map((className, index) => (
+                                                                    <Chip
+                                                                        key={index}
+                                                                        label={className}
+                                                                        size="small"
+                                                                        variant="outlined"
+                                                                        color="primary"
+                                                                    />
+                                                                ))}
+                                                            </Box>
+                                                        </Box>
+                                                        <Box sx={{ flex: '0 0 120px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                            <Checkbox
+                                                                checked={selectedSubjects.includes(subjectId)}
+                                                                onChange={(e) => {
+                                                                    if (e.target.checked) {
+                                                                        setSelectedSubjects([...selectedSubjects, subjectId]);
+                                                                    } else {
+                                                                        setSelectedSubjects(selectedSubjects.filter(id => id !== subjectId));
+                                                                    }
+                                                                }}
+                                                                disabled={subject.hasTeacher}
+                                                            />
+                                                            {subject.hasTeacher && (
+                                                                <Typography variant="caption" color="warning.main" sx={{ ml: 1 }}>
+                                                                    Assigned
+                                                                </Typography>
+                                                            )}
+                                                        </Box>
+                                                    </Box>
+                                                );
+                                            })}
+                                        </Box>
+                                    </Paper>
+
+                                    <Box sx={{ mb: 4 }}>
+                                        <Typography variant="body2" color="text.secondary">
+                                            Selected: {selectedSubjects.length} subject{selectedSubjects.length !== 1 ? 's' : ''}
+                                        </Typography>
+                                    </Box>
 
                                     {/* Class Teacher Assignment Section */}
                                     <Typography variant="h6" gutterBottom sx={{ mt: 4, mb: 2 }}>

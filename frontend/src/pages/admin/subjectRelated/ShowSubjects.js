@@ -6,7 +6,6 @@ import { deleteUser } from '../../../redux/userRelated/userHandle';
 import { Paper, Box, Typography, Button, IconButton, CircularProgress } from '@mui/material';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import Delete from '@mui/icons-material/Delete';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -41,7 +40,6 @@ const ShowSubjects = () => {
         { field: 'subName', headerName: 'Subject Name', width: 200 },
         { field: 'subCode', headerName: 'Subject Code', width: 150 },
         { field: 'sessions', headerName: 'Sessions', width: 150 },
-        { field: 'sclassName', headerName: 'Class', width: 150 },
         {
             field: 'actions',
             headerName: 'Actions',
@@ -54,14 +52,6 @@ const ShowSubjects = () => {
                         >
                             <Delete color="error" />
                         </IconButton>
-                        <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={<VisibilityIcon />}
-                            disabled={!params.row.sclassID}
-                            onClick={() => params.row.sclassID && navigate(`/Admin/subjects/subject/${params.row.sclassID}/${params.row.id}`)}>
-                            View
-                        </Button>
                     </Box>
                 );
             },
@@ -73,8 +63,6 @@ const ShowSubjects = () => {
         subName: subject.subName,
         subCode: subject.subCode,
         sessions: subject.sessions,
-        sclassName: subject.sclassName ? subject.sclassName.sclassName : 'No Class',
-        sclassID: subject.sclassName ? subject.sclassName._id : null,
     })) : [];
 
     function CustomToolbar() {
@@ -87,7 +75,7 @@ const ShowSubjects = () => {
                 <Box sx={{ flexGrow: 1 }} />
                 <Button
                     startIcon={<PostAddIcon />}
-                    onClick={() => navigate('/Admin/subjects/chooseclass')}
+                    onClick={() => navigate('/Admin/addsubject')}
                 >
                     Add Subject
                 </Button>
@@ -119,7 +107,7 @@ const ShowSubjects = () => {
                     <Button
                         variant="contained"
                         startIcon={<PostAddIcon />}
-                        onClick={() => navigate('/Admin/subjects/chooseclass')}
+                        onClick={() => navigate('/Admin/addsubject')}
                     >
                         Add a Subject
                     </Button>

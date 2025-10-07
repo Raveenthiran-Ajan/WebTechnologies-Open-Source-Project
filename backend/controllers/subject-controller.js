@@ -7,7 +7,6 @@ const subjectCreate = async (req, res) => {
         const subjects = req.body.subjects.map((subject) => ({
             subName: subject.subName,
             subCode: subject.subCode,
-            sessions: subject.sessions,
         }));
 
         const existingSubjectBySubCode = await Subject.findOne({
@@ -20,7 +19,6 @@ const subjectCreate = async (req, res) => {
         } else {
             const newSubjects = subjects.map((subject) => ({
                 ...subject,
-                sclassName: req.body.sclassName,
                 school: req.body.adminID,
             }));
 
@@ -35,7 +33,7 @@ const subjectCreate = async (req, res) => {
 const allSubjects = async (req, res) => {
     try {
         let subjects = await Subject.find({ school: req.params.id })
-            .populate("sclassName", "sclassName")
+            .populate("teacher", "name")
         if (subjects.length > 0) {
             res.send(subjects)
         } else {
@@ -48,24 +46,36 @@ const allSubjects = async (req, res) => {
 
 const classSubjects = async (req, res) => {
     try {
-        let subjects = await Subject.find({ sclassName: req.params.id }).populate('teacher', 'name');
+        // First get the class to find its associated subjects with sessions
+        const Sclass = require('../models/sclassSchema.js');
+        const classData = await Sclass.findById(req.params.id).populate('subjects.subject');
+        
+        if (!classData) {
+            return res.status(404).json({ message: "Class not found" });
+        }
+
+        // Get all subjects for this class with their session info
+        let subjects = classData.subjects.map(subjectInfo => ({
+            ...subjectInfo.subject.toObject(),
+            sessions: subjectInfo.sessions
+        }));
+        
         console.log(`\n=== DEBUG: classSubjects for class ${req.params.id} ===`);
         console.log(`Found ${subjects.length} subjects`);
         
         if (subjects.length > 0) {
             // Add hasTeacher field for frontend convenience
             const subjectsWithStatus = subjects.map((subject, index) => {
-                const subjectObj = subject.toObject();
-                // More robust teacher checking
                 const hasTeacher = subject.teacher != null && subject.teacher !== undefined;
                 
                 console.log(`Subject ${index + 1}: ${subject.subName}`);
                 console.log(`  - Teacher field:`, subject.teacher);
                 console.log(`  - HasTeacher:`, hasTeacher);
                 console.log(`  - Teacher populated:`, subject.teacher ? subject.teacher.name : 'None');
+                console.log(`  - Sessions:`, subject.sessions);
                 
                 return {
-                    ...subjectObj,
+                    ...subject,
                     hasTeacher: hasTeacher
                 };
             });
