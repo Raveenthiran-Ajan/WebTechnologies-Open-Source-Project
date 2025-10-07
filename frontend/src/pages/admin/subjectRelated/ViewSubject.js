@@ -168,10 +168,10 @@ const ViewSubject = () => {
             
             <Box>
               <Typography variant="subtitle2" color="text.secondary">
-                Sessions
+                Periods Per Week
               </Typography>
               <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                {subjectDetails?.sessions}
+                {subjectDetails?.periodsPerWeek}
               </Typography>
             </Box>
             

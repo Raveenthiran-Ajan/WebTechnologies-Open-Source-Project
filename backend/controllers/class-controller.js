@@ -29,6 +29,40 @@ const sclassCreate = async (req, res) => {
     }
 };
 
+const sclassUpdate = async (req, res) => {
+    try {
+        const { id, sclassName, subjects, adminID } = req.body;
+
+        // Check if another class with the same name exists (excluding current class)
+        const existingSclassByName = await Sclass.findOne({
+            sclassName: sclassName,
+            school: adminID,
+            _id: { $ne: id }
+        });
+
+        if (existingSclassByName) {
+            res.send({ message: 'Sorry this class name already exists' });
+        } else {
+            const updatedSclass = await Sclass.findByIdAndUpdate(
+                id,
+                {
+                    sclassName: sclassName,
+                    subjects: subjects || []
+                },
+                { new: true }
+            ).populate('subjects.subject', 'subName subCode periodsPerWeek');
+
+            if (!updatedSclass) {
+                res.send({ message: 'Class not found' });
+            } else {
+                res.send(updatedSclass);
+            }
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
 const sclassList = async (req, res) => {
     try {
         let sclasses = await Sclass.find({ school: req.params.id }).lean();
@@ -57,9 +91,12 @@ const sclassList = async (req, res) => {
 
 const getSclassDetail = async (req, res) => {
     try {
-        let sclass = await Sclass.findById(req.params.id);
+        let sclass = await Sclass.findById(req.params.id)
+            .populate('subjects.subject', 'subName subCode periodsPerWeek')
+            .populate("school", "schoolName");
         if (sclass) {
-            sclass = await sclass.populate("school", "schoolName")
+            // Filter out subjects with null references
+            sclass.subjects = sclass.subjects.filter(subject => subject.subject !== null);
             res.send(sclass);
         }
         else {
@@ -317,4 +354,4 @@ const updateTeacherClasses = async (req, res) => {
     }
 };
 
-module.exports = { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers, getTeacherClasses, updateTeacherClasses };
+module.exports = { sclassCreate, sclassUpdate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers, getTeacherClasses, updateTeacherClasses };

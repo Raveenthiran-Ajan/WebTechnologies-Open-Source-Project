@@ -127,6 +127,25 @@ export const addStuff = (fields, address) => async (dispatch) => {
     }
 };
 
+export const updateStuff = (fields, address) => async (dispatch) => {
+    dispatch(authRequest());
+
+    try {
+        const isFormData = fields instanceof FormData;
+        const result = await axios.put(`${API_BASE_URL}/${address}Update/${fields.id}`, fields, {
+            headers: isFormData ? {} : { 'Content-Type': 'application/json' },
+        });
+
+        if (result.data.message) {
+            dispatch(authFailed(result.data.message));
+        } else {
+            dispatch(stuffAdded(result.data));
+        }
+    } catch (error) {
+        dispatch(authError(error.response ? error.response.data.message : error.message));
+    }
+};
+
 export const forgotPassword = (role, fields) => async (dispatch) => {
     dispatch(authRequest());
 
