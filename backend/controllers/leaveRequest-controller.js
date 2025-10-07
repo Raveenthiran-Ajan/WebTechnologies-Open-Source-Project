@@ -133,62 +133,87 @@ const getLeaveRequestsByTeacher = async (req, res) => {
     try {
         const { teacherId } = req.params;
 
-        // Get the teacher's classes
+        // Get the teacher with all class assignments
         const Teacher = require('../models/teacherSchema.js');
-        const teacher = await Teacher.findById(teacherId).populate('teachSclasses').populate('teachSclass');
+        const teacher = await Teacher.findById(teacherId).populate('attendanceClass').populate('teachSclasses').populate('teachSclass');
 
         if (!teacher) {
             return res.status(404).json({
                 success: false,
-                data: [],
+                data: { pending: [], processed: [] },
                 message: "Teacher not found"
             });
         }
 
-        // Collect all class IDs the teacher teaches
-        const classIds = new Set();
-        if (Array.isArray(teacher.teachSclasses)) {
-            teacher.teachSclasses.forEach(cls => cls && cls._id && classIds.add(cls._id.toString()));
-        }
-        if (teacher.teachSclass && teacher.teachSclass._id) {
-            classIds.add(teacher.teachSclass._id.toString());
+        // Determine which class this teacher is responsible for
+        // Priority: attendanceClass (class teacher) > teachSclass > teachSclasses
+        let responsibleClassId = null;
+
+        if (teacher.attendanceClass && teacher.attendanceClass._id) {
+            responsibleClassId = teacher.attendanceClass._id;
+        } else if (teacher.teachSclass && teacher.teachSclass._id) {
+            responsibleClassId = teacher.teachSclass._id;
+        } else if (teacher.teachSclasses && teacher.teachSclasses.length > 0) {
+            // Use the first class if multiple are assigned
+            responsibleClassId = teacher.teachSclasses[0]._id;
         }
 
-        if (classIds.size === 0) {
+        if (!responsibleClassId) {
             return res.json({
                 success: true,
-                data: [],
-                message: "No classes assigned to this teacher"
+                data: { pending: [], processed: [] },
+                message: "No class assigned to this teacher"
             });
         }
 
-        // Get students in the teacher's classes
+        // Get students in the teacher's responsible class
         const Student = require('../models/studentSchema.js');
-        const studentsInClasses = await Student.find({
-            sclassName: { $in: Array.from(classIds) }
+        const studentsInClass = await Student.find({
+            sclassName: responsibleClassId
         }).select('_id');
 
-        const studentIds = studentsInClasses.map(student => student._id);
+        const studentIds = studentsInClass.map(student => student._id);
 
-        // Get leave requests for students in the teacher's classes
-        let leaveRequests = await LeaveRequest.find({
+        if (studentIds.length === 0) {
+            return res.json({
+                success: true,
+                data: { pending: [], processed: [] },
+                message: "No students in your class"
+            });
+        }
+
+        // Get pending leave requests
+        const pendingRequests = await LeaveRequest.find({
             student: { $in: studentIds },
             status: 'Pending'
         })
             .populate('user', 'name')
             .populate('student', 'name rollNum sclassName')
-            .populate('approvedBy', 'name');
+            .sort({ date: -1 });
+
+        // Get processed leave requests (approved/rejected)
+        const processedRequests = await LeaveRequest.find({
+            student: { $in: studentIds },
+            status: { $in: ['Approved', 'Rejected'] }
+        })
+            .populate('user', 'name')
+            .populate('student', 'name rollNum sclassName')
+            .populate('approvedBy', 'name')
+            .sort({ approvedDate: -1 }); // Most recently processed first
 
         res.json({
             success: true,
-            data: leaveRequests,
-            message: leaveRequests.length > 0 ? null : "No pending leave requests found for your classes"
+            data: {
+                pending: pendingRequests,
+                processed: processedRequests
+            },
+            message: (pendingRequests.length + processedRequests.length) > 0 ? null : "No leave requests found for your class"
         });
     } catch (err) {
         console.error('Error fetching leave requests for teacher:', err);
         res.status(500).json({
             success: false,
-            data: [],
+            data: { pending: [], processed: [] },
             message: err.message || "Error fetching leave requests"
         });
     }

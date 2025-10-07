@@ -16,6 +16,8 @@ import {
     IconButton,
     Paper,
     TextField,
+    Tabs,
+    Tab,
 } from '@mui/material';
 import {
     DataGrid,
@@ -45,6 +47,7 @@ const TeacherLeaveRequests = () => {
     const [message, setMessage] = useState('');
     const [alertSeverity, setAlertSeverity] = useState('success');
     const [submitLoading, setSubmitLoading] = useState(false);
+    const [tabValue, setTabValue] = useState(0); // 0 for pending, 1 for processed
 
     useEffect(() => {
         const fetchLeaveRequests = async () => {
@@ -65,10 +68,13 @@ const TeacherLeaveRequests = () => {
     }, [dispatch, currentUser?._id]);
 
     const teacherLeaveRequests = React.useMemo(() => {
-        if (!Array.isArray(leaveRequestsList)) {
-            return [];
+        if (!leaveRequestsList || typeof leaveRequestsList !== 'object') {
+            return { pending: [], processed: [] };
         }
-        return leaveRequestsList;
+        return {
+            pending: Array.isArray(leaveRequestsList.pending) ? leaveRequestsList.pending : [],
+            processed: Array.isArray(leaveRequestsList.processed) ? leaveRequestsList.processed : []
+        };
     }, [leaveRequestsList]);
 
     const CustomToolbar = () => {
@@ -105,10 +111,10 @@ const TeacherLeaveRequests = () => {
             renderCell: (params) => (
                 <Box sx={{ py: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {params.value.name}
+                        {params.value?.name || 'N/A'}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                        Roll: {params.value.rollNum}
+                        Roll: {params.value?.rollNum || 'N/A'}
                     </Typography>
                 </Box>
             ),
@@ -120,7 +126,7 @@ const TeacherLeaveRequests = () => {
             renderCell: (params) => (
                 <Box sx={{ py: 1 }}>
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {params.value.name}
+                        {params.value?.name || 'N/A'}
                     </Typography>
                 </Box>
             ),
@@ -185,30 +191,40 @@ const TeacherLeaveRequests = () => {
                     >
                         <VisibilityIcon fontSize="small" />
                     </IconButton>
-                    <Button
-                        variant="contained"
-                        color="success"
-                        size="small"
-                        onClick={() => handleAction(params.row, 'approve')}
-                        sx={{ minWidth: 'auto', px: 1 }}
-                    >
-                        <CheckCircleIcon fontSize="small" />
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="error"
-                        size="small"
-                        onClick={() => handleAction(params.row, 'reject')}
-                        sx={{ minWidth: 'auto', px: 1 }}
-                    >
-                        <CancelIcon fontSize="small" />
-                    </Button>
+                    {params.row.status === 'Pending' ? (
+                        <>
+                            <Button
+                                variant="contained"
+                                color="success"
+                                size="small"
+                                onClick={() => handleAction(params.row, 'approve')}
+                                sx={{ minWidth: 'auto', px: 1 }}
+                            >
+                                <CheckCircleIcon fontSize="small" />
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="error"
+                                size="small"
+                                onClick={() => handleAction(params.row, 'reject')}
+                                sx={{ minWidth: 'auto', px: 1 }}
+                            >
+                                <CancelIcon fontSize="small" />
+                            </Button>
+                        </>
+                    ) : (
+                        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+                            {params.row.status === 'Approved' ? 'Approved' : 'Rejected'}
+                        </Typography>
+                    )}
                 </Box>
             ),
         },
     ];
 
-    const rows = teacherLeaveRequests.map((request, index) => ({
+    const currentRequests = tabValue === 0 ? teacherLeaveRequests.pending : teacherLeaveRequests.processed;
+
+    const rows = currentRequests.map((request, index) => ({
         id: index + 1,
         date: request.date || new Date().toISOString(),
         student: request.student,
@@ -216,11 +232,16 @@ const TeacherLeaveRequests = () => {
         startDate: request.startDate,
         endDate: request.endDate,
         reason: request.reason,
+        status: request.status,
         _id: request._id,
         approvedBy: request.approvedBy,
         approvedDate: request.approvedDate,
         rejectionReason: request.rejectionReason
     }));
+
+    const handleTabChange = (event, newValue) => {
+        setTabValue(newValue);
+    };
 
     const handleView = (row) => {
         setViewing(row);
@@ -283,6 +304,13 @@ const TeacherLeaveRequests = () => {
                     </Typography>
                 </Box>
 
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+                    <Tabs value={tabValue} onChange={handleTabChange} aria-label="leave request tabs">
+                        <Tab label={`Pending Requests (${teacherLeaveRequests.pending.length})`} />
+                        <Tab label={`Processed Requests (${teacherLeaveRequests.processed.length})`} />
+                    </Tabs>
+                </Box>
+
                 {leaveLoading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                         <CircularProgress />
@@ -334,7 +362,10 @@ const TeacherLeaveRequests = () => {
 
                 <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                     <Typography variant="body2" color="text.secondary" align="center">
-                        Total Pending Requests: {teacherLeaveRequests.length}
+                        {tabValue === 0
+                            ? `Pending Requests: ${currentRequests.length}`
+                            : `Processed Requests: ${currentRequests.length} | Approved: ${currentRequests.filter(r => r.status === 'Approved').length} | Rejected: ${currentRequests.filter(r => r.status === 'Rejected').length}`
+                        }
                     </Typography>
                 </Box>
             </Box>
@@ -370,14 +401,14 @@ const TeacherLeaveRequests = () => {
                             <Grid item xs={12}>
                                 <Typography variant="subtitle2" color="textSecondary">Student</Typography>
                                 <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                                    {viewing.student.name} (Roll: {viewing.student.rollNum})
+                                    {viewing.student?.name || 'N/A'} (Roll: {viewing.student?.rollNum || 'N/A'})
                                 </Typography>
                             </Grid>
 
                             <Grid item xs={12}>
                                 <Typography variant="subtitle2" color="textSecondary">Parent</Typography>
                                 <Typography variant="body1">
-                                    {viewing.parent.name}
+                                    {viewing.parent?.name || 'N/A'}
                                 </Typography>
                             </Grid>
 
@@ -433,27 +464,31 @@ const TeacherLeaveRequests = () => {
                     >
                         Close
                     </Button>
-                    <Button
-                        variant="contained"
-                        color="success"
-                        onClick={() => {
-                            setViewing(null);
-                            handleAction(viewing, 'approve');
-                        }}
-                        sx={{ mr: 1 }}
-                    >
-                        Approve
-                    </Button>
-                    <Button
-                        variant="contained"
-                        color="error"
-                        onClick={() => {
-                            setViewing(null);
-                            handleAction(viewing, 'reject');
-                        }}
-                    >
-                        Reject
-                    </Button>
+                    {viewing && viewing.status === 'Pending' && (
+                        <>
+                            <Button
+                                variant="contained"
+                                color="success"
+                                onClick={() => {
+                                    setViewing(null);
+                                    handleAction(viewing, 'approve');
+                                }}
+                                sx={{ mr: 1 }}
+                            >
+                                Approve
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="error"
+                                onClick={() => {
+                                    setViewing(null);
+                                    handleAction(viewing, 'reject');
+                                }}
+                            >
+                                Reject
+                            </Button>
+                        </>
+                    )}
                 </DialogActions>
             </Dialog>
 
@@ -500,7 +535,7 @@ const TeacherLeaveRequests = () => {
                             <Grid item xs={12}>
                                 <Paper sx={{ p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                        Student: {selectedRequest.student.name}
+                                        Student: {selectedRequest.student?.name || 'N/A'}
                                     </Typography>
                                     <Typography variant="body2">
                                         Period: {new Date(selectedRequest.startDate).toLocaleDateString()} - {new Date(selectedRequest.endDate).toLocaleDateString()}
