@@ -148,7 +148,12 @@ router.put("/Notice/:id", updateNotice)
 router.put('/NoticeRead', markNoticeAsRead);
 router.get('/download/notice/:filename', (req, res) => {
     const filePath = path.join(__dirname, '../uploads/notices', req.params.filename);
-    res.download(filePath);
+    res.download(filePath, (err) => {
+        if (err) {
+            console.error('Download error:', err);
+            res.status(404).json({ message: 'File not found' });
+        }
+    });
 });
 // ------------------- Notice -------------------
 

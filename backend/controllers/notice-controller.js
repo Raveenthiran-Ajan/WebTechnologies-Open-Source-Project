@@ -18,7 +18,7 @@ const noticeCreate = async (req, res) => {
                 fileType = 'video';
             }
             fileTypes.push(fileType);
-            filePaths.push(file.path);
+            filePaths.push("/" + file.path.replace(/\\/g, "/"));
         });
 
         const notice = new Notice({

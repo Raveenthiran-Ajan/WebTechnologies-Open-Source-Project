@@ -44,6 +44,7 @@ const ParentNotices = () => {
     const { currentUser } = useSelector((state) => state.user);
     const { noticesList, loading, error, response } = useSelector((state) => state.notice);
     const [viewing, setViewing] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
     const [cardFilter, setCardFilter] = useState('all'); // 'all', 'unread', 'read'
 
@@ -471,7 +472,13 @@ const ParentNotices = () => {
                                                     <Tooltip title="Preview">
                                                         <IconButton
                                                             size="small"
-                                                            onClick={() => window.open(`${API_BASE_URL}/${path}`, '_blank')}
+                                                            onClick={() => {
+                                                                if (viewing.fileType[index] === 'image') {
+                                                                    setImagePreview(`${API_BASE_URL}${path}`);
+                                                                } else {
+                                                                    window.open(`${API_BASE_URL}${path}`, '_blank');
+                                                                }
+                                                            }}
                                                         >
                                                             <OpenInNewIcon />
                                                         </IconButton>
@@ -502,6 +509,30 @@ const ParentNotices = () => {
                     >
                         Close
                     </Button>
+                </DialogActions>
+            </Dialog>
+            
+            {/* Image Preview Dialog */}
+            <Dialog
+                open={!!imagePreview}
+                onClose={() => setImagePreview(null)}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle>Image Preview</DialogTitle>
+                <DialogContent>
+                    {imagePreview && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <img 
+                                src={imagePreview} 
+                                alt="Preview" 
+                                style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain' }} 
+                            />
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setImagePreview(null)}>Close</Button>
                 </DialogActions>
             </Dialog>
         </>
