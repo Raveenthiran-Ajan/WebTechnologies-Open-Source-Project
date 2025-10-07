@@ -13,6 +13,7 @@ import {
     GridToolbarColumnsButton,
     GridToolbarFilterButton,
     GridToolbarDensitySelector,
+    GridToolbarExport
 } from '@mui/x-data-grid';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
@@ -136,6 +137,17 @@ const StudentSubjects = () => {
         return <CustomBarChart chartData={subjectMarks} dataKey="marksObtained" />;
     };
 
+    const CustomToolbar = () => {
+        return (
+            <GridToolbarContainer>
+                <GridToolbarColumnsButton />
+                <GridToolbarFilterButton />
+                <GridToolbarDensitySelector />
+                <GridToolbarExport />
+            </GridToolbarContainer>
+        );
+    };
+
     const renderClassDetailsSection = () => {
         const subjectColumns = [
             { field: 'subName', headerName: 'Subject Name', width: 250 },
@@ -174,23 +186,57 @@ const StudentSubjects = () => {
         }) : [];
 
         return (
-            <Container>
-                <Typography variant="h4" align="center" gutterBottom>
-                    Class Details
-                </Typography>
-                <Typography variant="h5" gutterBottom>
-                    You are currently in Class: {userDetails?.sclassName?.sclassName}
-                </Typography>
-                {loading ? (
-                    <CircularProgress />
-                ) : (
-                    <Box sx={{ height: 400, width: '100%', mt: 2 }}>
-                        <DataGrid
-                            rows={subjectRows}
-                            columns={subjectColumns}
-                        />
+            <Container maxWidth="lg">
+                <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                        <Typography variant="h4" component="h1" color="primary">
+                            My Subjects
+                        </Typography>
                     </Box>
-                )}
+                    {loading ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                            <CircularProgress />
+                        </Box>
+                    ) : (
+                        <Box sx={{ height: 400, width: '100%' }}>
+                            <DataGrid
+                                rows={subjectRows}
+                                columns={subjectColumns}
+                                initialState={{
+                                    pagination: {
+                                        paginationModel: {
+                                            pageSize: 10,
+                                        },
+                                    },
+                                }}
+                                pageSizeOptions={[5, 10, 25]}
+                                checkboxSelection={false}
+                                disableRowSelectionOnClick
+                                slots={{
+                                    toolbar: CustomToolbar,
+                                }}
+                                sx={{
+                                    '& .MuiDataGrid-root': {
+                                        border: 'none',
+                                    },
+                                    '& .MuiDataGrid-cell': {
+                                        borderBottom: '1px solid #f0f0f0',
+                                    },
+                                    '& .MuiDataGrid-columnHeaders': {
+                                        backgroundColor: '#f5f5f5',
+                                        borderBottom: '1px solid #e0e0e0',
+                                    },
+                                    '& .MuiDataGrid-virtualScroller': {
+                                        backgroundColor: '#fafafa',
+                                    },
+                                    '& .MuiDataGrid-overlay': {
+                                        backgroundColor: '#ffffff',
+                                    },
+                                }}
+                            />
+                        </Box>
+                    )}
+                </Box>
             </Container>
         );
     };
