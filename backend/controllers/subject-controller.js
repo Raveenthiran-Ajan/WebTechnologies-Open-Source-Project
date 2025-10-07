@@ -48,7 +48,10 @@ const classSubjects = async (req, res) => {
     try {
         // First get the class to find its associated subjects with sessions
         const Sclass = require('../models/sclassSchema.js');
-        const classData = await Sclass.findById(req.params.id).populate('subjects.subject');
+        const classData = await Sclass.findById(req.params.id).populate({
+            path: 'subjects.subject',
+            populate: { path: 'teacher', select: 'name' }
+        });
         
         if (!classData) {
             return res.status(404).json({ message: "Class not found" });
