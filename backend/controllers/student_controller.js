@@ -8,7 +8,7 @@ const studentRegister = async (req, res) => {
         const hashedPass = await bcrypt.hash(req.body.password, salt);
 
         const existingStudent = await Student.findOne({
-            rollNum: req.body.rollNum,
+            rollNum: Number(req.body.rollNum),
             school: req.body.adminID,
             sclassName: req.body.sclassName,
         });
@@ -19,6 +19,7 @@ const studentRegister = async (req, res) => {
         else {
             const student = new Student({
                 ...req.body,
+                rollNum: Number(req.body.rollNum),
                 school: req.body.adminID,
                 password: hashedPass
             });
