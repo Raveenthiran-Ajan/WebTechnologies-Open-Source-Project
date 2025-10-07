@@ -25,6 +25,7 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Stack, // added to fix 'Stack' is not defined
 } from "@mui/material";
 import {
   Download as DownloadIcon,
@@ -842,49 +843,60 @@ const TeacherUploadAssignment = () => {
               disableClearable={false}
             />
 
-            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-              <Button variant={showOnlyUngraded ? 'contained' : 'outlined'} onClick={() => setShowOnlyUngraded(!showOnlyUngraded)} size="small">
+            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* unified filter button styles */}
+              <Button
+                onClick={() => setShowOnlyUngraded(!showOnlyUngraded)}
+                variant={showOnlyUngraded ? 'contained' : 'outlined'}
+                sx={{ minWidth: 160, height: 40, textTransform: 'none', borderRadius: 2, fontWeight: 600 }}
+              >
                 Show only ungraded
               </Button>
-            <Button
-              variant={orderBy === 'grade' ? 'contained' : 'outlined'}
-              onClick={() => {
-                if (orderBy === 'grade') {
-                  setOrderBy('name');
-                  setOrder('asc');
-                } else {
-                  setOrderBy('grade');
-                  setOrder('desc');
-                }
-              }}
-              size="small"
-            >
-              Sort by grade
-            </Button>
-            {/* New Class Filter Dropdown */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 180 }}>
-              <Typography variant="caption" sx={{ mb: 0.5, color: 'text.secondary' }}>
-                Filter by Class
-              </Typography>
-              <TextField
-                select
-                value={selectedClassId}
-                onChange={(e) => setSelectedClassId(e.target.value)}
-                SelectProps={{ native: true }}
-                size="small"
+
+              <Button
+                onClick={() => {
+                  if (orderBy === 'grade') {
+                    setOrderBy('name');
+                    setOrder('asc');
+                  } else {
+                    setOrderBy('grade');
+                    setOrder('desc');
+                  }
+                }}
+                variant={orderBy === 'grade' ? 'contained' : 'outlined'}
+                sx={{ minWidth: 160, height: 40, textTransform: 'none', borderRadius: 2, fontWeight: 600 }}
               >
-                <option value="">All Classes</option>
-                {Array.isArray(teacherClasses) && teacherClasses.filter(cls => cls && cls._id).map((cls) => (
-                  <option key={cls._id} value={cls._id}>
-                    Class {cls.sclassName}
-                  </option>
-                ))}
-              </TextField>
-            </Box>
-              {gradeFilterRange && (
-                <Chip label={`Grade: ${gradeFilterRange[0]}-${gradeFilterRange[1]}`} onDelete={() => setGradeFilterRange(null)} />
-              )}
-            </Box>
+                Sort by grade
+              </Button>
+
+              {/* Class Filter aligned with buttons */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 220 }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                  Filter by Class
+                </Typography>
+                <TextField
+                  select
+                  value={selectedClassId}
+                  onChange={(e) => setSelectedClassId(e.target.value)}
+                  SelectProps={{ native: true }}
+                  size="small"
+                  sx={{
+                    minWidth: 180,
+                    '& .MuiInputBase-root': { height: 40 },
+                  }}
+                >
+                  <option value="">All Classes</option>
+                  {Array.isArray(teacherClasses) && teacherClasses.filter(cls => cls && cls._id).map((cls) => (
+                    <option key={cls._id} value={cls._id}>
+                      Class {cls.sclassName}
+                    </option>
+                  ))}
+                </TextField>
+              </Box>
+               {gradeFilterRange && (
+                 <Chip label={`Grade: ${gradeFilterRange[0]}-${gradeFilterRange[1]}`} onDelete={() => setGradeFilterRange(null)} />
+               )}
+             </Box>
 
             {loadingSubmissions ? (
               <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
@@ -1049,62 +1061,85 @@ const TeacherUploadAssignment = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Title</TableCell>
-                  <TableCell>Subject</TableCell>
-                  <TableCell>Classes</TableCell>
-                  <TableCell>Due Date</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
+                  <TableCell align="left" sx={{ fontWeight: 700 }}>Title</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>Subject</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>Classes</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>Due Date</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>Status</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700 }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Array.isArray(assignments) && assignments.map((assignment) => (
-                  <TableRow key={assignment._id}>
-                    <TableCell>{assignment.title}</TableCell>
-                    <TableCell>{assignment.subject}</TableCell>
-                    <TableCell>
-                      {Array.isArray(assignment.assignments) && assignment.assignments.length > 0
-                        ? assignment.assignments.map((a) => {
-                            const classLabel = a.classId?.sclassName
-                              ? `Class ${a.classId.sclassName}`
-                              : `Class ${a.classId}`;
-                            return classLabel;
-                          }).join(', ')
-                        : '—'}
+                {assignments.map((assignment) => (
+                  <TableRow key={assignment._id} hover sx={{ '& .MuiTableCell-root': { verticalAlign: 'middle' } }}>
+                    {/* Title: left aligned for readability */}
+                    <TableCell align="left" sx={{ px: 3 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                        {assignment.title || 'Untitled'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        {assignment.description ? `${String(assignment.description).slice(0, 80)}${assignment.description.length > 80 ? '…' : ''}` : assignment.subject || ''}
+                      </Typography>
                     </TableCell>
-                    <TableCell>{new Date(assignment.dueDate).toLocaleString()}</TableCell>
-                    <TableCell>{getStatusChip(assignment)}</TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton
-                          color="primary"
-                          onClick={() => handleEditAssignment(assignment)}
-                          title="Edit Assignment"
-                        >
+
+                    {/* Subject: center */}
+                    <TableCell align="center">
+                      <Typography variant="body2">{assignment.subject || '—'}</Typography>
+                    </TableCell>
+
+                    {/* Classes: center (robust handling) */}
+                    <TableCell align="center">
+                      <Typography variant="body2">
+                        {Array.isArray(assignment.classIds) && assignment.classIds.length > 0
+                          ? assignment.classIds
+                              .map((cls) => {
+                                if (!cls) return null;
+                                if (typeof cls === 'string' || typeof cls === 'number') {
+                                  const found = teacherClasses?.find((c) => String(c._id) === String(cls));
+                                  return found ? `Class ${found.sclassName ?? found.name ?? cls}` : `Class ${cls}`;
+                                }
+                                if (cls.sclassName) return `Class ${cls.sclassName}`;
+                                if (cls.name) return `Class ${cls.name}`;
+                                if (cls._id) {
+                                  const found = teacherClasses?.find((c) => String(c._id) === String(cls._id));
+                                  return found ? `Class ${found.sclassName ?? found.name}` : `Class ${cls._id}`;
+                                }
+                                return null;
+                              })
+                              .filter(Boolean)
+                              .join(', ')
+                          : '—'}
+                      </Typography>
+                    </TableCell>
+
+                    {/* Due Date: center */}
+                    <TableCell align="center">
+                      <Typography variant="body2">
+                        {assignment.dueDate ? new Date(assignment.dueDate).toLocaleString() : '—'}
+                      </Typography>
+                    </TableCell>
+
+                    {/* Status: center */}
+                    <TableCell align="center">
+                      {getStatusChip(assignment)}
+                    </TableCell>
+
+                    {/* Actions: center */}
+                    <TableCell align="center">
+                      <Stack direction="row" spacing={1} justifyContent="center">
+                        <IconButton color="primary" onClick={() => handleEditAssignment(assignment)} title="Edit Assignment">
                           <EditIcon />
                         </IconButton>
-                        <IconButton
-                          color="secondary"
-                          onClick={() => handleExtendDeadline(assignment)}
-                          title="Extend Deadline"
-                        >
+                        <IconButton color="secondary" onClick={() => handleExtendDeadline(assignment)} title="Extend Deadline">
                           <ScheduleIcon />
                         </IconButton>
-                        <IconButton
-                          color="info"
-                          onClick={() => handleViewSubmissions(assignment)}
-                          title="View Submissions"
-                        >
+                        <IconButton color="info" onClick={() => handleViewSubmissions(assignment)} title="View Submissions">
                           <VisibilityIcon />
                         </IconButton>
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDeleteAssignment(assignment)}
-                          title="Delete Assignment"
-                        >
+                        <IconButton color="error" onClick={() => handleDeleteAssignment(assignment)} title="Delete Assignment">
                           <DeleteIcon />
                         </IconButton>
-                      </Box>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ))}
