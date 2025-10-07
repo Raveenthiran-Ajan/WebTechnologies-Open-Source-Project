@@ -14,11 +14,11 @@ import ForgotPassword from './pages/forgotPassword';
 import ResetPassword from './pages/resetPassword';
 import ParentDashboard from './pages/parent/ParentDashboard';
 import LanguageSwitcher from './components/LanguageSwitcher';
+import AdminTimetable from './pages/admin/AdminTimetable';
 
 
 const App = () => {
   const { currentRole } = useSelector(state => state.user);
-  
 
   return (
     <Router>
@@ -42,29 +42,38 @@ const App = () => {
           <Route path="/teacher/upload-assignment" element={<AssignmentSubmission />} />
 
           <Route path='*' element={<Navigate to="/" />} />
-        </Routes>}
+        </Routes>
+      }
 
       {currentRole === "Admin" && 
         <>
           <AdminDashboard />
+          <Routes>
+            <Route path="/Admin/classes/class/:classId" element={<AdminTimetable />} />
+            <Route path="/Admin/classes/class/:classId" element={<AdminTimetable />} />
+            {/* Add other admin routes here if needed */}
+          </Routes>
         </>
       }
 
       {currentRole === "Student" && 
         <>
           <StudentDashboard />
+          {/* Add student-specific <Routes> here if needed */}
         </>
       }
 
       {currentRole === "Teacher" && 
         <>
           <TeacherDashboard />
+          {/* Add teacher-specific <Routes> here if needed */}
         </>
       }
 
       {currentRole === "Parent" && 
         <>
           <ParentDashboard />
+          {/* Add parent-specific <Routes> here if needed */}
         </>
       }
     </Router>
