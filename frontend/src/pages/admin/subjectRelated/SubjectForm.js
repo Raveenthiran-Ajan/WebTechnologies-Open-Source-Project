@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, TextField, Box, Typography, CircularProgress, Paper, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { Button, TextField, Box, Typography, CircularProgress, Paper, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Container } from "@mui/material";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
@@ -9,7 +9,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const SubjectForm = () => {
-    const [subjects, setSubjects] = useState([{ subName: "", subCode: "" }]);
+    const [subjects, setSubjects] = useState([{ subName: "", subCode: "", periodsPerWeek: "" }]);
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -37,8 +37,14 @@ const SubjectForm = () => {
         setSubjects(newSubjects);
     };
 
+    const handlePeriodsPerWeekChange = (index) => (event) => {
+        const newSubjects = [...subjects];
+        newSubjects[index].periodsPerWeek = event.target.value;
+        setSubjects(newSubjects);
+    };
+
     const handleAddSubject = () => {
-        setSubjects([...subjects, { subName: "", subCode: "" }]);
+        setSubjects([...subjects, { subName: "", subCode: "", periodsPerWeek: "" }]);
     };
 
     const handleRemoveSubject = (index) => () => {
@@ -51,6 +57,7 @@ const SubjectForm = () => {
         subjects: subjects.map((subject) => ({
             subName: subject.subName,
             subCode: subject.subCode,
+            periodsPerWeek: subject.periodsPerWeek,
         })),
         adminID,
     };
@@ -80,21 +87,23 @@ const SubjectForm = () => {
     }, [status, navigate, error, response, dispatch]);
 
     return (
-        <Box>
-            <Box mb={3}>
-                <Typography variant="h6">Add Subjects</Typography>
-                <Typography variant="body2" color="text.secondary">
-                    Add multiple subjects at once using the table below. Click "Add Row" to add more subjects.
-                </Typography>
-            </Box>
+        <Container maxWidth="md" sx={{ mt: 4 }}>
+            <Box sx={{ p: 3, backgroundColor: 'white', borderRadius: 2, boxShadow: 3 }}>
+                <Box mb={3}>
+                    <Typography variant="h6">Add Subjects</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Add multiple subjects at once using the table below. Click "Add Row" to add more subjects.
+                    </Typography>
+                </Box>
 
             <Paper sx={{ overflow: 'auto', mb: 3 }}>
                 <TableContainer>
                     <Table>
                         <TableHead>
                             <TableRow sx={{ bgcolor: 'grey.50' }}>
-                                <TableCell sx={{ fontWeight: 'bold', width: '45%' }}>Subject Name</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', width: '45%' }}>Subject Code</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Subject Name</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Subject Code</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Periods Per Week</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', width: '10%', textAlign: 'center' }}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
@@ -120,6 +129,18 @@ const SubjectForm = () => {
                                             size="small"
                                             value={subject.subCode}
                                             onChange={handleSubjectCodeChange(index)}
+                                            required
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <TextField
+                                            fullWidth
+                                            placeholder="Enter periods per week"
+                                            variant="outlined"
+                                            size="small"
+                                            type="number"
+                                            value={subject.periodsPerWeek}
+                                            onChange={handlePeriodsPerWeekChange(index)}
                                             required
                                         />
                                     </TableCell>
@@ -166,7 +187,7 @@ const SubjectForm = () => {
                     variant="contained"
                     color="primary"
                     onClick={submitHandler}
-                    disabled={loader || subjects.some(s => !s.subName.trim() || !s.subCode.trim())}
+                    disabled={loader || subjects.some(s => !s.subName.trim() || !s.subCode.trim() || !s.periodsPerWeek.trim())}
                 >
                     {loader ? (
                         <CircularProgress size={24} color="inherit" />
@@ -177,7 +198,8 @@ const SubjectForm = () => {
             </Box>
 
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-        </Box>
+            </Box>
+        </Container>
     );
 }
 

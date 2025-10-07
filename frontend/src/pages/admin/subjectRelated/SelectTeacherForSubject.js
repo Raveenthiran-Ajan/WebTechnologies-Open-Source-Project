@@ -107,7 +107,7 @@ const SelectTeacherForSubject = () => {
                             <strong>Class:</strong> {subjectDetails.sclassName?.sclassName}
                         </Typography>
                         <Typography variant="body1">
-                            <strong>Sessions:</strong> {subjectDetails.sessions}
+                            <strong>Periods Per Week:</strong> {subjectDetails.periodsPerWeek}
                         </Typography>
                         {subjectDetails.teacher && (
                             <Alert severity="info" sx={{ mt: 2 }}>

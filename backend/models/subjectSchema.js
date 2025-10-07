@@ -9,6 +9,10 @@ const subjectSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    periodsPerWeek: {
+        type: Number,
+        required: true,
+    },
     school: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'admin'

@@ -42,6 +42,8 @@ import EditTeacherAssignments from './teacherRelated/EditTeacherAssignments';
 import TeacherClassesView from './teacherRelated/TeacherClassesView';
 
 import AddClass from './classRelated/AddClass';
+import SubjectSelection from './classRelated/SubjectSelection';
+import EditClass from './classRelated/EditClass';
 import ClassDetails from './classRelated/ClassDetails';
 import ShowClasses from './classRelated/ShowClasses';
 import AccountMenu from '../../components/AccountMenu';
@@ -127,8 +129,10 @@ const AdminDashboard = () => {
 
                         {/* Class */}
                         <Route path="/Admin/addclass" element={<AddClass />} />
+                        <Route path="/Admin/select-subjects" element={<SubjectSelection />} />
                         <Route path="/Admin/classes" element={<ShowClasses />} />
                         <Route path="/Admin/classes/class/:id" element={<ClassDetails />} />
+                        <Route path="/Admin/classes/edit/:id" element={<EditClass />} />
 
                         {/* Student */}
                         <Route path="/Admin/addstudents" element={<AddStudent situation="Student" />} />

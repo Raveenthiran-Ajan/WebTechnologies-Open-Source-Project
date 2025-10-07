@@ -79,7 +79,7 @@ const TeacherClassesView = () => {
                                     <StyledTableCell>#</StyledTableCell>
                                     <StyledTableCell align="center">Subject Name</StyledTableCell>
                                     <StyledTableCell align="center">Subject Code</StyledTableCell>
-                                    <StyledTableCell align="center">Sessions</StyledTableCell>
+                                    <StyledTableCell align="center">Periods Per Week</StyledTableCell>
                                     <StyledTableCell align="center">Assigned Teacher</StyledTableCell>
                                     <StyledTableCell align="center">Actions</StyledTableCell>
                                 </StyledTableRow>
@@ -97,7 +97,7 @@ const TeacherClassesView = () => {
                                             </Box>
                                         </StyledTableCell>
                                         <StyledTableCell align="center">{subject.subCode}</StyledTableCell>
-                                        <StyledTableCell align="center">{subject.sessions || 'N/A'}</StyledTableCell>
+                                        <StyledTableCell align="center">{subject.periodsPerWeek || 'N/A'}</StyledTableCell>
                                         <StyledTableCell align="center">
                                             {subject.teacher ? (
                                                 <Chip 
