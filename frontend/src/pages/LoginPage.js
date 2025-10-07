@@ -139,7 +139,7 @@ const LoginPage = ({ role }) => {
                         }}
                     >
                         <Typography variant="h4" sx={{ mb: 2, color: "#2c2143" }}>
-                            {t('loginPage.title', { role })}
+                            {t('loginPage.title', { role: t('loginPage.' + role.toLowerCase()) })}
                         </Typography>
                         <Typography variant="h7">
                             {t('loginPage.welcome')}
