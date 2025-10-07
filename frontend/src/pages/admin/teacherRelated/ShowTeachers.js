@@ -134,29 +134,37 @@ const ShowTeachers = () => {
         },
         {
             field: 'attendanceClass',
-            headerName: 'Attendance Class',
+            headerName: 'Class Teacher',
             flex: 0.8,
             renderCell: (params) => {
                 const attendanceClass = params.row.attendanceClass;
                 return (
-                    <Box sx={{ 
-                        display: 'flex', 
-                        flexWrap: 'wrap', 
-                        gap: 0.5, 
+                    <Box sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 0.5,
                         width: '100%',
-                        py: 1 
+                        py: 1
                     }}>
                         {attendanceClass ? (
-                            <Chip 
-                                label={attendanceClass.sclassName || 'Unknown'} 
-                                size="small" 
-                                color="success" 
-                                variant="filled"
-                                sx={{ fontSize: '0.75rem' }}
-                            />
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <Chip
+                                    label={attendanceClass.sclassName || 'Unknown'}
+                                    size="small"
+                                    color="success"
+                                    variant="outlined"
+                                    sx={{ fontSize: '0.75rem' }}
+                                />
+                                <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 'bold' }}>
+                                    ✓
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: 'success.main' }}>
+                                    Class Teacher
+                                </Typography>
+                            </Box>
                         ) : (
                             <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                                No attendance duty
+                                Not assigned
                             </Typography>
                         )}
                     </Box>

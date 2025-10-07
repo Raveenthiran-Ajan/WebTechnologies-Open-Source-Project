@@ -54,47 +54,49 @@ const parentRegister = async (req, res) => {
 
         const result = await newParent.save();
         
-        // Send welcome email
-        const adminDoc = await Admin.findById(school).select('schoolName');
-        const schoolName = (adminDoc && adminDoc.schoolName) ? adminDoc.schoolName : 'Our';
-        const loginUrl = 'http://localhost:3000/Parentlogin'; // Role-based login URL for parents
-        const emailHtml = `
-            <html>
-            <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 24px;">
-                <div style="max-width: 640px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 24px;">
-                    <h2 style="text-align: center; color: #333333; margin: 0 0 16px;">Welcome to ${schoolName} School Management System!</h2>
-                    <p style="margin: 0 0 12px;">Dear ${name},</p>
-                    <p style="margin: 0 0 16px;">Your parent account has been successfully created. Here are your login credentials:</p>
+        // Send welcome email only if password was auto-generated
+        if (autoGeneratePassword) {
+            const adminDoc = await Admin.findById(school).select('schoolName');
+            const schoolName = (adminDoc && adminDoc.schoolName) ? adminDoc.schoolName : 'Our';
+            const loginUrl = 'http://localhost:3000/Parentlogin'; // Role-based login URL for parents
+            const emailHtml = `
+                <html>
+                <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 24px;">
+                    <div style="max-width: 640px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 24px;">
+                        <h2 style="text-align: center; color: #333333; margin: 0 0 16px;">Welcome to ${schoolName} School Management System!</h2>
+                        <p style="margin: 0 0 12px;">Dear ${name},</p>
+                        <p style="margin: 0 0 16px;">Your parent account has been successfully created. Here are your login credentials:</p>
 
-                    <div style="background-color: #f5f7fa; padding: 16px; border-radius: 8px; margin: 0 0 16px;">
-                        <p style="margin: 0 0 8px;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #1976d2; text-decoration: underline;">${email}</a></p>
-                        <p style="margin: 0 0 8px;"><strong>Password:</strong> ${finalPassword}</p>
-                        <p style="margin: 0;"><strong>Role:</strong> Parent</p>
+                        <div style="background-color: #f5f7fa; padding: 16px; border-radius: 8px; margin: 0 0 16px;">
+                            <p style="margin: 0 0 8px;"><strong>Email:</strong> <a href="mailto:${email}" style="color: #1976d2; text-decoration: underline;">${email}</a></p>
+                            <p style="margin: 0 0 8px;"><strong>Password:</strong> ${finalPassword}</p>
+                            <p style="margin: 0;"><strong>Role:</strong> Parent</p>
+                        </div>
+
+                        <p style="margin: 0 0 12px;">Please use the following link to login:</p>
+                        <div style="text-align: center; margin: 12px 0 20px;">
+                            <a href="${loginUrl}" style="background-color: #1976d2; color: #ffffff; padding: 10px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Login as Parent</a>
+                        </div>
+
+                        <p style="margin: 0 0 12px;"><strong>Important:</strong> Please change your password after your first login for security purposes.</p>
+                        <p style="margin: 0 0 16px;">If you have any questions, please contact the system administrator.</p>
+
+                        <p style="margin: 0;">Best regards,<br>School Management System Team</p>
                     </div>
-
-                    <p style="margin: 0 0 12px;">Please use the following link to login:</p>
-                    <div style="text-align: center; margin: 12px 0 20px;">
-                        <a href="${loginUrl}" style="background-color: #1976d2; color: #ffffff; padding: 10px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600;">Login as Parent</a>
-                    </div>
-
-                    <p style="margin: 0 0 12px;"><strong>Important:</strong> Please change your password after your first login for security purposes.</p>
-                    <p style="margin: 0 0 16px;">If you have any questions, please contact the system administrator.</p>
-
-                    <p style="margin: 0;">Best regards,<br>School Management System Team</p>
-                </div>
-            </body>
-            </html>
-        `;
-        
-        try {
-            await sendEmail({
-                to: email,
-                subject: 'Welcome to School Management System - Your Account Details',
-                text: emailHtml
-            });
-        } catch (emailErr) {
-            console.error('Error sending email:', emailErr);
-            // Don't fail the registration if email fails
+                </body>
+                </html>
+            `;
+            
+            try {
+                await sendEmail({
+                    to: email,
+                    subject: 'Welcome to School Management System - Your Account Details',
+                    text: emailHtml
+                });
+            } catch (emailErr) {
+                console.error('Error sending email:', emailErr);
+                // Don't fail the registration if email fails
+            }
         }
         
         result.password = undefined;

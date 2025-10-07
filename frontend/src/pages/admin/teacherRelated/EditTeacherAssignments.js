@@ -36,9 +36,8 @@ const EditTeacherAssignments = () => {
     const [selectedClassesMulti, setSelectedClassesMulti] = useState([]);
     const [selectedSubjects, setSelectedSubjects] = useState([]);
     const [availableSubjects, setAvailableSubjects] = useState([]);
-    // Attendance duty state
-    const [attendanceMode, setAttendanceMode] = useState('none'); // 'none' | 'class'
-    const [attendanceClassId, setAttendanceClassId] = useState(null);
+    // Class teacher assignment state
+    const [classTeacherClassId, setClassTeacherClassId] = useState(null);
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
     const [loader, setLoader] = useState(false);
@@ -65,13 +64,11 @@ const EditTeacherAssignments = () => {
             setSelectedClassesMulti(currentClasses.map(c => c._id));
             setSelectedSubjects(currentSubjects.map(s => s._id));
 
-            // Seed attendance duty
+            // Seed class teacher assignment
             if (teacherDetails.attendanceClass) {
-                setAttendanceMode('class');
-                setAttendanceClassId(teacherDetails.attendanceClass._id || teacherDetails.attendanceClass);
+                setClassTeacherClassId(teacherDetails.attendanceClass._id || teacherDetails.attendanceClass);
             } else {
-                setAttendanceMode('none');
-                setAttendanceClassId(null);
+                setClassTeacherClassId(null);
             }
         }
     }, [teacherDetails]);
@@ -114,11 +111,15 @@ const EditTeacherAssignments = () => {
 
         setLoader(true);
         try {
+            // Update bulk assignments (classes and subjects)
             await dispatch(updateTeacherBulkAssignments(
                 id,
                 selectedClassesMulti,
                 selectedSubjects
             ));
+
+            // Update class teacher assignment
+            await dispatch(updateTeacherAttendance(id, classTeacherClassId));
             
             setMessage("Teacher assignments updated successfully!");
             setShowPopup(true);
@@ -202,19 +203,19 @@ const EditTeacherAssignments = () => {
                             </Box>
                             
                             <Typography variant="body2" color="text.secondary" gutterBottom>
-                                Attendance Duty:
+                                Class Teacher Assignment:
                             </Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
                                 {teacherDetails?.attendanceClass ? (
-                                    <Chip 
-                                        label={`Class-wide (${teacherDetails.attendanceClass?.sclassName || 'Unknown'})`} 
-                                        size="small" 
-                                        color="success" 
-                                        variant="filled" 
+                                    <Chip
+                                        label={`Class Teacher (${teacherDetails.attendanceClass?.sclassName || 'Unknown'})`}
+                                        size="small"
+                                        color="success"
+                                        variant="filled"
                                     />
                                 ) : (
                                     <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
-                                        No attendance duty assigned
+                                        No class teacher assignment
                                     </Typography>
                                 )}
                             </Box>
@@ -288,60 +289,43 @@ const EditTeacherAssignments = () => {
                                 ))}
                             </Select>
                         </FormControl>
-                        {/* Attendance Duty Editor */}
-                        <Box sx={{ mt: 2, p: 2, border: '1px solid #eee', borderRadius: 1 }}>
-                            <Typography variant="h6" gutterBottom>Attendance Duty</Typography>
-                            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-                                <FormControlLabel
-                                    control={<Checkbox checked={attendanceMode === 'none'} onChange={() => { setAttendanceMode('none'); setAttendanceClassId(null); }} />}
-                                    label="No attendance duty"
-                                />
-                                <FormControlLabel
-                                    control={<Checkbox checked={attendanceMode === 'class'} onChange={() => { setAttendanceMode('class'); }} />}
-                                    label="Whole class attendance"
-                                />
-                            </Box>
 
-                            {attendanceMode === 'class' && (
-                                <FormControl fullWidth sx={{ mb: 2 }}>
-                                    <InputLabel>Attendance Class</InputLabel>
-                                    <Select
-                                        value={attendanceClassId || ''}
-                                        onChange={(e) => setAttendanceClassId(e.target.value)}
-                                        label="Attendance Class"
-                                    >
-                                        {(sclassesList || [])
-                                            .filter(s => selectedClassesMulti.includes(s._id))
-                                            .map((sclass) => (
-                                                <MenuItem key={sclass._id} value={sclass._id}>
-                                                    {sclass.sclassName}
-                                                </MenuItem>
-                                            ))}
-                                    </Select>
-                                </FormControl>
-                            )}
+                        {/* Class Teacher Assignment */}
+                        <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                            <Typography variant="h6" gutterBottom>Class Teacher Assignment (Optional)</Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                Select one class where this teacher will serve as the class teacher. Only one class can have a class teacher assigned.
+                            </Typography>
 
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                                <Button
-                                    variant="outlined"
-                                    onClick={async () => {
-                                        setLoader(true);
-                                        try {
-                                            const attClassId = attendanceMode === 'class' ? attendanceClassId : null;
-                                            await dispatch(updateTeacherAttendance(id, attClassId));
-                                            setMessage('Attendance duty updated');
-                                            setShowPopup(true);
-                                            await dispatch(getTeacherDetails(id));
-                                        } catch (e) {
-                                            setMessage('Failed to update attendance duty');
-                                            setShowPopup(true);
-                                        } finally {
-                                            setLoader(false);
-                                        }
-                                    }}
-                                >
-                                    Save Attendance Duty
-                                </Button>
+                            <Box sx={{ mb: 1 }}>
+                                {selectedClassesMulti.map((classId) => {
+                                    const sclass = sclassesList?.find(s => s._id === classId);
+                                    return (
+                                        <FormControlLabel
+                                            key={classId}
+                                            control={
+                                                <Checkbox
+                                                    checked={classTeacherClassId === classId}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setClassTeacherClassId(classId);
+                                                        } else {
+                                                            setClassTeacherClassId(null);
+                                                        }
+                                                    }}
+                                                    color="primary"
+                                                />
+                                            }
+                                            label={`Assign as Class Teacher for ${sclass?.sclassName || 'Unknown Class'}`}
+                                            sx={{ display: 'block', mb: 1 }}
+                                        />
+                                    );
+                                })}
+                                {selectedClassesMulti.length === 0 && (
+                                    <Typography variant="body2" color="text.secondary">
+                                        No classes selected. Please select classes first.
+                                    </Typography>
+                                )}
                             </Box>
                         </Box>
                     </Grid>

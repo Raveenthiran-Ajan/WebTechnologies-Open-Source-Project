@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import axios from 'axios';
+import { API_BASE_URL } from '../../../config';
 import { getAllSclasses, getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
+import { getSubjectsSuccess, getError } from '../../../redux/sclassRelated/sclassSlice';
 import { registerUser } from '../../../redux/userRelated/userHandle';
 import { RESET_STATUS } from '../../../redux/userRelated/userSlice';
 import { 
@@ -47,7 +50,7 @@ const AddTeacherModern = () => {
     const [loader, setLoader] = useState(false);
     const [autoGeneratePassword, setAutoGeneratePassword] = useState(true);
     
-    const [steps, setSteps] = useState(['Select Classes', 'Select Subjects', 'Add Teacher Details']);
+    const [steps, setSteps] = useState(['Select Classes', 'Select Subjects & Class Teacher', 'Add Teacher Details']);
 
     // Get route parameters
     const classId = searchParams.get('classId');
@@ -60,8 +63,36 @@ const AddTeacherModern = () => {
     useEffect(() => {
         if (selectedClasses.length > 0) {
             // Get subjects for all selected classes
-            const classIds = selectedClasses.map(cls => cls._id || cls);
-            dispatch(getSubjectList(classIds, "ClassSubjects"));
+            const fetchSubjectsForClasses = async () => {
+                try {
+                    const allSubjects = [];
+                    for (const classItem of selectedClasses) {
+                        const classId = classItem._id || classItem;
+                        const response = await axios.get(`${API_BASE_URL}/ClassSubjects/${classId}`);
+                        if (response.data && !response.data.message) {
+                            // Add class info to each subject for filtering
+                            const subjectsWithClass = response.data.map(subject => ({
+                                ...subject,
+                                classId: classId,
+                                className: classItem.sclassName
+                            }));
+                            allSubjects.push(...subjectsWithClass);
+                        }
+                    }
+                    // Remove duplicates and filter to only show unassigned subjects
+                    const uniqueSubjects = allSubjects.filter((subject, index, self) => 
+                        index === self.findIndex(s => s._id === subject._id)
+                    ).filter(subject => !subject.hasTeacher); // Only show subjects without teachers
+                    dispatch(getSubjectsSuccess(uniqueSubjects));
+                } catch (error) {
+                    console.error('Error fetching subjects:', error);
+                    dispatch(getError('Failed to load subjects'));
+                }
+            };
+            
+            fetchSubjectsForClasses();
+        } else {
+            dispatch(getSubjectsSuccess([]));
         }
     }, [selectedClasses, dispatch]);
     
@@ -291,13 +322,13 @@ const AddTeacherModern = () => {
                     </Fade>
                 )}
 
-                {/* Step 2: Select Subjects */}
+                {/* Step 2: Select Subjects & Class Teacher */}
                 {activeStep === 1 && (
                     <Fade in timeout={500}>
                         <Box>
                             <Typography variant="h5" gutterBottom sx={{ mb: 3, display: 'flex', alignItems: 'center' }}>
                                 <SubjectIcon sx={{ mr: 1, color: 'primary.main' }} />
-                                Select Subjects
+                                Select Subjects & Class Teacher
                             </Typography>
                             
                             {subjectsList && subjectsList.length > 0 ? (
@@ -344,13 +375,49 @@ const AddTeacherModern = () => {
                                             ))}
                                         </Select>
                                     </FormControl>
+
+                                    {/* Class Teacher Assignment Section */}
+                                    <Typography variant="h6" gutterBottom sx={{ mt: 4, mb: 2 }}>
+                                        Class Teacher Assignment (Optional)
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                        Select one class where this teacher will serve as the class teacher. Only one class can have a class teacher assigned.
+                                    </Typography>
+                                    
+                                    <Box sx={{ mb: 4 }}>
+                                        {selectedClasses.map((classItem) => (
+                                            <FormControlLabel
+                                                key={classItem._id}
+                                                control={
+                                                    <Checkbox
+                                                        checked={attendanceClass === classItem._id}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setAttendanceClass(classItem._id);
+                                                            } else {
+                                                                setAttendanceClass('');
+                                                            }
+                                                        }}
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={`Assign as Class Teacher for ${classItem.sclassName}`}
+                                                sx={{ display: 'block', mb: 1 }}
+                                            />
+                                        ))}
+                                        {selectedClasses.length === 0 && (
+                                            <Typography variant="body2" color="text.secondary">
+                                                No classes selected. Please go back and select classes first.
+                                            </Typography>
+                                        )}
+                                    </Box>
                                     
                                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
                                         <Button
                                             variant="contained"
                                             onClick={handleNext}
                                         >
-                                            Next ({selectedSubjects.length} selected)
+                                            Next ({selectedSubjects.length} subjects selected{attendanceClass ? ', 1 class teacher' : ''})
                                         </Button>
                                     </Box>
                                 </Box>
@@ -412,30 +479,6 @@ const AddTeacherModern = () => {
                                         onChange={(e) => setEmail(e.target.value)}
                                     />
                                 </Grid>
-                                <Grid item xs={12} sm={6}>
-                                    <FormControl fullWidth>
-                                        <InputLabel id="attendance-class-label">Attendance Responsibility (Optional)</InputLabel>
-                                        <Select
-                                            labelId="attendance-class-label"
-                                            value={attendanceClass}
-                                            onChange={(e) => setAttendanceClass(e.target.value)}
-                                            input={<OutlinedInput label="Attendance Responsibility (Optional)" />}
-                                        >
-                                            <MenuItem value="">
-                                                <em>No attendance responsibility</em>
-                                            </MenuItem>
-                                            {selectedClasses.map((classItem) => (
-                                                <MenuItem key={classItem._id} value={classItem._id}>
-                                                    {classItem.sclassName}
-                                                </MenuItem>
-                                            ))}
-                                        </Select>
-                                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                                            Select a class for which this teacher will be responsible for taking attendance.
-                                            Leave empty if this teacher won't take attendance.
-                                        </Typography>
-                                    </FormControl>
-                                </Grid>
                                 <Grid item xs={12}>
                                     <FormControlLabel
                                         control={
@@ -487,7 +530,7 @@ const AddTeacherModern = () => {
                                     </Box>
                                 </Grid>
                                 <Grid item xs={12} sm={6}>
-                                    <Typography variant="subtitle1">Attendance Responsibility:</Typography>
+                                    <Typography variant="subtitle1">Class Teacher Assignment:</Typography>
                                     <Typography variant="body1">
                                         {attendanceClass ? 
                                             selectedClasses.find(cls => cls._id === attendanceClass)?.sclassName || 'Unknown class' 
