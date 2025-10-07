@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -26,15 +26,14 @@ const timeSlots = [
   '12:45 - 1:25 pm'
 ];
 
-const TeacherTimetable = () => {
-  const { currentUser } = useSelector((state) => state.user);
+const AdminTimetable = () => {
+  const { classId } = useParams();
   const [timetable, setTimetable] = useState({});
 
   useEffect(() => {
     async function fetchTimetable() {
       try {
-        if (!currentUser || !currentUser.teachSclass) return;
-        const response = await fetch(`http://localhost:5000/Sclass/Timetable/${currentUser.teachSclass._id}`);
+        const response = await fetch(`http://localhost:5000/Sclass/Timetable/${classId}`);
         const data = await response.json();
         if (Array.isArray(data)) {
           const timetableObj = {};
@@ -48,8 +47,8 @@ const TeacherTimetable = () => {
         console.error("Failed to fetch timetable", error);
       }
     }
-    fetchTimetable();
-  }, [currentUser]);
+    if (classId) fetchTimetable();
+  }, [classId]);
 
   const downloadTimetable = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
@@ -65,7 +64,7 @@ const TeacherTimetable = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "teacher_timetable.csv");
+    link.setAttribute("download", "admin_timetable.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -217,4 +216,4 @@ const TeacherTimetable = () => {
   );
 };
 
-export default TeacherTimetable;
+export default AdminTimetable;

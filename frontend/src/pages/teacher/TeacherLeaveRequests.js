@@ -35,11 +35,9 @@ import { getLeaveRequestsByTeacher, updateLeaveRequest } from '../../redux/leave
 const TeacherLeaveRequests = () => {
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
-    const { leaveRequestsList, loading: leaveLoading, error: leaveError } = useSelector((state) => state.leaveRequest);
-    const [loading, setLoading] = useState(false);
+    const { leaveRequestsList, loading: leaveLoading } = useSelector((state) => state.leaveRequest);
 
     const [viewing, setViewing] = useState(null);
-    const [openViewDialog, setOpenViewDialog] = useState(false);
     const [openActionDialog, setOpenActionDialog] = useState(false);
     const [actionType, setActionType] = useState(''); // 'approve' or 'reject'
     const [rejectionReason, setRejectionReason] = useState('');
@@ -54,14 +52,11 @@ const TeacherLeaveRequests = () => {
             if (!currentUser?._id) return;
 
             try {
-                setLoading(true);
                 await dispatch(getLeaveRequestsByTeacher(currentUser._id));
             } catch (error) {
                 console.error('Error fetching leave requests:', error);
                 setMessage("Error loading leave requests. Please refresh the page.");
                 setAlertSeverity('error');
-            } finally {
-                setLoading(false);
             }
         };
         fetchLeaveRequests();
@@ -245,7 +240,6 @@ const TeacherLeaveRequests = () => {
 
     const handleView = (row) => {
         setViewing(row);
-        setOpenViewDialog(true);
     };
 
     const handleAction = (request, action) => {
