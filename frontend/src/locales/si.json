@@ -376,5 +376,18 @@
     "description": "විස්තරය",
     "resolvedOn": "{{date}} දින විසඳන ලදී",
     "close": "වසන්න"
+  },
+  "parentTimetable": {
+    "title": "පන්ති කාලසටහන",
+    "selectChild": "දරුවා තෝරන්න",
+    "time": "කාලය",
+    "monday": "සඳුදා",
+    "tuesday": "අඟහරුවාදා",
+    "wednesday": "බදාදා",
+    "thursday": "බ්‍රහස්පතින්දා",
+    "friday": "සිකුරාදා",
+    "downloadTimetable": "කාලසටහන බාගත කරන්න",
+    "selectChildMessage": "ඔවුන්ගේ කාලසටහන බැලීමට කරුණාකර දරුවෙකු තෝරන්න.",
+    "interval": "විරාමය (10:30-10:45)"
   }
 }

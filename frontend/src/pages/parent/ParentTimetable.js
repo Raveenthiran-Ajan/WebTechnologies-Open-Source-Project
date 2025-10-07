@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Typography,
@@ -19,11 +20,12 @@ import {
   Container
 } from "@mui/material";
 
-const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const periods = [1, 2, 3, 4, 5, 6, 7, 8];
 const timeSlots = ['7:50-8:30', '8:30-9:10', '9:10-9:50', '9:50-10:30', '10:45-11:25', '11:25-12:05', '12:05-12:45', '12:45-1:25'];
 
 const ParentTimetable = () => {
+  const { t } = useTranslation();
+  const daysOfWeek = [t('parentTimetable.monday'), t('parentTimetable.tuesday'), t('parentTimetable.wednesday'), t('parentTimetable.thursday'), t('parentTimetable.friday')];
   const { currentUser } = useSelector((state) => state.user);
   const [timetable, setTimetable] = useState({});
   const [selectedChild, setSelectedChild] = useState('');
@@ -74,9 +76,9 @@ const ParentTimetable = () => {
   return (
     <Container sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5" gutterBottom>Class Timetable</Typography>
+        <Typography variant="h5" gutterBottom>{t('parentTimetable.title')}</Typography>
         <FormControl sx={{ minWidth: 200 }} size="small">
-          <InputLabel>Select Child</InputLabel>
+          <InputLabel>{t('parentTimetable.selectChild')}</InputLabel>
           <Select value={selectedChild} onChange={(e) => setSelectedChild(e.target.value)} label="Select Child">
             {currentUser.children.map(child => (
               <MenuItem key={child._id} value={child._id}>{child.name}</MenuItem>
@@ -90,7 +92,7 @@ const ParentTimetable = () => {
             <Table aria-label="timetable table" sx={{ borderCollapse: 'collapse' }}>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)', backgroundColor: 'cornflowerblue', color: 'white', fontWeight: 'bold', width: '120px' }}>Time</TableCell>
+                  <TableCell sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)', backgroundColor: 'cornflowerblue', color: 'white', fontWeight: 'bold', width: '120px' }}>{t('parentTimetable.time')}</TableCell>
                   {daysOfWeek.map(day => (<TableCell key={day} sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)', backgroundColor: 'cornflowerblue', color: 'white', fontWeight: 'bold' }}>{day}</TableCell>))}
                 </TableRow>
               </TableHead>
@@ -104,16 +106,16 @@ const ParentTimetable = () => {
                         return (<Tooltip key={`${day}-${period}`} title={subject} arrow><TableCell sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)', cursor: 'default' }}>{subject}</TableCell></Tooltip>);
                       })}
                     </TableRow>
-                    {period === 4 && (<TableRow key="interval" sx={{ backgroundColor: '#e0e0e0', height: '20px' }}><TableCell sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)', fontStyle: 'italic', width: '120px' }}>Interval (10:30-10:45)</TableCell>{daysOfWeek.map(day => (<TableCell key={`interval-${day}`} sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)' }}></TableCell>))}</TableRow>)}
+                    {period === 4 && (<TableRow key="interval" sx={{ backgroundColor: '#e0e0e0', height: '20px' }}><TableCell sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)', fontStyle: 'italic', width: '120px' }}>{t('parentTimetable.interval')}</TableCell>{daysOfWeek.map(day => (<TableCell key={`interval-${day}`} sx={{ borderRight: '2px solid rgba(224, 224, 224, 1)' }}></TableCell>))}</TableRow>)}
                   </React.Fragment>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
-          <Box sx={{ mt: 2, textAlign: 'right' }}><Button variant="contained" onClick={downloadTimetable}>Download Timetable</Button></Box>
+          <Box sx={{ mt: 2, textAlign: 'right' }}><Button variant="contained" onClick={downloadTimetable}>{t('parentTimetable.downloadTimetable')}</Button></Box>
         </>
       ) : (
-        <Typography sx={{ mt: 4, textAlign: 'center' }}>Please select a child to view their timetable.</Typography>
+        <Typography sx={{ mt: 4, textAlign: 'center' }}>{t('parentTimetable.selectChildMessage')}</Typography>
       )}
     </Container>
   );

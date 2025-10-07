@@ -376,5 +376,18 @@
     "description": "Description",
     "resolvedOn": "Resolved on {{date}}",
     "close": "Close"
+  },
+  "parentTimetable": {
+    "title": "Class Timetable",
+    "selectChild": "Select Child",
+    "time": "Time",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "downloadTimetable": "Download Timetable",
+    "selectChildMessage": "Please select a child to view their timetable.",
+    "interval": "Interval (10:30-10:45)"
   }
 }
