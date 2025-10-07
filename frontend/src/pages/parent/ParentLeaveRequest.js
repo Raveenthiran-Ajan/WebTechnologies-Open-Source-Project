@@ -38,9 +38,8 @@ import { getLeaveRequestsByParent } from '../../redux/leaveRequestRelated/leaveR
 
 const ParentLeaveRequest = () => {
     const dispatch = useDispatch();
-    const { currentUser, status, error: userError } = useSelector((state) => state.user);
-    const { leaveRequestsList, loading: leaveLoading, error: leaveError } = useSelector((state) => state.leaveRequest);
-    const [loading, setLoading] = useState(false);
+    const { currentUser } = useSelector((state) => state.user);
+    const { leaveRequestsList, loading: leaveLoading } = useSelector((state) => state.leaveRequest);
 
     const [openDialog, setOpenDialog] = useState(false);
     const [student, setStudent] = useState('');
@@ -52,7 +51,6 @@ const ParentLeaveRequest = () => {
     const [submitLoading, setSubmitLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [alertSeverity, setAlertSeverity] = useState('success');
-    const [openViewDialog, setOpenViewDialog] = useState(false);
     const [tabValue, setTabValue] = useState(0); // 0 for pending, 1 for processed
 
     useEffect(() => {
@@ -60,14 +58,11 @@ const ParentLeaveRequest = () => {
             if (!currentUser?._id) return;
 
             try {
-                setLoading(true);
                 await dispatch(getLeaveRequestsByParent(currentUser._id));
             } catch (error) {
                 console.error('Error fetching leave requests:', error);
                 setMessage("Error loading leave requests. Please refresh the page.");
                 setAlertSeverity('error');
-            } finally {
-                setLoading(false);
             }
         };
         fetchLeaveRequests();
@@ -291,7 +286,6 @@ const ParentLeaveRequest = () => {
 
     const handleView = (row) => {
         setViewing(row);
-        setOpenViewDialog(true);
     };
 
     const handleDelete = async (row) => {
