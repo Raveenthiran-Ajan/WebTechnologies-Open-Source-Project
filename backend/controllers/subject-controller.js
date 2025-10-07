@@ -78,15 +78,19 @@ const classSubjects = async (req, res) => {
             });
         });
         
-        const subjectsWithStatus = subjects.map((subject) => {
+        const subjectsWithStatus = await Promise.all(subjects.map(async (subject) => {
             const sId = subject._id.toString();
-            const tId = assignedMap.get(sId) || null;
+            const tId = assignedMap.get(sId);
+            let teacher = null;
+            if (tId) {
+                teacher = await Teacher.findById(tId).select('name');
+            }
             return {
                 ...subject,
                 hasTeacher: Boolean(tId),
-                teacher: tId
+                teacher: teacher
             };
-        });
+        }));
 
         res.send(subjectsWithStatus);
     } catch (err) {
