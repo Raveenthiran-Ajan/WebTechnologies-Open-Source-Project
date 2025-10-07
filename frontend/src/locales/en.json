@@ -274,5 +274,27 @@
     "newPassword": "New Password",
     "cancel": "Cancel",
     "passwordChangedSuccess": "Password changed successfully!"
+  },
+  "parentNotices": {
+    "noticeNumber": "Notice #",
+    "title": "Title",
+    "date": "Date",
+    "details": "Details",
+    "view": "View",
+    "status": "Status",
+    "read": "Read",
+    "unread": "Unread",
+    "all": "All",
+    "attachment": "attachment",
+    "attachments": "attachments",
+    "viewDetails": "View Details",
+    "loadingNotices": "Loading notices...",
+    "schoolNotices": "School Notices",
+    "noNoticesAvailable": "No notices available at this time.",
+    "noticeDetails": "Notice Details",
+    "file": "FILE",
+    "close": "Close",
+    "imagePreview": "Image Preview",
+    "new": "New"
   }
 }

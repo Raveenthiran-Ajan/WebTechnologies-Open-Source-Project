@@ -21,6 +21,7 @@ import {
     ToggleButton,
     ToggleButtonGroup
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -43,6 +44,7 @@ const ParentNotices = () => {
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
     const { noticesList, loading, error, response } = useSelector((state) => state.notice);
+    const { t } = useTranslation();
     const [viewing, setViewing] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
@@ -57,7 +59,7 @@ const ParentNotices = () => {
     const columns = [
         {
             field: 'id',
-            headerName: 'Notice #',
+            headerName: t('parentNotices.noticeNumber'),
             width: 120,
             headerAlign: 'center',
             align: 'center',
@@ -70,11 +72,11 @@ const ParentNotices = () => {
                 />
             ),
         },
-        { field: 'title', headerName: 'Title', width: 250 },
-        { field: 'date', headerName: 'Date', width: 150 },
-        { 
-            field: 'details', 
-            headerName: 'Details', 
+        { field: 'title', headerName: t('parentNotices.title'), width: 250 },
+        { field: 'date', headerName: t('parentNotices.date'), width: 150 },
+        {
+            field: 'details',
+            headerName: t('parentNotices.details'),
             width: 350,
             renderCell: (params) => (
                 <Button
@@ -95,13 +97,13 @@ const ParentNotices = () => {
                     }}
                     sx={{ textTransform: 'none' }}
                 >
-                    View
+                    {t('parentNotices.view')}
                 </Button>
             ),
         },
-        { 
-            field: 'status', 
-            headerName: 'Status', 
+        {
+            field: 'status',
+            headerName: t('parentNotices.status'),
             width: 120,
             headerAlign: 'center',
             align: 'center',
@@ -111,7 +113,7 @@ const ParentNotices = () => {
                 const isRead = currentNotice?.readBy && currentNotice.readBy.includes(currentUser?._id);
                 return (
                     <Chip
-                        label={isRead ? "Read" : "Unread"}
+                        label={isRead ? t('parentNotices.read') : t('parentNotices.unread')}
                         size="small"
                         color={isRead ? "success" : "warning"}
                         variant={isRead ? "outlined" : "filled"}
@@ -174,13 +176,13 @@ const ParentNotices = () => {
                         aria-label="notice filter"
                     >
                         <ToggleButton value="all" aria-label="all notices">
-                            All
+                            {t('parentNotices.all')}
                         </ToggleButton>
                         <ToggleButton value="unread" aria-label="unread notices">
-                            Unread
+                            {t('parentNotices.unread')}
                         </ToggleButton>
                         <ToggleButton value="read" aria-label="read notices">
-                            Read
+                            {t('parentNotices.read')}
                         </ToggleButton>
                     </ToggleButtonGroup>
                 </Box>
@@ -236,11 +238,11 @@ const ParentNotices = () => {
                                             </Box>
                                         </Box>
                                         {(!notice.readBy || !notice.readBy.includes(currentUser?._id)) && (
-                                            <Chip 
-                                                label="New" 
-                                                size="small" 
-                                                sx={{ 
-                                                    bgcolor: 'error.main', 
+                                            <Chip
+                                                label={t('parentNotices.new')}
+                                                size="small"
+                                                sx={{
+                                                    bgcolor: 'error.main',
                                                     color: 'white',
                                                     fontWeight: 'bold'
                                                 }}
@@ -259,7 +261,7 @@ const ParentNotices = () => {
                                     {notice.filePath && notice.filePath.length > 0 && (
                                         <Box sx={{ mt: 2 }}>
                                             <Typography variant="caption" color="textSecondary">
-                                                {notice.filePath.length} attachment{notice.filePath.length > 1 ? 's' : ''}
+                                                {notice.filePath.length} {notice.filePath.length > 1 ? t('parentNotices.attachments') : t('parentNotices.attachment')}
                                             </Typography>
                                         </Box>
                                     )}
@@ -287,7 +289,7 @@ const ParentNotices = () => {
                                         }}
                                         sx={{ textTransform: 'none' }}
                                     >
-                                        View Details
+                                        {t('parentNotices.viewDetails')}
                                     </Button>
                                 </CardActions>
                             </Card>
@@ -305,7 +307,7 @@ const ParentNotices = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <CircularProgress size={60} />
                     <Typography variant="h6" sx={{ mt: 2 }}>
-                        Loading notices...
+                        {t('parentNotices.loadingNotices')}
                     </Typography>
                 </Box>
             </Container>
@@ -317,7 +319,7 @@ const ParentNotices = () => {
             <Container maxWidth="lg" sx={{ py: 4 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h4" gutterBottom>
-                        School Notices
+                        {t('parentNotices.schoolNotices')}
                     </Typography>
                     <ToggleButtonGroup
                         value={viewMode}
@@ -367,7 +369,7 @@ const ParentNotices = () => {
                 ) : (
                     <Paper sx={{ p: 4, textAlign: 'center' }}>
                         <NotificationsIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                        <Typography variant="h6">No notices available at this time.</Typography>
+                        <Typography variant="h6">{t('parentNotices.noNoticesAvailable')}</Typography>
                     </Paper>
                 )}
             </Container>
@@ -393,28 +395,28 @@ const ParentNotices = () => {
                     }}
                 >
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        Notice Details
+                        {t('parentNotices.noticeDetails')}
                     </Typography>
                 </DialogTitle>
                 <DialogContent sx={{ py: 3 }}>
                     {viewing && (
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
-                                <Typography variant="subtitle2" color="textSecondary">Date</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">{t('parentNotices.date')}</Typography>
                                 <Typography variant="body1" sx={{ mt: 1 }}>
                                     {viewing.date}
                                 </Typography>
                             </Grid>
 
                             <Grid item xs={12}>
-                                <Typography variant="subtitle2" color="textSecondary">Title</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">{t('parentNotices.title')}</Typography>
                                 <Typography variant="body1" sx={{ mt: 1, fontWeight: 500, color: '#1976d2' }}>
                                     {viewing.title}
                                 </Typography>
                             </Grid>
 
                             <Grid item xs={12}>
-                                <Typography variant="subtitle2" color="textSecondary">Details</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">{t('parentNotices.details')}</Typography>
                                 <Paper 
                                     elevation={0}
                                     sx={{
@@ -446,7 +448,7 @@ const ParentNotices = () => {
 
                             {viewing.filePath && viewing.filePath.length > 0 && (
                                 <Grid item xs={12}>
-                                    <Typography variant="subtitle2" color="textSecondary">Attachments</Typography>
+                                    <Typography variant="subtitle2" color="textSecondary">{t('parentNotices.attachments')}</Typography>
                                     {viewing.filePath.map((path, index) => (
                                         <Paper 
                                             key={index}
@@ -462,7 +464,7 @@ const ParentNotices = () => {
                                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                                        {viewing.fileType[index] ? viewing.fileType[index].toUpperCase() : 'FILE'}
+                                                        {viewing.fileType[index] ? viewing.fileType[index].toUpperCase() : t('parentNotices.file')}
                                                     </Typography>
                                                     <Typography variant="body2" color="primary">
                                                         {path.split(/[/\\]/).pop()}
@@ -503,11 +505,11 @@ const ParentNotices = () => {
                     )}
                 </DialogContent>
                 <DialogActions sx={{ borderTop: '1px solid #e0e0e0', p: 2 }}>
-                    <Button 
-                        variant="contained" 
+                    <Button
+                        variant="contained"
                         onClick={() => setViewing(null)}
                     >
-                        Close
+                        {t('parentNotices.close')}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -519,7 +521,7 @@ const ParentNotices = () => {
                 maxWidth="md"
                 fullWidth
             >
-                <DialogTitle>Image Preview</DialogTitle>
+                <DialogTitle>{t('parentNotices.imagePreview')}</DialogTitle>
                 <DialogContent>
                     {imagePreview && (
                         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -532,7 +534,7 @@ const ParentNotices = () => {
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setImagePreview(null)}>Close</Button>
+                    <Button onClick={() => setImagePreview(null)}>{t('parentNotices.close')}</Button>
                 </DialogActions>
             </Dialog>
         </>

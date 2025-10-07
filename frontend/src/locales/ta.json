@@ -274,5 +274,27 @@
     "newPassword": "புதிய கடவுச்சொல்",
     "cancel": "ரத்து செய்யவும்",
     "passwordChangedSuccess": "கடவுச்சொல் வெற்றிகரமாக மாற்றப்பட்டது!"
+  },
+  "parentNotices": {
+    "noticeNumber": "அறிவிப்பு எண்",
+    "title": "தலைப்பு",
+    "date": "தேதி",
+    "details": "விவரங்கள்",
+    "view": "பார்க்க",
+    "status": "நிலை",
+    "read": "படித்தது",
+    "unread": "படிக்கப்படாதது",
+    "all": "அனைத்தும்",
+    "attachment": "இணைப்பு",
+    "attachments": "இணைப்புகள்",
+    "viewDetails": "விவரங்களைப் பார்க்க",
+    "loadingNotices": "அறிவிப்புகள் ஏற்றப்படுகின்றன...",
+    "schoolNotices": "பாடசாலை அறிவிப்புகள்",
+    "noNoticesAvailable": "தற்போது அறிவிப்புகள் எதுவும் கிடைக்கவில்லை.",
+    "noticeDetails": "அறிவிப்பு விவரங்கள்",
+    "file": "கோப்பு",
+    "close": "மூடு",
+    "imagePreview": "பட முன்னோட்டம்",
+    "new": "புதியது"
   }
 }

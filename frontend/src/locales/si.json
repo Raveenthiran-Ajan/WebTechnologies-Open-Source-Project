@@ -274,5 +274,27 @@
     "newPassword": "නව මුරපදය",
     "cancel": "අවලංගු කරන්න",
     "passwordChangedSuccess": "මුරපදය සාර්ථකව වෙනස් කරන ලදී!"
+  },
+  "parentNotices": {
+    "noticeNumber": "දැන්වීම් අංකය",
+    "title": "මාතෘකාව",
+    "date": "දිනය",
+    "details": "විස්තර",
+    "view": "බලන්න",
+    "status": "තත්ත්වය",
+    "read": "කියවන ලදී",
+    "unread": "නොකියවූ",
+    "all": "සියල්ල",
+    "attachment": "අනුබද්ධ කිරීම",
+    "attachments": "අනුබද්ධ කිරීම්",
+    "viewDetails": "විස්තර බලන්න",
+    "loadingNotices": "දැන්වීම් පූරණය වෙමින්...",
+    "schoolNotices": "පාසල් දැන්වීම්",
+    "noNoticesAvailable": "දැනට දැන්වීම් නොමැත.",
+    "noticeDetails": "දැන්වීම් විස්තර",
+    "file": "ගොනුව",
+    "close": "වසන්න",
+    "imagePreview": "රූප පෙරදසුන",
+    "new": "නව"
   }
 }
