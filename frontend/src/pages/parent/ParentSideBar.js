@@ -110,7 +110,7 @@ const ParentSideBar = () => {
                     <ListItemIcon>
                         <EventAvailableIcon />
                     </ListItemIcon>
-                    <ListItemText primary="Leave Requests" />
+                    <ListItemText primary={t('parentSideBar.leaveRequests')} />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/Parent/complaints" selected={location.pathname.startsWith("/Parent/complaints")} sx={selectedItemStyles}>
                     <ListItemIcon>
