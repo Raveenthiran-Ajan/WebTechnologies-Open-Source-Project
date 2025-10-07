@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import { 
     Container, 
     Typography, 
@@ -36,6 +37,7 @@ import { addComplaint, deleteComplaint } from '../../redux/complainRelated/compl
 import { getAllComplains } from '../../redux/complainRelated/complainHandle';
 
 const ParentComplaints = () => {
+    const { t } = useTranslation();
     const dispatch = useDispatch();
     const { currentUser, status, error: userError } = useSelector((state) => state.user);
     const { complainsList, loading: complainLoading, error: complainError } = useSelector((state) => state.complain);
@@ -60,7 +62,7 @@ const ParentComplaints = () => {
                 await dispatch(getAllComplains(currentUser.school._id, "Complain"));
             } catch (error) {
                 console.error('Error fetching complaints:', error);
-                setMessage("Error loading complaints. Please refresh the page.");
+                setMessage(t('parentComplain.errorLoading'));
                 setAlertSeverity('error');
             } finally {
                 setLoading(false);
@@ -85,7 +87,7 @@ const ParentComplaints = () => {
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (!complaint.trim() || !title.trim()) {
-            setMessage("Please enter both title and description.");
+            setMessage(t('parentComplain.missingFields'));
             setAlertSeverity('warning');
             return;
         }
@@ -104,7 +106,7 @@ const ParentComplaints = () => {
         try {
             const result = await dispatch(addComplaint(fields));
             if (result.success) {
-                setMessage("Complaint submitted successfully!");
+                setMessage(t('parentComplain.submitted'));
                 setAlertSeverity('success');
                 setOpenDialog(false);
                 setComplaint('');
@@ -112,12 +114,12 @@ const ParentComplaints = () => {
                 setDate(new Date().toISOString().split('T')[0]);
                 await dispatch(getAllComplains(currentUser.school._id, "Complain"));
             } else {
-                setMessage(result.message || "Error submitting complaint.");
+                setMessage(result.message || t('parentComplain.submitError'));
                 setAlertSeverity('error');
             }
         } catch (error) {
             console.error('Error submitting complaint:', error);
-            setMessage("Error submitting complaint. Please try again.");
+            setMessage(t('parentComplain.submitErrorRetry'));
             setAlertSeverity('error');
         } finally {
             setSubmitLoading(false);
@@ -138,7 +140,7 @@ const ParentComplaints = () => {
     const columns = [
         {
             field: 'id',
-            headerName: 'Complaint #',
+            headerName: t('parentComplain.complaintNumber'),
             width: 120,
             headerAlign: 'center',
             align: 'center',
@@ -153,7 +155,7 @@ const ParentComplaints = () => {
         },
         {
             field: 'date',
-            headerName: 'Date Submitted',
+            headerName: t('parentComplain.dateSubmitted'),
             width: 150,
             renderCell: (params) => (
                 new Date(params.value).toLocaleDateString('en-US', {
@@ -165,12 +167,12 @@ const ParentComplaints = () => {
         },
         {
             field: 'title',
-            headerName: 'Title',
+            headerName: t('parentComplain.complaintTitle'),
             width: 250,
             flex: 1,
             renderCell: (params) => (
                 <Box sx={{ py: 1 }}>
-                    <Typography variant="body2" sx={{ 
+                    <Typography variant="body2" sx={{
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         display: '-webkit-box',
@@ -184,7 +186,7 @@ const ParentComplaints = () => {
         },
         {
             field: 'description',
-            headerName: 'Description',
+            headerName: t('parentComplain.description'),
             width: 150,
             headerAlign: 'center',
             align: 'center',
@@ -196,19 +198,19 @@ const ParentComplaints = () => {
                     onClick={() => handleView(params.row)}
                     sx={{ textTransform: 'none' }}
                 >
-                    View
+                    {t('parentComplain.view')}
                 </Button>
             ),
         },
         {
             field: 'status',
-            headerName: 'Status',
+            headerName: t('parentComplain.status'),
             width: 130,
             headerAlign: 'center',
             align: 'center',
             renderCell: (params) => (
                 <Chip
-                    label={params.value || 'Pending'}
+                    label={params.value || t('parentComplain.pending')}
                     size="small"
                     color={params.value === 'Actioned' ? 'success' : 'warning'}
                     variant="filled"
@@ -217,7 +219,7 @@ const ParentComplaints = () => {
         },
         {
             field: 'actions',
-            headerName: 'Actions',
+            headerName: t('parentComplain.actions'),
             width: 100,
             headerAlign: 'center',
             align: 'center',
@@ -236,7 +238,7 @@ const ParentComplaints = () => {
     const rows = userComplaints.map((complain, index) => ({
         id: index + 1,
         date: complain.date || new Date().toISOString(),
-        title: complain.title || complain.complaint || 'No title',
+        title: complain.title || complain.complaint || t('parentComplain.noTitle'),
         description: complain.description || complain.complaint || '',
         complaint: complain.complaint,
         status: complain.status || 'Pending',
@@ -250,17 +252,17 @@ const ParentComplaints = () => {
     };
 
     const handleDelete = async (row) => {
-        if (window.confirm('Are you sure you want to delete this complaint?')) {
+        if (window.confirm(t('parentComplain.confirmDelete'))) {
             try {
                 await dispatch(deleteComplaint(row._id));
-                setMessage('Complaint deleted successfully');
+                setMessage(t('parentComplain.deleted'));
                 setAlertSeverity('success');
                 if (currentUser && currentUser.school) {
                     await dispatch(getAllComplains(currentUser.school._id, "Complain"));
                 }
             } catch (error) {
                 console.error('Error deleting complaint:', error);
-                setMessage('Failed to delete complaint. Please try again.');
+                setMessage(t('parentComplain.deleteFailed'));
                 setAlertSeverity('error');
             }
         }
@@ -281,7 +283,7 @@ const ParentComplaints = () => {
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h4" component="h1" color="primary">
-                        My Complaints
+                        {t('parentComplain.title')}
                     </Typography>
                     <Button
                         variant="contained"
@@ -290,7 +292,7 @@ const ParentComplaints = () => {
                         onClick={() => setOpenDialog(true)}
                         sx={{ textTransform: 'none' }}
                     >
-                        Add Complaint
+                        {t('parentComplain.addComplaint')}
                     </Button>
                 </Box>
 
@@ -327,7 +329,7 @@ const ParentComplaints = () => {
                                         toolbar: CustomToolbar,
                                         noRowsOverlay: () => (
                                             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                                                <Typography>No complaints found</Typography>
+                                                <Typography>{t('parentComplain.noComplaints')}</Typography>
                                             </Box>
                                         )
                                     }}
@@ -357,9 +359,9 @@ const ParentComplaints = () => {
 
                 <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                     <Typography variant="body2" color="text.secondary" align="center">
-                        Total Complaints: {userComplaints.length} | 
-                        Pending: {userComplaints.filter(c => c.status !== 'Actioned').length} | 
-                        Resolved: {userComplaints.filter(c => c.status === 'Actioned').length}
+                        {t('parentComplain.totalComplaints')}: {userComplaints.length} |
+                        {t('parentComplain.pending')}: {userComplaints.filter(c => c.status !== 'Actioned').length} |
+                        {t('parentComplain.resolved')}: {userComplaints.filter(c => c.status === 'Actioned').length}
                     </Typography>
                 </Box>
             </Box>
@@ -373,13 +375,13 @@ const ParentComplaints = () => {
                     sx: { borderRadius: 3 }
                 }}
             >
-                <DialogTitle sx={{ 
+                <DialogTitle sx={{
                     textAlign: 'center',
                     bgcolor: 'primary.main',
                     color: 'white',
                     fontWeight: 'bold'
                 }}>
-                    Submit New Complaint
+                    {t('parentComplain.submitDialogTitle')}
                 </DialogTitle>
                 <form onSubmit={handleSubmit}>
                     <DialogContent sx={{ p: 3 }}>
@@ -387,7 +389,7 @@ const ParentComplaints = () => {
                             <Grid item xs={12}>
                                 <TextField
                                     fullWidth
-                                    label="Date"
+                                    label={t('parentComplain.date')}
                                     type="date"
                                     value={date}
                                     onChange={(e) => setDate(e.target.value)}
@@ -400,41 +402,41 @@ const ParentComplaints = () => {
                             <Grid item xs={12}>
                                 <TextField
                                     fullWidth
-                                    label="Title"
+                                    label={t('parentComplain.complaintTitleLabel')}
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="Brief title for the complaint"
+                                    placeholder={t('parentComplain.titlePlaceholder')}
                                     required
                                 />
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
                                     fullWidth
-                                    label="Complaint Description"
+                                    label={t('parentComplain.descriptionLabel')}
                                     multiline
                                     rows={4}
                                     value={complaint}
                                     onChange={(e) => setComplaint(e.target.value)}
-                                    placeholder="Please describe your complaint in detail..."
+                                    placeholder={t('parentComplain.descriptionPlaceholder')}
                                     required
                                 />
                             </Grid>
                         </Grid>
                     </DialogContent>
                     <DialogActions sx={{ p: 3, pt: 0 }}>
-                        <Button 
+                        <Button
                             onClick={() => setOpenDialog(false)}
                             sx={{ mr: 1 }}
                         >
-                            Cancel
+                            {t('parentComplain.cancel')}
                         </Button>
-                        <Button 
+                        <Button
                             type="submit"
                             variant="contained"
                             color="primary"
                             disabled={submitLoading}
                         >
-                            {submitLoading ? <CircularProgress size={24} color="inherit" /> : 'Submit Complaint'}
+                            {submitLoading ? <CircularProgress size={24} color="inherit" /> : t('parentComplain.submitComplaint')}
                         </Button>
                     </DialogActions>
                 </form>
@@ -472,7 +474,7 @@ const ParentComplaints = () => {
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <Box sx={{ mb: 2 }}>
-                                    <Typography variant="subtitle2" color="textSecondary">Status</Typography>
+                                    <Typography variant="subtitle2" color="textSecondary">{t('parentComplain.statusLabel')}</Typography>
                                     <Chip
                                         label={viewing.status || 'Pending'}
                                         size="small"
@@ -482,9 +484,9 @@ const ParentComplaints = () => {
                                     />
                                 </Box>
                             </Grid>
-                            
+
                             <Grid item xs={12}>
-                                <Typography variant="subtitle2" color="textSecondary">Date Submitted</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">{t('parentComplain.dateSubmittedLabel')}</Typography>
                                 <Typography variant="body1" sx={{ mt: 1 }}>
                                     {new Date(viewing.date).toLocaleDateString('en-US', {
                                         year: 'numeric',
@@ -495,14 +497,14 @@ const ParentComplaints = () => {
                             </Grid>
 
                             <Grid item xs={12}>
-                                <Typography variant="subtitle2" color="textSecondary">Title</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">{t('parentComplain.titleLabel')}</Typography>
                                 <Typography variant="body1" sx={{ mt: 1, fontWeight: 500, color: '#1976d2' }}>
                                     {viewing.title}
                                 </Typography>
                             </Grid>
 
                             <Grid item xs={12}>
-                                <Typography variant="subtitle2" color="textSecondary">Description</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">{t('parentComplain.description')}</Typography>
                                 <Paper 
                                     elevation={0}
                                     sx={{
@@ -537,7 +539,7 @@ const ParentComplaints = () => {
                                     }}>
                                         <CheckCircleIcon fontSize="small" />
                                         <Typography variant="body2">
-                                            Resolved on {new Date(viewing.actionedDate).toLocaleDateString()}
+                                            {t('parentComplain.resolvedOn', { date: new Date(viewing.actionedDate).toLocaleDateString() })}
                                         </Typography>
                                     </Box>
                                 </Grid>
@@ -546,11 +548,11 @@ const ParentComplaints = () => {
                     )}
                 </DialogContent>
                 <DialogActions sx={{ borderTop: '1px solid #e0e0e0', p: 2 }}>
-                    <Button 
-                        variant="contained" 
+                    <Button
+                        variant="contained"
                         onClick={() => setViewing(null)}
                     >
-                        Close
+                        {t('parentComplain.close')}
                     </Button>
                 </DialogActions>
             </Dialog>
