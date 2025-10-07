@@ -107,7 +107,7 @@ const ClassDetails = () => {
     const subjectColumns = [
         { field: 'name', headerName: 'Subject Name', width: 200 },
         { field: 'code', headerName: 'Subject Code', width: 150 },
-        { field: 'sessions', headerName: 'Sessions', width: 120 },
+        { field: 'periodsPerWeek', headerName: 'Periods Per Week', width: 140 },
         {
             field: 'actions',
             headerName: 'Actions',
@@ -136,7 +136,7 @@ const ClassDetails = () => {
         id: subject._id,
         name: subject.subName,
         code: subject.subCode,
-        sessions: subject.sessions || 'N/A',
+        periodsPerWeek: subject.periodsPerWeek || 'N/A',
     })) : [];
 
     function SubjectsToolbar() {

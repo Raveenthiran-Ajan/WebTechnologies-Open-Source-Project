@@ -149,14 +149,14 @@ const TeacherDetails = () => {
                                             teachingSubjects.map((subject, index) => (
                                                 <Chip 
                                                     key={subject._id || index} 
-                                                    label={`${subject.subName} (${subject.sessions} sessions)`} 
+                                                    label={`${subject.subName} (${subject.periodsPerWeek} periods per week)`} 
                                                     color="secondary" 
                                                     variant="outlined" 
                                                 />
                                             ))
                                         ) : teacherDetails?.teachSubject ? (
                                             <Chip 
-                                                label={`${teacherDetails.teachSubject.subName} (${teacherDetails.teachSubject.sessions} sessions)`} 
+                                                label={`${teacherDetails.teachSubject.subName} (${teacherDetails.teachSubject.periodsPerWeek} periods per week)`} 
                                                 color="secondary" 
                                                 variant="outlined" 
                                             />

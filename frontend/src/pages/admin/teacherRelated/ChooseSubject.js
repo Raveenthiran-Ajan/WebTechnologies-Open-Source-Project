@@ -86,7 +86,7 @@ const ChooseSubject = ({ situation }) => {
     const columns = [
         { field: 'subName', headerName: 'Subject Name', width: 250 },
         { field: 'subCode', headerName: 'Subject Code', width: 150 },
-        { field: 'sessions', headerName: 'Sessions', width: 120 },
+        { field: 'periodsPerWeek', headerName: 'Periods Per Week', width: 140 },
         { 
             field: 'teacher', 
             headerName: 'Assigned Teacher', 
@@ -143,7 +143,7 @@ const ChooseSubject = ({ situation }) => {
         id: subject._id,
         subName: subject.subName,
         subCode: subject.subCode,
-        sessions: subject.sessions || 'N/A',
+        periodsPerWeek: subject.periodsPerWeek || 'N/A',
         hasTeacher: subject.hasTeacher,
     })) : [];
 
