@@ -78,7 +78,7 @@ const SelectTeacherForSubject = () => {
     };
 
     const handleAddNewTeacher = () => {
-        navigate(`/Admin/teachers/addteacher/${subjectId}`);
+        navigate(`/Admin/teachers/add`);
     };
 
     if (teachersLoading || subjectLoading) {

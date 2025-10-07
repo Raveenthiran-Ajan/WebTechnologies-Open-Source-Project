@@ -33,7 +33,7 @@ import SubjectForm from './subjectRelated/SubjectForm';
 import ViewSubject from './subjectRelated/ViewSubject';
 import SelectTeacherForSubject from './subjectRelated/SelectTeacherForSubject';
 
-import AddTeacherModern from './teacherRelated/AddTeacherModern';
+import AddTeacher from './teacherRelated/AddTeacher';
 import ChooseClass from './teacherRelated/ChooseClass';
 
 import ShowTeachers from './teacherRelated/ShowTeachers';
@@ -144,9 +144,9 @@ const AdminDashboard = () => {
 
                         {/* Teacher */}
                         <Route path="/Admin/teachers" element={<ShowTeachers />} />
-                        <Route path="/Admin/teachers/add" element={<AddTeacherModern />} />
-                        <Route path="/Admin/teachers/chooseclass" element={<AddTeacherModern />} />
-                        <Route path="/Admin/teachers/addteacher/:subjectId" element={<AddTeacherModern />} />
+                        <Route path="/Admin/teachers/add" element={<AddTeacher />} />
+                        <Route path="/Admin/teachers/chooseclass" element={<AddTeacher />} />
+                        <Route path="/Admin/teachers/addteacher/:subjectId" element={<AddTeacher />} />
                         <Route path="/Admin/teachers/classes" element={<TeacherClassesView />} />
                         <Route path="/Admin/teachers/teacher/:id" element={<TeacherDetails />} />
                         <Route path="/Admin/teachers/edit-assignments/:id" element={<EditTeacherAssignments />} />

@@ -127,7 +127,7 @@ const TeacherClassesView = () => {
                                                         variant="outlined" 
                                                         size="small"
                                                         color="success"
-                                                        onClick={() => navigate(`/Admin/teachers/addteacher/${subject._id}`)}
+                                                        onClick={() => navigate(`/Admin/teachers/add`)}
                                                     >
                                                         Assign Teacher
                                                     </Button>
