@@ -5,7 +5,7 @@ const fs = require('fs');
 
 const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChildDetails, addAnotherChild,deleteParent, changePassword: parentChangePassword } = require('../controllers/parent-controller.js');
 const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
-const { sclassCreate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTeacherClasses, updateTeacherClasses } = require('../controllers/class-controller.js');
+const { sclassCreate, sclassUpdate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTeacherClasses, updateTeacherClasses } = require('../controllers/class-controller.js');
 const { complainCreate, complainList, complainUpdate, complainDelete } = require('../controllers/complain-controller.js');
 const { leaveRequestCreate, leaveRequestList, leaveRequestUpdate, leaveRequestDelete, getLeaveRequestsByParent, getLeaveRequestsByTeacher } = require('../controllers/leaveRequest-controller.js');
 const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice, markNoticeAsRead } = require('../controllers/notice-controller.js');
@@ -174,6 +174,7 @@ router.get('/LeaveRequestsByTeacher/:teacherId', getLeaveRequestsByTeacher);
 
 // Sclass
 router.post('/SclassCreate', sclassCreate);
+router.put('/SclassUpdate/:id', sclassUpdate);
 router.get('/SclassList/:id', sclassList);
 router.get("/Sclass/:id", getSclassDetail)
 router.get("/Sclass/Students/:id", getSclassStudents)

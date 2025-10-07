@@ -7,6 +7,7 @@ import { deleteUser } from '../../../redux/userRelated/userHandle';
 import {
     Box, Container, Typography, Tab, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, CircularProgress, Grid
 } from '@mui/material';
+import { Edit as EditIcon } from '@mui/icons-material';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
@@ -372,9 +373,19 @@ const ClassDetails = () => {
         return (
             <Container maxWidth="md">
                 <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, border: '2px solid', borderColor: 'primary.main', mb: 3 }}>
-                    <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-                        Class Details
-                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h4" component="h1" gutterBottom color="primary">
+                            Class Details
+                        </Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<EditIcon />}
+                            onClick={() => navigate(`/Admin/classes/edit/${classID}`)}
+                        >
+                            Edit Class
+                        </Button>
+                    </Box>
                     
                     <Box sx={{ mt: 3 }}>
                         <Typography variant="h6" gutterBottom color="text.secondary">
@@ -440,7 +451,7 @@ const ClassDetails = () => {
                                         Add Subjects
                                     </Button>
                                 }
-                                <Button variant="outlined" onClick={() => navigate(-1)}>
+                                <Button variant="outlined" onClick={() => navigate('/Admin/classes')}>
                                     Go Back
                                 </Button>
                             </Box>
