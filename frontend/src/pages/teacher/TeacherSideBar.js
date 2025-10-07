@@ -17,6 +17,7 @@ import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
@@ -89,6 +90,14 @@ const TeacherSideBar = () => {
                         />
                     </ListItemIcon>
                     <ListItemText primary={t('teacherSideBar.complains')} />
+                </ListItemButton>
+                <ListItemButton component={Link} to="/teacher/leave-requests">
+                    <ListItemIcon>
+                        <EventAvailableIcon
+                            color={location.pathname.startsWith("/teacher/leave-requests") ? "primary" : "inherit"}
+                        />
+                    </ListItemIcon>
+                    <ListItemText primary="Leave Requests" />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 

@@ -20,6 +20,7 @@ import ParentProfile from './ParentProfile';
 import ParentNotices from './ParentNotices';
 import ParentReports from './ParentReports';
 import ParentComplaints from './ParentComplain.js';
+import ParentLeaveRequest from './ParentLeaveRequest';
 import ParentTimetable from './ParentTimetable';
 import ParentTermReport from './ParentTermReport';
 import ParentSideBar from './ParentSideBar';
@@ -85,6 +86,7 @@ const ParentDashboard = () => {
                         <Route path="/Parent/profile" element={<ParentProfile />} />
                         <Route path="/Parent/notices" element={<ParentNotices />} />
                         <Route path="/Parent/reports" element={<ParentReports />} />
+                        <Route path="/Parent/leave-requests" element={<ParentLeaveRequest />} />
                         <Route path="/Parent/complaints" element={<ParentComplaints />} />
                         <Route path="/Parent/timetable" element={<ParentTimetable />} />
                         <Route path="/Parent/term-report" element={<ParentTermReport />} />

@@ -27,6 +27,7 @@ import SimpleTermAttendance from './SimpleTermAttendance';
 import TeacherUploadAssignment from './TeacherUploadAssignment';
 import TeacherTimetable from './TeacherTimetable';
 import TeacherNotices from './TeacherNotices.js';
+import TeacherLeaveRequests from './TeacherLeaveRequests';
 
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -84,6 +85,7 @@ const TeacherDashboard = () => {
                     <Route path="/teacher/profile" element={<TeacherProfile />} />
                     <Route path="/teacher/classes" element={<TeacherClasses />} />
                     <Route path="/teacher/complain" element={<TeacherComplain />} />
+                    <Route path="/teacher/leave-requests" element={<TeacherLeaveRequests />} />
                     <Route path="/teacher/class" element={<TeacherClassDetails />} />
                     <Route path="/teacher/class/:classId" element={<TeacherClassDetails />} />
                     <Route path="/teacher/class" element={<TeacherClassDetails />} />

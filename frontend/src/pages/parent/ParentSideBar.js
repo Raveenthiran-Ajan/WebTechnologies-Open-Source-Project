@@ -11,6 +11,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import { useSelector } from 'react-redux';
 
 const ParentSideBar = () => {
@@ -104,6 +105,12 @@ const ParentSideBar = () => {
                         <AssessmentIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('parentSideBar.termReport')} />
+                </ListItemButton>
+                <ListItemButton component={Link} to="/Parent/leave-requests" selected={location.pathname.startsWith("/Parent/leave-requests")} sx={selectedItemStyles}>
+                    <ListItemIcon>
+                        <EventAvailableIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Leave Requests" />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/Parent/complaints" selected={location.pathname.startsWith("/Parent/complaints")} sx={selectedItemStyles}>
                     <ListItemIcon>
