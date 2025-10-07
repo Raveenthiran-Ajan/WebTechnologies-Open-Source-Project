@@ -112,18 +112,37 @@ const leaveRequestDelete = async (req, res) => {
 const getLeaveRequestsByParent = async (req, res) => {
     try {
         const { parentId } = req.params;
-        let leaveRequests = await LeaveRequest.find({ user: parentId })
+
+        // Get pending leave requests
+        const pendingRequests = await LeaveRequest.find({
+            user: parentId,
+            status: 'Pending'
+        })
             .populate('student', 'name rollNum')
-            .populate('approvedBy', 'name');
+            .sort({ date: -1 });
+
+        // Get processed leave requests (approved/rejected)
+        const processedRequests = await LeaveRequest.find({
+            user: parentId,
+            status: { $in: ['Approved', 'Rejected'] }
+        })
+            .populate('student', 'name rollNum')
+            .populate('approvedBy', 'name')
+            .sort({ approvedDate: -1 }); // Most recently processed first
+
         res.json({
             success: true,
-            data: leaveRequests,
-            message: leaveRequests.length > 0 ? null : "No leave requests found"
+            data: {
+                pending: pendingRequests,
+                processed: processedRequests
+            },
+            message: (pendingRequests.length + processedRequests.length) > 0 ? null : "No leave requests found"
         });
     } catch (err) {
+        console.error('Error fetching leave requests for parent:', err);
         res.status(500).json({
             success: false,
-            data: [],
+            data: { pending: [], processed: [] },
             message: err.message || "Error fetching leave requests"
         });
     }

@@ -20,6 +20,8 @@ import {
     InputLabel,
     Select,
     MenuItem,
+    Tabs,
+    Tab,
 } from '@mui/material';
 import {
     DataGrid,
@@ -51,6 +53,7 @@ const ParentLeaveRequest = () => {
     const [message, setMessage] = useState('');
     const [alertSeverity, setAlertSeverity] = useState('success');
     const [openViewDialog, setOpenViewDialog] = useState(false);
+    const [tabValue, setTabValue] = useState(0); // 0 for pending, 1 for processed
 
     useEffect(() => {
         const fetchLeaveRequests = async () => {
@@ -71,10 +74,13 @@ const ParentLeaveRequest = () => {
     }, [dispatch, currentUser?._id]);
 
     const userLeaveRequests = React.useMemo(() => {
-        if (!Array.isArray(leaveRequestsList)) {
-            return [];
+        if (!leaveRequestsList || typeof leaveRequestsList !== 'object') {
+            return { pending: [], processed: [] };
         }
-        return leaveRequestsList;
+        return {
+            pending: Array.isArray(leaveRequestsList.pending) ? leaveRequestsList.pending : [],
+            processed: Array.isArray(leaveRequestsList.processed) ? leaveRequestsList.processed : []
+        };
     }, [leaveRequestsList]);
 
     const handleSubmit = async (event) => {
@@ -201,6 +207,18 @@ const ParentLeaveRequest = () => {
             ),
         },
         {
+            field: 'approvedBy',
+            headerName: 'Approved By',
+            width: 150,
+            renderCell: (params) => (
+                tabValue === 1 && params.value ? ( // Only show for processed requests
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {params.value.name || 'N/A'}
+                    </Typography>
+                ) : null
+            ),
+        },
+        {
             field: 'status',
             headerName: 'Status',
             width: 130,
@@ -221,23 +239,39 @@ const ParentLeaveRequest = () => {
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 100,
+            width: 150,
             headerAlign: 'center',
             align: 'center',
             sortable: false,
             renderCell: (params) => (
-                <IconButton
-                    color="error"
-                    onClick={() => handleDelete(params.row)}
-                    disabled={params.row.status === 'Approved'}
-                >
-                    <DeleteIcon />
-                </IconButton>
+                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                    {tabValue === 0 ? ( // Only show delete for pending requests
+                        <IconButton
+                            color="error"
+                            onClick={() => handleDelete(params.row)}
+                            title="Delete Request"
+                        >
+                            <DeleteIcon />
+                        </IconButton>
+                    ) : (
+                        // Show view button for processed requests
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleView(params.row)}
+                            sx={{ textTransform: 'none' }}
+                        >
+                            View Details
+                        </Button>
+                    )}
+                </Box>
             ),
         },
     ];
 
-    const rows = userLeaveRequests.map((request, index) => ({
+    const currentRequests = tabValue === 0 ? userLeaveRequests.pending : userLeaveRequests.processed;
+
+    const rows = currentRequests.map((request, index) => ({
         id: index + 1,
         date: request.date || new Date().toISOString(),
         student: request.student,
@@ -250,6 +284,10 @@ const ParentLeaveRequest = () => {
         approvedDate: request.approvedDate,
         rejectionReason: request.rejectionReason
     }));
+
+    const handleTabChange = (event, newValue) => {
+        setTabValue(newValue);
+    };
 
     const handleView = (row) => {
         setViewing(row);
@@ -299,6 +337,13 @@ const ParentLeaveRequest = () => {
                     >
                         Request Leave
                     </Button>
+                </Box>
+
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+                    <Tabs value={tabValue} onChange={handleTabChange} aria-label="parent leave request tabs">
+                        <Tab label={`Pending Requests (${userLeaveRequests.pending.length})`} />
+                        <Tab label={`Processed Requests (${userLeaveRequests.processed.length})`} />
+                    </Tabs>
                 </Box>
 
                 {leaveLoading ? (
@@ -352,10 +397,10 @@ const ParentLeaveRequest = () => {
 
                 <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                     <Typography variant="body2" color="text.secondary" align="center">
-                        Total Requests: {userLeaveRequests.length} |
-                        Pending: {userLeaveRequests.filter(r => r.status === 'Pending').length} |
-                        Approved: {userLeaveRequests.filter(r => r.status === 'Approved').length} |
-                        Rejected: {userLeaveRequests.filter(r => r.status === 'Rejected').length}
+                        {tabValue === 0
+                            ? `Pending Requests: ${currentRequests.length}`
+                            : `Processed Requests: ${currentRequests.length} | Approved: ${currentRequests.filter(r => r.status === 'Approved').length} | Rejected: ${currentRequests.filter(r => r.status === 'Rejected').length}`
+                        }
                     </Typography>
                 </Box>
             </Box>
@@ -453,6 +498,161 @@ const ParentLeaveRequest = () => {
                         </Button>
                     </DialogActions>
                 </form>
+            </Dialog>
+
+            {/* View Details Dialog */}
+            <Dialog
+                open={!!viewing}
+                onClose={() => setViewing(null)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{
+                    sx: {
+                        borderRadius: 2,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                    }
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        borderBottom: '1px solid #e0e0e0',
+                        background: 'linear-gradient(to right, #1976d2, #2196f3)',
+                        color: 'white',
+                        py: 2
+                    }}
+                >
+                    <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                        Leave Request Details
+                    </Typography>
+                </DialogTitle>
+                <DialogContent sx={{ py: 3 }}>
+                    {viewing && (
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" color="textSecondary">Student</Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                                    {viewing.student?.name || 'N/A'} (Roll: {viewing.student?.rollNum || 'N/A'})
+                                </Typography>
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" color="textSecondary">Leave Period</Typography>
+                                <Typography variant="body1">
+                                    {new Date(viewing.startDate).toLocaleDateString()} - {new Date(viewing.endDate).toLocaleDateString()}
+                                </Typography>
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" color="textSecondary">Status</Typography>
+                                <Chip
+                                    label={viewing.status || 'Pending'}
+                                    size="small"
+                                    color={
+                                        viewing.status === 'Approved' ? 'success' :
+                                        viewing.status === 'Rejected' ? 'error' : 'warning'
+                                    }
+                                    variant="filled"
+                                    sx={{ mt: 1 }}
+                                />
+                            </Grid>
+
+                            {viewing.approvedBy && (
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle2" color="textSecondary">Approved By</Typography>
+                                    <Typography variant="body1">
+                                        {viewing.approvedBy.name || 'N/A'}
+                                    </Typography>
+                                </Grid>
+                            )}
+
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" color="textSecondary">Reason</Typography>
+                                <Paper
+                                    elevation={0}
+                                    sx={{
+                                        mt: 1,
+                                        p: 2,
+                                        backgroundColor: '#f8f9fa',
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: 1
+                                    }}
+                                >
+                                    <Typography
+                                        variant="body1"
+                                        sx={{
+                                            whiteSpace: 'pre-wrap',
+                                            color: '#2c3e50',
+                                            lineHeight: 1.6
+                                        }}
+                                    >
+                                        {viewing.reason}
+                                    </Typography>
+                                </Paper>
+                            </Grid>
+
+                            {viewing.status === 'Rejected' && viewing.rejectionReason && (
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle2" color="textSecondary">Rejection Reason</Typography>
+                                    <Paper
+                                        elevation={0}
+                                        sx={{
+                                            mt: 1,
+                                            p: 2,
+                                            backgroundColor: '#ffebee',
+                                            border: '1px solid #ffcdd2',
+                                            borderRadius: 1
+                                        }}
+                                    >
+                                        <Typography
+                                            variant="body1"
+                                            sx={{
+                                                whiteSpace: 'pre-wrap',
+                                                color: '#c62828',
+                                                lineHeight: 1.6
+                                            }}
+                                        >
+                                            {viewing.rejectionReason}
+                                        </Typography>
+                                    </Paper>
+                                </Grid>
+                            )}
+
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" color="textSecondary">Requested Date</Typography>
+                                <Typography variant="body1">
+                                    {new Date(viewing.date).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    })}
+                                </Typography>
+                            </Grid>
+
+                            {viewing.approvedDate && (
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle2" color="textSecondary">
+                                        {viewing.status === 'Approved' ? 'Approved Date' : 'Rejected Date'}
+                                    </Typography>
+                                    <Typography variant="body1">
+                                        {new Date(viewing.approvedDate).toLocaleDateString('en-US', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric'
+                                        })}
+                                    </Typography>
+                                </Grid>
+                            )}
+                        </Grid>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ borderTop: '1px solid #e0e0e0', p: 2 }}>
+                    <Button
+                        variant="contained"
+                        onClick={() => setViewing(null)}
+                    >
+                        Close
+                    </Button>
+                </DialogActions>
             </Dialog>
         </Container>
     );
