@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getClassStudents } from '../../redux/sclassRelated/sclassHandle';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
+import { getCurrentTerm, getTermName, getTermMonths } from '../../utils/termUtils';
 import {
     Box, 
     Typography, 
@@ -279,6 +280,30 @@ const ClassAttendance = () => {
                             }}
                             fullWidth
                         />
+                    </Box>
+                    
+                    {/* Term Details */}
+                    <Box sx={{ mb: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+                        <Typography variant="h6" gutterBottom color="primary">
+                            Term Details
+                        </Typography>
+                        {(() => {
+                            const currentTermKey = getCurrentTerm(new Date(attendanceDate));
+                            const termName = getTermName(currentTermKey);
+                            const termMonths = getTermMonths(currentTermKey);
+                            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                            const termMonthNames = termMonths.map(m => monthNames[m - 1]).join(', ');
+                            return (
+                                <>
+                                    <Typography variant="body1">
+                                        Current Term: {termName}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Months: {termMonthNames}
+                                    </Typography>
+                                </>
+                            );
+                        })()}
                     </Box>
                     
                     <Box sx={{ display: 'flex', gap: 4, justifyContent: 'center', flexWrap: 'wrap', mb: 3 }}>
