@@ -15,7 +15,6 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Logout from '../Logout';
 import AccountMenu from '../../components/AccountMenu';
 import { AppBar, Drawer } from '../../components/styles';
-import { useTranslation } from 'react-i18next';
 
 import TeacherClassDetails from './TeacherClassDetails';
 import TeacherClasses from './TeacherClasses';
@@ -32,7 +31,6 @@ import TeacherLeaveRequests from './TeacherLeaveRequests';
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);
     const toggleDrawer = () => setOpen(!open);
-    const { t } = useTranslation();
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -58,7 +56,7 @@ const TeacherDashboard = () => {
                         noWrap
                         sx={{ flexGrow: 1 }}
                     >
-                        {t('teacherDashboard.title')}
+                        Teacher Dashboard
                     </Typography>
                     <AccountMenu />
                 </Toolbar>

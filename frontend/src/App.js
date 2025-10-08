@@ -22,8 +22,8 @@ const App = () => {
 
   return (
     <Router>
-      <LanguageSwitcher />
-      {currentRole === null && 
+      {(currentRole === null || currentRole === "Parent") && <LanguageSwitcher />}
+      {currentRole === null &&
         <Routes>
           <Route path="/" element={<Homepage />} />
           <Route path="/choose" element={<ChooseUser visitor="normal" />} />

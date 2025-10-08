@@ -9,7 +9,6 @@ import bgpic from "../../assets/designlogin.jpg"
 import { registerUser } from '../../redux/userRelated/userHandle';
 import styled from 'styled-components';
 import Popup from '../../components/Popup';
-import { useTranslation } from 'react-i18next';
 
 const defaultTheme = createTheme();
 
@@ -17,7 +16,6 @@ const AdminRegisterPage = () => {
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
-    const { t } = useTranslation();
 
     const { status, currentUser, response, error, currentRole } = useSelector(state => state.user);;
 
@@ -90,10 +88,10 @@ const AdminRegisterPage = () => {
                         }}
                     >
                         <Typography variant="h4" sx={{ mb: 2, color: "#2c2143" }}>
-                            {t('adminRegisterPage.title')}
+                            Admin Register
                         </Typography>
                         <Typography variant="h7">
-                            {t('adminRegisterPage.description')}
+                            Create your own school by registering as an admin. You will be able to add students and faculty and manage the system.
                         </Typography>
                         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 2 }}>
                             <TextField
@@ -101,12 +99,12 @@ const AdminRegisterPage = () => {
                                 required
                                 fullWidth
                                 id="adminName"
-                                label={t('adminRegisterPage.nameLabel')}
+                                label="Enter your name"
                                 name="adminName"
                                 autoComplete="name"
                                 autoFocus
                                 error={adminNameError}
-                                helperText={adminNameError && t('adminRegisterPage.nameRequired')}
+                                helperText={adminNameError && "Name is required"}
                                 onChange={handleInputChange}
                             />
                             <TextField
@@ -114,11 +112,11 @@ const AdminRegisterPage = () => {
                                 required
                                 fullWidth
                                 id="schoolName"
-                                label={t('adminRegisterPage.schoolNameLabel')}
+                                label="Create your school name"
                                 name="schoolName"
                                 autoComplete="off"
                                 error={schoolNameError}
-                                helperText={schoolNameError && t('adminRegisterPage.schoolNameRequired')}
+                                helperText={schoolNameError && "School name is required"}
                                 onChange={handleInputChange}
                             />
                             <TextField
@@ -126,11 +124,11 @@ const AdminRegisterPage = () => {
                                 required
                                 fullWidth
                                 id="email"
-                                label={t('adminRegisterPage.emailLabel')}
+                                label="Enter your email"
                                 name="email"
                                 autoComplete="email"
                                 error={emailError}
-                                helperText={emailError && t('adminRegisterPage.emailRequired')}
+                                helperText={emailError && "Email is required"}
                                 onChange={handleInputChange}
                             />
                             <TextField
@@ -138,12 +136,12 @@ const AdminRegisterPage = () => {
                                 required
                                 fullWidth
                                 name="password"
-                                label={t('adminRegisterPage.passwordLabel')}
+                                label="Password"
                                 type={toggle ? 'text' : 'password'}
                                 id="password"
                                 autoComplete="current-password"
                                 error={passwordError}
-                                helperText={passwordError && t('adminRegisterPage.passwordRequired')}
+                                helperText={passwordError && "Password is required"}
                                 onChange={handleInputChange}
                                 InputProps={{
                                     endAdornment: (
@@ -162,7 +160,7 @@ const AdminRegisterPage = () => {
                             <Grid container sx={{ display: "flex", justifyContent: "space-between" }}>
                                 <FormControlLabel
                                     control={<Checkbox value="remember" color="primary" />}
-                                    label={t('adminRegisterPage.remember')}
+                                    label="Remember me"
                                 />
                             </Grid>
                             <Button
@@ -172,15 +170,15 @@ const AdminRegisterPage = () => {
                                 color="primary"
                                 sx={{ mt: 3, mb: 2 }}
                             >
-                                {loader ? <CircularProgress size={24} color="inherit"/> : t('adminRegisterPage.register')}
+                                {loader ? <CircularProgress size={24} color="inherit"/> : "Register"}
                             </Button>
                             <Grid container>
                                 <Grid>
-                                    {t('adminRegisterPage.haveAccount')}
+                                    Already have an account?
                                 </Grid>
                                 <Grid item sx={{ ml: 2 }}>
                                     <StyledLink to="/Adminlogin">
-                                        {t('adminRegisterPage.login')}
+                                        Log in
                                     </StyledLink>
                                 </Grid>
                             </Grid>

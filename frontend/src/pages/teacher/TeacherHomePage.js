@@ -11,7 +11,6 @@ import { getTeacherDetails } from '../../redux/teacherRelated/teacherHandle';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import TeacherTimetable from './TeacherTimetable';
-import { useTranslation } from 'react-i18next';
 
 const TeacherHomePage = () => {
     const dispatch = useDispatch();
@@ -42,24 +41,23 @@ const TeacherHomePage = () => {
     const totalTeachingClasses = teachingClasses.length;
     const totalSubjects = teacherData?.teachSubjects?.length || 0;
 
-    const { t } = useTranslation();
     return (
         <Container maxWidth="lg">
             {/* Teacher Information Section */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-                    {t('teacherHomePage.title')}
+                    Teacher Dashboard
                 </Typography>
-                
+
                 <Box sx={{ mt: 3 }}>
                     <Typography variant="h6" gutterBottom color="text.secondary">
-                        {t('teacherHomePage.welcome')} {currentUser?.name}
+                        Welcome, {currentUser?.name}
                     </Typography>
                     
                     <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 3, mt: 2 }}>
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                {t('teacherHomePage.teachingClasses')}
+                                Teaching Classes
                             </Typography>
                             <Box sx={{ mt: 1 }}>
                                 {teachingClasses.length > 0 ? (
@@ -85,13 +83,13 @@ const TeacherHomePage = () => {
                                         })}
                                         {teachingClasses.length > 3 && (
                                             <Typography variant="body2" color="text.secondary">
-                                                {t('teacherHomePage.moreClasses', { count: teachingClasses.length - 3 })}
+                                                +{teachingClasses.length - 3} more classes
                                             </Typography>
                                         )}
                                     </Box>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary">
-                                        {t('teacherHomePage.noClassesAssigned')}
+                                        No classes assigned
                                     </Typography>
                                 )}
                             </Box>
@@ -99,7 +97,7 @@ const TeacherHomePage = () => {
                         
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                {t('teacherHomePage.teachingSubjects')}
+                                Teaching Subjects
                             </Typography>
                             <Box sx={{ mt: 1 }}>
                                 {teacherData?.teachSubjects?.length > 0 ? (
@@ -111,13 +109,13 @@ const TeacherHomePage = () => {
                                         ))}
                                         {teacherData.teachSubjects.length > 3 && (
                                             <Typography variant="body2" color="text.secondary">
-                                                {t('teacherHomePage.moreSubjects', { count: teacherData.teachSubjects.length - 3 })}
+                                                +{teacherData.teachSubjects.length - 3} more subjects
                                             </Typography>
                                         )}
                                     </Box>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary">
-                                        {t('teacherHomePage.noSubjectsAssigned')}
+                                        No subjects assigned
                                     </Typography>
                                 )}
                             </Box>
@@ -125,29 +123,29 @@ const TeacherHomePage = () => {
                         
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                {t('teacherHomePage.school')}
+                                School
                             </Typography>
                             <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
                                 {currentUser?.school?.schoolName || 'SMS'}
                             </Typography>
                         </Box>
-                        
+
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                {t('teacherHomePage.attendanceClass')}
+                                Attendance Class
                             </Typography>
                             <Box sx={{ mt: 1 }}>
                                 {attendanceClass ? (
                                     <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                                        {typeof attendanceClass === 'object' && attendanceClass.sclassName 
-                                            ? attendanceClass.sclassName 
-                                            : (typeof attendanceClass === 'string' 
+                                        {typeof attendanceClass === 'object' && attendanceClass.sclassName
+                                            ? attendanceClass.sclassName
+                                            : (typeof attendanceClass === 'string'
                                                 ? (sclassesList?.find(c => c._id === attendanceClass)?.sclassName || 'Unknown')
                                                 : 'Unknown')}
                                     </Typography>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary">
-                                        {t('teacherHomePage.noAttendanceClassAssigned')}
+                                        No attendance class assigned
                                     </Typography>
                                 )}
                             </Box>
@@ -159,15 +157,15 @@ const TeacherHomePage = () => {
             {/* Statistics Section */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom color="text.secondary">
-                    {t('teacherHomePage.teachingStatistics')}
+                    Teaching Statistics
                 </Typography>
-                
+
                 <Grid container spacing={3} sx={{ mt: 1 }}>
                     <Grid item xs={12} md={3}>
                         <StyledPaper>
                             <img src={Students} alt="Classes" />
                             <Title>
-                                {t('teacherHomePage.teachingClasses')}
+                                Teaching Classes
                             </Title>
                             <Data><CountUp key={totalTeachingClasses} start={0} end={totalTeachingClasses} duration={2.5} /></Data>
                         </StyledPaper>
@@ -176,7 +174,7 @@ const TeacherHomePage = () => {
                         <StyledPaper>
                             <img src={Lessons} alt="Attendance" />
                             <Title>
-                                {t('teacherHomePage.attendanceClass')}
+                                Attendance Class
                             </Title>
                             <Data><CountUp key={attendanceClass ? 1 : 0} start={0} end={attendanceClass ? 1 : 0} duration={2.5} /></Data>
                         </StyledPaper>
@@ -185,7 +183,7 @@ const TeacherHomePage = () => {
                         <StyledPaper>
                             <img src={Tests} alt="Subjects" />
                             <Title>
-                                {t('teacherHomePage.totalSubjects')}
+                                Total Subjects
                             </Title>
                             <Data><CountUp key={totalSubjects} start={0} end={totalSubjects} duration={2.5} /></Data>
                         </StyledPaper>
@@ -194,7 +192,7 @@ const TeacherHomePage = () => {
                         <StyledPaper>
                             <img src={Time} alt="Classes" />
                             <Title>
-                                {t('teacherHomePage.totalClasses')}
+                                Total Classes
                             </Title>
                             <Data><CountUp key={totalTeachingClasses} start={0} end={totalTeachingClasses} duration={2.5} /></Data>
                         </StyledPaper>
@@ -205,37 +203,37 @@ const TeacherHomePage = () => {
             {/* Quick Actions Section */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom color="text.secondary">
-                    {t('teacherHomePage.quickActions')}
+                    Quick Actions
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mt: 2 }}>
-                    <Button 
-                        variant="contained" 
+                    <Button
+                        variant="contained"
                         color="primary"
                         onClick={() => attendanceClass ? window.location.href = `/Teacher/class/${typeof attendanceClass === 'object' ? attendanceClass._id : attendanceClass}/attendance` : null}
                         disabled={!attendanceClass}
                     >
-                        {t('teacherHomePage.takeAttendance')}
+                        Take Attendance
                     </Button>
-                    <Button 
-                        variant="contained" 
+                    <Button
+                        variant="contained"
                         color="secondary"
                         onClick={() => teachingClasses.length > 0 ? window.location.href = `/Teacher/class/${typeof teachingClasses[0] === 'object' ? teachingClasses[0]._id : teachingClasses[0]}` : null}
                         disabled={teachingClasses.length === 0}
                     >
-                        {t('teacherHomePage.viewClassDetails')}
+                        View Class Details
                     </Button>
-                    <Button 
-                        variant="outlined" 
+                    <Button
+                        variant="outlined"
                         color="success"
                         onClick={() => window.location.href = '/Teacher/upload-assignment'}
                     >
-                        {t('teacherHomePage.uploadAssignment')}
+                        Upload Assignment
                     </Button>
-                    <Button 
+                    <Button
                         variant="outlined"
                         onClick={() => window.location.href = '/Teacher/complain'}
                     >
-                        {t('teacherHomePage.submitComplaint')}
+                        Submit Complaint
                     </Button>
                 </Box>
             </Box>
@@ -243,7 +241,7 @@ const TeacherHomePage = () => {
             {/* School Notices Section */}
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Typography variant="h6" gutterBottom color="text.secondary">
-                    {t('teacherHomePage.schoolNotices')}
+                    School Notices
                 </Typography>
                 <Box sx={{ maxHeight: 400, overflow: 'auto', mt: 2 }}>
                     <SeeNotice />
