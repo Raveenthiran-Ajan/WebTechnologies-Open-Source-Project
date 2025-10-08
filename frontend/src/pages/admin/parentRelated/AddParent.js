@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { addParent } from '../../../redux/parentRelated/parentHandle';
+import { addParent, getAllParents } from '../../../redux/parentRelated/parentHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
 import Popup from '../../../components/Popup';
 import { getAllStudents } from '../../../redux/studentRelated/studentHandle';
-import { CircularProgress, TextField, Button, Container, Box, Typography, Grid, FormControlLabel, Checkbox } from '@mui/material';
+import { Autocomplete, CircularProgress, TextField, Button, Container, Box, Typography, Grid, FormControlLabel, Checkbox } from '@mui/material';
 
 const AddParent = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { status, response, error } = useSelector(state => state.parent);
+    const { status, response, error, parentsList } = useSelector(state => state.parent);
     const { studentsList } = useSelector((state) => state.student);
     const { currentUser } = useSelector(state => state.user);
 
@@ -30,18 +30,28 @@ const AddParent = () => {
     useEffect(() => {
         if (adminID) {
             dispatch(getAllStudents(adminID));
+            dispatch(getAllParents(adminID));
         }
     }, [adminID, dispatch]);
+
+    const unassignedStudents = React.useMemo(() => {
+        if (!studentsList || !parentsList) {
+            return [];
+        }
+        const assignedChildrenIds = new Set(parentsList.flatMap(parent => parent.children.map(child => child._id)));
+        return studentsList.filter(student => !assignedChildrenIds.has(student._id));
+    }, [studentsList, parentsList]);
+
 
     const fields = { name, email, studentId, school, autoGeneratePassword, ...(autoGeneratePassword ? {} : { password }) };
 
     const submitHandler = (event) => {
         event.preventDefault();
-        if (studentId === "") {
-            setMessage("Please select a child");
+        if (!name.trim() || !email.trim() || !studentId) {
+            setMessage("Please fill in all required fields.");
             setShowPopup(true);
-        } else if (!autoGeneratePassword && !password.trim()) {
-            setMessage("Please enter a password");
+        } else if (!autoGeneratePassword && password.length < 6) {
+            setMessage("Password must be at least 6 characters long.");
             setShowPopup(true);
         } else {
             setLoader(true);
@@ -56,7 +66,7 @@ const AddParent = () => {
             dispatch(underControl());
         } else if (status === 'error') {
             setLoader(false);
-            setMessage(response || "Network Error");
+            setMessage(error || "Network Error");
             setShowPopup(true);
         }
     }, [status, navigate, error, response, dispatch]);
@@ -120,25 +130,22 @@ const AddParent = () => {
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField
-                                select
-                                fullWidth
-                                label="Select Child"
-                                variant="outlined"
-                                value={studentId}
-                                onChange={(e) => setStudentId(e.target.value)}
-                                required
-                                SelectProps={{
-                                    native: true,
+                            <Autocomplete
+                                options={unassignedStudents || []}
+                                getOptionLabel={(option) => `${option.name} (Roll No: ${option.rollNum})`}
+                                isOptionEqualToValue={(option, value) => option._id === value._id}
+                                onChange={(event, newValue) => {
+                                    setStudentId(newValue ? newValue._id : '');
                                 }}
-                            >
-                                <option value=""></option>
-                                {studentsList && studentsList.length > 0 && studentsList.map((student, index) => (
-                                    <option key={index} value={student._id}>
-                                        {student.name} (Roll No: {student.rollNum})
-                                    </option>
-                                ))}
-                            </TextField>
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Search and Select Child"
+                                        variant="outlined"
+                                        required={!studentId}
+                                    />
+                                )}
+                            />
                         </Grid>
                         <Grid item xs={12}>
                             <Button variant="contained" color="primary" type="submit" disabled={loader || !name.trim() || !email.trim() || (!autoGeneratePassword && !password.trim())}>

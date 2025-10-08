@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getParentDetails, updateParent } from '../../../redux/parentRelated/parentHandle'; // This file was not in context, but I am assuming it's correct.
+import { getParentDetails, updateParent, getAllParents } from '../../../redux/parentRelated/parentHandle'; // This file was not in context, but I am assuming it's correct.
 import { getAllSclasses, getClassStudents } from '../../../redux/sclassRelated/sclassHandle';
 import {
     Box, Button, Container, Paper, TextField, Typography,
@@ -13,7 +13,7 @@ const ViewParent = () => {
     const navigate = useNavigate();
     const params = useParams();
     const dispatch = useDispatch();
-    const { loading, parentDetails } = useSelector((state) => state.parent);
+    const { loading, parentDetails, parentsList } = useSelector((state) => state.parent);
     const { sclassesList, sclassStudents } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector(state => state.user);
 
@@ -30,7 +30,14 @@ const ViewParent = () => {
     useEffect(() => {
         dispatch(getParentDetails(parentID));
         dispatch(getAllSclasses(adminID, "Sclass"));
+        dispatch(getAllParents(adminID));
     }, [dispatch, parentID, adminID]);
+
+    const unassignedStudentsInClass = React.useMemo(() => {
+        if (!sclassStudents || !parentsList) return [];
+        const assignedChildrenIds = new Set(parentsList.flatMap(parent => parent.children.map(child => child._id)));
+        return sclassStudents.filter(student => !assignedChildrenIds.has(student._id));
+    }, [sclassStudents, parentsList]);
 
     // Fetch students when class is selected
     useEffect(() => {
@@ -198,7 +205,7 @@ const ViewParent = () => {
                                          filteredStudents.length === 0 ? "No students available" : 
                                          "Select Student"}
                                     </option>
-                                    {filteredStudents?.map((student) => (
+                                    {unassignedStudentsInClass?.map((student) => (
                                         <option key={student._id} value={student.rollNum}>
                                             {student.rollNum} - {student.name}
                                         </option>
