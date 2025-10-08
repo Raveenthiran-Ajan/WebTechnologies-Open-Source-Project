@@ -11,7 +11,7 @@ const subjectSchema = new mongoose.Schema({
     },
     periodsPerWeek: {
         type: Number,
-        required: true,
+        required: false,
     },
     school: {
         type: mongoose.Schema.Types.ObjectId,

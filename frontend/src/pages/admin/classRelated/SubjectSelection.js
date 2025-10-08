@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Container, Box, Typography, Grid, Card, CardContent, Checkbox, CircularProgress, FormControlLabel } from "@mui/material";
+import { Button, Container, Box, Typography, Grid, Card, CardContent, Checkbox, CircularProgress, FormControlLabel, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
@@ -9,6 +9,7 @@ import Popup from '../../../components/Popup';
 
 const SubjectSelection = () => {
     const [selectedSubjects, setSelectedSubjects] = useState([]);
+    const [periods, setPeriods] = useState({});
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -34,18 +35,34 @@ const SubjectSelection = () => {
     }, [currentUser._id, dispatch]);
 
     const handleSubjectToggle = (subjectId) => {
-        setSelectedSubjects(prev =>
-            prev.includes(subjectId)
+        setSelectedSubjects(prev => {
+            const isSelected = prev.includes(subjectId);
+            const newSelected = isSelected
                 ? prev.filter(id => id !== subjectId)
-                : [...prev, subjectId]
-        );
+                : [...prev, subjectId];
+            setPeriods(prevPeriods => {
+                const newPeriods = { ...prevPeriods };
+                if (!isSelected) {
+                    newPeriods[subjectId] = 1; // default
+                } else {
+                    delete newPeriods[subjectId];
+                }
+                return newPeriods;
+            });
+            return newSelected;
+        });
     };
 
     const handleSelectAll = () => {
         if (selectedSubjects.length === (subjectsList?.length || 0)) {
             setSelectedSubjects([]);
+            setPeriods({});
         } else {
-            setSelectedSubjects(subjectsList?.map(subject => subject._id) || []);
+            const allIds = subjectsList?.map(subject => subject._id) || [];
+            setSelectedSubjects(allIds);
+            const newPeriods = {};
+            allIds.forEach(id => newPeriods[id] = 1);
+            setPeriods(newPeriods);
         }
     };
 
@@ -70,7 +87,7 @@ const SubjectSelection = () => {
                 const subject = subjectsList?.find(s => s._id === subjectId);
                 return {
                     subject: subjectId,
-                    sessions: subject?.periodsPerWeek || 1
+                    sessions: periods[subjectId] || 1
                 };
             }),
             adminID
@@ -134,60 +151,67 @@ const SubjectSelection = () => {
                     />
                 </Box>
 
-                <Grid container spacing={2}>
-                    {subjectsList && subjectsList.map((subject) => (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={subject._id}>
-                            <Card
-                                sx={{
-                                    height: '100%',
-                                    cursor: 'pointer',
-                                    border: selectedSubjects.includes(subject._id)
-                                        ? '3px solid #1976d2'
-                                        : '2px solid #2196f3',
-                                    backgroundColor: 'white',
-                                    boxShadow: selectedSubjects.includes(subject._id)
-                                        ? '0 4px 12px rgba(25, 118, 210, 0.3)'
-                                        : '0 2px 8px rgba(0, 0, 0, 0.1)',
-                                    '&:hover': {
-                                        boxShadow: selectedSubjects.includes(subject._id)
-                                            ? '0 6px 16px rgba(25, 118, 210, 0.4)'
-                                            : '0 4px 12px rgba(0, 0, 0, 0.15)',
-                                        borderColor: '#1976d2',
-                                        transform: 'translateY(-2px)',
-                                        transition: 'all 0.2s ease-in-out'
-                                    }
-                                }}
-                                onClick={() => handleSubjectToggle(subject._id)}
-                            >
-                                <CardContent sx={{ p: 2 }}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                                        <Typography variant="h6" sx={{ fontSize: '1rem', fontWeight: 'bold' }}>
-                                            {subject.subName}
-                                        </Typography>
-                                        <Checkbox
-                                            checked={selectedSubjects.includes(subject._id)}
-                                            onChange={(e) => {
-                                                e.stopPropagation();
-                                                handleSubjectToggle(subject._id);
-                                            }}
-                                            onClick={(e) => e.stopPropagation()}
-                                            color="primary"
-                                            sx={{ p: 0 }}
-                                        />
-                                    </Box>
+                <Box sx={{ mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                        Available Subjects
+                    </Typography>
+                    <Box sx={{ maxHeight: 300, overflowY: 'auto', border: '1px solid #ddd', borderRadius: 1, p: 2 }}>
+                        {subjectsList && subjectsList.map((subject) => (
+                            <FormControlLabel
+                                key={subject._id}
+                                control={
+                                    <Checkbox
+                                        checked={selectedSubjects.includes(subject._id)}
+                                        onChange={() => handleSubjectToggle(subject._id)}
+                                        color="primary"
+                                    />
+                                }
+                                label={subject.subName}
+                                sx={{ display: 'block', mb: 1 }}
+                            />
+                        ))}
+                    </Box>
+                </Box>
 
-                                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                        <strong>Subject Code:</strong> {subject.subCode}
-                                    </Typography>
-
-                                    <Typography variant="body2" color="text.secondary">
-                                        <strong>Periods per week:</strong> {subject.periodsPerWeek}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    ))}
-                </Grid>
+                {selectedSubjects.length > 0 && (
+                    <Box sx={{ mb: 3 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Selected Subjects
+                        </Typography>
+                        <TableContainer component={Paper}>
+                            <Table>
+                                <TableHead>
+                                    <TableRow sx={{ bgcolor: 'grey.50' }}>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Subject Name</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Subject Code</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold' }}>Periods Per Week</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {selectedSubjects.map((subjectId) => {
+                                        const subject = subjectsList?.find(s => s._id === subjectId);
+                                        return (
+                                            <TableRow key={subjectId}>
+                                                <TableCell>{subject?.subName}</TableCell>
+                                                <TableCell>{subject?.subCode}</TableCell>
+                                                <TableCell>
+                                                    <TextField
+                                                        type="number"
+                                                        size="small"
+                                                        value={periods[subjectId] || 1}
+                                                        onChange={(e) => setPeriods(prev => ({ ...prev, [subjectId]: parseInt(e.target.value) || 1 }))}
+                                                        inputProps={{ min: 1 }}
+                                                        sx={{ width: 80 }}
+                                                    />
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Box>
+                )}
 
                 {subjectsList && subjectsList.length === 0 && (
                     <Box sx={{ textAlign: 'center', py: 4 }}>

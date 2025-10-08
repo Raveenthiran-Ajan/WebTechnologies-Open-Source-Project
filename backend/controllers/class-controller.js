@@ -354,4 +354,28 @@ const updateTeacherClasses = async (req, res) => {
     }
 };
 
-module.exports = { sclassCreate, sclassUpdate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers, getTeacherClasses, updateTeacherClasses };
+const updateSubjectSessions = async (req, res) => {
+    try {
+        const { subjectId, sessions } = req.body;
+        const classId = req.params.id;
+
+        const sclass = await Sclass.findById(classId);
+        if (!sclass) {
+            return res.status(404).json({ message: "Class not found" });
+        }
+
+        const subjectIndex = sclass.subjects.findIndex(sub => sub.subject.toString() === subjectId);
+        if (subjectIndex === -1) {
+            return res.status(404).json({ message: "Subject not found in class" });
+        }
+
+        sclass.subjects[subjectIndex].sessions = sessions;
+        await sclass.save();
+
+        res.json({ message: "Subject sessions updated successfully" });
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
+module.exports = { sclassCreate, sclassUpdate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTimetable, updateTimetable, getClassTeachers, getAvailableSubjects, getAvailableTeachers, getTeacherClasses, updateTeacherClasses, updateSubjectSessions };

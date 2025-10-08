@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Container, Box, Typography, Grid, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Chip, CircularProgress } from "@mui/material";
+import { Button, Container, Box, Typography, Grid, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Chip, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { Delete as DeleteIcon, Add as AddIcon, Edit as EditIcon } from "@mui/icons-material";
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -7,6 +7,8 @@ import { getClassDetails, getSubjectList } from '../../../redux/sclassRelated/sc
 import { addStuff, updateStuff } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
 import Popup from '../../../components/Popup';
+import axios from 'axios';
+import { API_BASE_URL } from '../../../config';
 
 const EditClass = () => {
     const [sclassName, setSclassName] = useState("");
@@ -32,6 +34,10 @@ const EditClass = () => {
     const [message, setMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
     const [submitted, setSubmitted] = useState(false);
+
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editingSubject, setEditingSubject] = useState(null);
+    const [editSessions, setEditSessions] = useState(1);
 
     // Load class details and subjects
     useEffect(() => {
@@ -240,8 +246,34 @@ const EditClass = () => {
                                                         >
                                                             <TableCell>{subject?.subName || 'Unknown'}</TableCell>
                                                             <TableCell>{subject?.subCode || 'Unknown'}</TableCell>
-                                                            <TableCell>{item.sessions}</TableCell>
                                                             <TableCell>
+                                                                <TextField
+                                                                    type="number"
+                                                                    size="small"
+                                                                    value={item.sessions}
+                                                                    onChange={(e) => {
+                                                                        const newSessions = parseInt(e.target.value) || 1;
+                                                                        setSelectedSubjects(prev => prev.map(s =>
+                                                                            s.subjectId === item.subjectId
+                                                                                ? { ...s, sessions: newSessions }
+                                                                                : s
+                                                                        ));
+                                                                    }}
+                                                                    inputProps={{ min: 1 }}
+                                                                    sx={{ width: 80 }}
+                                                                />
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <IconButton
+                                                                    color="primary"
+                                                                    onClick={() => {
+                                                                        setEditingSubject(item);
+                                                                        setEditSessions(item.sessions);
+                                                                        setEditDialogOpen(true);
+                                                                    }}
+                                                                >
+                                                                    <EditIcon />
+                                                                </IconButton>
                                                                 <IconButton
                                                                     color="error"
                                                                     onClick={() => handleRemoveSubject(item.subjectId)}
@@ -270,7 +302,16 @@ const EditClass = () => {
                                                             <TableCell>{subjObj?.subCode || 'Unknown'}</TableCell>
                                                             <TableCell>{sessions}</TableCell>
                                                             <TableCell>
-                                                                {/* If selectedSubjects not yet populated, deletion should still work via remove handler using resolved id */}
+                                                                <IconButton
+                                                                    color="primary"
+                                                                    onClick={() => {
+                                                                        setEditingSubject({ subjectId, sessions });
+                                                                        setEditSessions(sessions);
+                                                                        setEditDialogOpen(true);
+                                                                    }}
+                                                                >
+                                                                    <EditIcon />
+                                                                </IconButton>
                                                                 <IconButton color="error" onClick={() => handleRemoveSubject(subjectId)}>
                                                                     <DeleteIcon />
                                                                 </IconButton>
@@ -308,6 +349,51 @@ const EditClass = () => {
             </Box>
 
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
+
+            <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
+                <DialogTitle>Edit Periods Per Week</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Periods Per Week"
+                        type="number"
+                        fullWidth
+                        variant="standard"
+                        value={editSessions}
+                        onChange={(e) => setEditSessions(parseInt(e.target.value) || 1)}
+                        inputProps={{ min: 1 }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={() => {
+                        if (selectedSubjects.find(s => s.subjectId === editingSubject.subjectId)) {
+                            // It's in selectedSubjects, update local
+                            setSelectedSubjects(prev => prev.map(item =>
+                                item.subjectId === editingSubject.subjectId
+                                    ? { ...item, sessions: editSessions }
+                                    : item
+                            ));
+                        } else {
+                            // It's existing, call API
+                            axios.put(`${API_BASE_URL}/Sclass/SubjectSessions/${classID}`, {
+                                subjectId: editingSubject.subjectId,
+                                sessions: editSessions
+                            }).then(() => {
+                                setMessage("Periods updated successfully");
+                                setShowPopup(true);
+                                // Refresh class details
+                                dispatch(getClassDetails(classID, "Sclass"));
+                            }).catch(() => {
+                                setMessage("Error updating periods");
+                                setShowPopup(true);
+                            });
+                        }
+                        setEditDialogOpen(false);
+                    }}>Update</Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };

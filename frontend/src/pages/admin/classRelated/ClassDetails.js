@@ -3,9 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { getClassDetails, getClassStudents, getClassTeachers, getSubjectList } from "../../../redux/sclassRelated/sclassHandle";
 import { resetSubjects } from '../../../redux/sclassRelated/sclassSlice';
-import { deleteUser } from '../../../redux/userRelated/userHandle';
+import { deleteUser, updateStuff } from '../../../redux/userRelated/userHandle';
 import {
-    Box, Container, Typography, Tab, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, CircularProgress, Grid
+    Box, Container, Typography, Tab, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, CircularProgress, Grid, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from '@mui/material';
 import { Edit as EditIcon } from '@mui/icons-material';
 import TabContext from '@mui/lab/TabContext';
@@ -64,12 +64,16 @@ const ClassDetails = () => {
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
 
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editingSubject, setEditingSubject] = useState(null);
+    const [editSessions, setEditSessions] = useState(1);
+
     const deleteHandler = async (deleteID, address) => {
         let confirmMessage = '';
         let successMessage = '';
         
         if (address === 'Subject') {
-            confirmMessage = 'Are you sure you want to delete this subject? This will remove all associated data including assignments, grades, and attendance records. This action cannot be undone.';
+            confirmMessage = 'Are you sure you want to remove this subject from the class? This will remove all associated data for this class including assignments, grades, and attendance records. This action cannot be undone.';
             successMessage = '📚 Subject has been successfully removed from the class';
         } else if (address === 'Student') {
             confirmMessage = 'Are you sure you want to remove this student from the class? This will remove their attendance, grades, and assignments for this class. This action cannot be undone.';
@@ -80,10 +84,16 @@ const ClassDetails = () => {
         
         if (confirmDelete) {
             try {
-                // Handle subject/student deletion
-                console.log('Deleting', address, 'with ID:', deleteID);
-                await dispatch(deleteUser(deleteID, address));
-                console.log(address, 'deleted successfully, refreshing data...');
+                if (address === 'Subject') {
+                    // Remove subject from class
+                    const updatedSubjects = subjectsList
+                        .filter(sub => sub._id !== deleteID)
+                        .map(sub => ({ subject: sub._id, sessions: sub.sessions }));
+                    await dispatch(updateStuff({ id: classID, subjects: updatedSubjects }, "Sclass"));
+                } else {
+                    // Handle student deletion
+                    await dispatch(deleteUser(deleteID, address));
+                }
                 
                 // Refresh appropriate data based on what was deleted
                 if (address === 'Subject') {
@@ -116,6 +126,13 @@ const ClassDetails = () => {
             renderCell: (params) => {
                 return (
                     <Box>
+                        <IconButton onClick={() => {
+                            setEditingSubject(params.row);
+                            setEditSessions(params.row.periodsPerWeek);
+                            setEditDialogOpen(true);
+                        }}>
+                            <EditIcon color="primary" />
+                        </IconButton>
                         <IconButton onClick={() => deleteHandler(params.row.id, "Subject")}>
                             <Delete color="error" />
                         </IconButton>
@@ -137,7 +154,7 @@ const ClassDetails = () => {
         id: subject._id,
         name: subject.subName,
         code: subject.subCode,
-        periodsPerWeek: subject.periodsPerWeek || 'N/A',
+        periodsPerWeek: subject.sessions || 'N/A',
     })) : [];
 
     function SubjectsToolbar() {
@@ -501,6 +518,42 @@ const ClassDetails = () => {
                 </>
             )}
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
+
+            <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
+                <DialogTitle>Edit Periods Per Week</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Periods Per Week"
+                        type="number"
+                        fullWidth
+                        variant="standard"
+                        value={editSessions}
+                        onChange={(e) => setEditSessions(parseInt(e.target.value) || 1)}
+                        inputProps={{ min: 1 }}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={async () => {
+                        try {
+                            await axios.put(`${API_BASE_URL}/Sclass/SubjectSessions/${classID}`, {
+                                subjectId: editingSubject.id,
+                                sessions: editSessions
+                            });
+                            setMessage("Periods updated successfully");
+                            setShowPopup(true);
+                            setEditDialogOpen(false);
+                            // Refresh subjects
+                            dispatch(getSubjectList(classID, "ClassSubjects"));
+                        } catch (error) {
+                            setMessage("Error updating periods");
+                            setShowPopup(true);
+                        }
+                    }}>Update</Button>
+                </DialogActions>
+            </Dialog>
         </>
     );
 };
