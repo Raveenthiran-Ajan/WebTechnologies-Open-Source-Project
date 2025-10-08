@@ -400,5 +400,20 @@
     "roll": "Roll",
     "class": "Class",
     "noChildren": "No child details found."
+  },
+  "viewChildDetails": {
+    "loading": "Loading child details...",
+    "noChildDetails": "No child details found.",
+    "roll": "Roll",
+    "class": "Class",
+    "attendance": "Attendance",
+    "overallAttendance": "Overall Attendance",
+    "present": "Present",
+    "total": "Total",
+    "examResults": "Exam Results",
+    "subject": "Subject",
+    "marks": "Marks",
+    "noExamResults": "No exam results available",
+    "resultsAppear": "Results will appear here once exams are conducted."
   }
 }

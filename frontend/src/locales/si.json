@@ -400,5 +400,20 @@
     "roll": "රෝල්",
     "class": "පන්තිය",
     "noChildren": "දරුවන්ගේ විස්තර කිසිවක් නොමැත."
+  },
+  "viewChildDetails": {
+    "loading": "දරුවන්ගේ විස්තර පූරණය වෙමින්...",
+    "noChildDetails": "දරුවන්ගේ විස්තර කිසිවක් නොමැත.",
+    "roll": "රෝල්",
+    "class": "පන්තිය",
+    "attendance": "හිරැසිය",
+    "overallAttendance": "මුළු හිරැසිය",
+    "present": "පැමිණි",
+    "total": "මුළු",
+    "examResults": "පරීක්ෂණ ප්‍රතිඵල",
+    "subject": "විෂයය",
+    "marks": "ලකුණු",
+    "noExamResults": "පරීක්ෂණ ප්‍රතිඵල නොමැත",
+    "resultsAppear": "පරීක්ෂණ සිදු කරන විට ප්‍රතිඵල මෙහි පෙනුම ගනු ඇත."
   }
 }

@@ -8,8 +8,10 @@ import SchoolIcon from '@mui/icons-material/School';
 import GradeIcon from '@mui/icons-material/Grade';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import { useTranslation } from 'react-i18next';
 
 const ViewChildDetails = () => {
+    const { t } = useTranslation();
     const { id } = useParams();
     const dispatch = useDispatch();
     const { loading, currentChild, error } = useSelector((state) => state.parent);
@@ -48,7 +50,7 @@ const ViewChildDetails = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <CircularProgress size={60} />
                     <Typography variant="h6" sx={{ mt: 2 }}>
-                        Loading child details...
+                        {t('viewChildDetails.loading')}
                     </Typography>
                 </Box>
             </Container>
@@ -70,7 +72,7 @@ const ViewChildDetails = () => {
             <Container maxWidth="lg" sx={{ py: 4 }}>
                 <Paper sx={{ p: 4, textAlign: 'center' }}>
                     <PersonIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                    <Typography variant="h6">No child details found.</Typography>
+                    <Typography variant="h6">{t('viewChildDetails.noChildDetails')}</Typography>
                 </Paper>
             </Container>
         );
@@ -112,13 +114,13 @@ const ViewChildDetails = () => {
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
                     <Chip 
                         icon={<GradeIcon />}
-                        label={`Roll: ${currentChild.rollNum}`} 
+                        label={`${t('viewChildDetails.roll')}: ${currentChild.rollNum}`}
                         color="primary" 
                         size="large"
                     />
                     <Chip 
                         icon={<SchoolIcon />}
-                        label={`Class: ${getClassName(currentChild.sclassName)}`} 
+                        label={`${t('viewChildDetails.class')}: ${getClassName(currentChild.sclassName)}`}
                         color="secondary" 
                         size="large"
                     />
@@ -145,7 +147,7 @@ const ViewChildDetails = () => {
                         }}>
                             <EventAvailableIcon sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                                Attendance
+                                {t('viewChildDetails.attendance')}
                             </Typography>
                         </Box>
                         <CardContent sx={{ p: 3 }}>
@@ -158,7 +160,7 @@ const ViewChildDetails = () => {
                                     {attendancePercentage}%
                                 </Typography>
                                 <Typography variant="body1" color="text.secondary">
-                                    Overall Attendance
+                                    {t('viewChildDetails.overallAttendance')}
                                 </Typography>
                             </Box>
                             <LinearProgress 
@@ -176,10 +178,10 @@ const ViewChildDetails = () => {
                             />
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                                 <Typography variant="body2" color="text.secondary">
-                                    Present: {currentChild.attendance ? currentChild.attendance.filter(att => att.status === 'Present').length : 0}
+                                    {t('viewChildDetails.present')}: {currentChild.attendance ? currentChild.attendance.filter(att => att.status === 'Present').length : 0}
                                 </Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    Total: {currentChild.attendance ? currentChild.attendance.length : 0}
+                                    {t('viewChildDetails.total')}: {currentChild.attendance ? currentChild.attendance.length : 0}
                                 </Typography>
                             </Box>
                         </CardContent>
@@ -205,7 +207,7 @@ const ViewChildDetails = () => {
                         }}>
                             <AssignmentIcon sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                                Exam Results
+                                {t('viewChildDetails.examResults')}
                             </Typography>
                         </Box>
                         <CardContent sx={{ p: 0 }}>
@@ -215,10 +217,10 @@ const ViewChildDetails = () => {
                                         <TableHead>
                                             <TableRow sx={{ bgcolor: 'grey.50' }}>
                                                 <TableCell sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
-                                                    Subject
+                                                    {t('viewChildDetails.subject')}
                                                 </TableCell>
                                                 <TableCell align="center" sx={{ fontWeight: 'bold', fontSize: '1rem' }}>
-                                                    Marks
+                                                    {t('viewChildDetails.marks')}
                                                 </TableCell>
                                             </TableRow>
                                         </TableHead>
@@ -260,10 +262,10 @@ const ViewChildDetails = () => {
                                         opacity: 0.5 
                                     }} />
                                     <Typography variant="h6" color="text.secondary">
-                                        No exam results available
+                                        {t('viewChildDetails.noExamResults')}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                        Results will appear here once exams are conducted.
+                                        {t('viewChildDetails.resultsAppear')}
                                     </Typography>
                                 </Box>
                             )}
