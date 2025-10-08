@@ -22,11 +22,12 @@ import TeacherComplain from './TeacherComplain';
 import TeacherHomePage from './TeacherHomePage';
 import TeacherProfile from './TeacherProfile';
 import TeacherViewStudent from './TeacherViewStudent';
-import SimpleTermAttendance from './SimpleTermAttendance';
+import ClassAttendance from './ClassAttendance';
 import TeacherUploadAssignment from './TeacherUploadAssignment';
 import TeacherTimetable from './TeacherTimetable';
 import TeacherNotices from './TeacherNotices.js';
 import TeacherLeaveRequests from './TeacherLeaveRequests';
+// import TermAttendance from './TermAttendance';
 
 const TeacherDashboard = () => {
     const [open, setOpen] = useState(true);
@@ -88,14 +89,15 @@ const TeacherDashboard = () => {
                     <Route path="/teacher/class/:classId" element={<TeacherClassDetails />} />
                     <Route path="/teacher/class" element={<TeacherClassDetails />} />
                     <Route path="/teacher/class/:classId" element={<TeacherClassDetails />} />
-                    <Route path="/teacher/class/:classId/attendance" element={<SimpleTermAttendance />} />
-                    <Route path="/teacher/class/:classId/simple-attendance" element={<SimpleTermAttendance />} />
+                    <Route path="/teacher/class/:classId/attendance" element={<ClassAttendance />} />
+                    <Route path="/teacher/class/:classId/simple-attendance" element={<ClassAttendance />} />
                     <Route path="/teacher/class/attendance/:classId" element={<TeacherViewStudent />} />
                     <Route path="/teacher/class/student/:id" element={<TeacherViewStudent />} />
                     <Route path="/teacher/upload-assignment" element={<TeacherUploadAssignment />} />
                     <Route path="/teacher/timetable" element={<TeacherTimetable />} />
                     <Route path="/teacher/notices" element={<TeacherNotices />} />
                     <Route path="/logout" element={<Logout />} />
+                    {/** Term route removed per revert request */}
                 </Routes>
             </Box>
         </Box>

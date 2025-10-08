@@ -15,7 +15,9 @@ import {
     ToggleButton,
     ToggleButtonGroup,
     Grid,
-    Badge
+    Badge,
+    IconButton,
+    Tooltip
 } from '@mui/material';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -233,6 +235,7 @@ const TeacherClasses = () => {
                             Attendance
                         </Button>
                     )}
+                    {/** Term Details button removed per revert request */}
                 </Box>
             )
         }
@@ -369,7 +372,23 @@ const TeacherClasses = () => {
                                         }}
                                         onClick={() => navigate(`/teacher/class/${classItem.sclassId}`)}
                                     >
-                                        <CardContent sx={{ flexGrow: 1, textAlign: 'center' }}>
+                                        <CardContent sx={{ flexGrow: 1, textAlign: 'center', position: 'relative' }}>
+                                            <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 1 }}>
+                                                {classItem.hasAttendance && (
+                                                    <Tooltip title="Take Attendance">
+                                                        <IconButton
+                                                            color="primary"
+                                                            size="small"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                navigate(`/teacher/class/${classItem.sclassId}/attendance`);
+                                                            }}
+                                                        >
+                                                            <EventAvailableIcon fontSize="small" />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                )}
+                                            </Box>
                                             <ClassIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
                                             <Typography variant="h6" component="h2" color="primary" gutterBottom>
                                                 {classItem.className}
@@ -377,13 +396,21 @@ const TeacherClasses = () => {
                                             <Typography variant="body2" color="text.secondary">
                                                 {classItem.subject}
                                             </Typography>
-                                            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 1 }}>
+                                            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
                                                 <Chip 
                                                     label={classItem.role === 'teaching+attendance' ? 'Teaching + Attendance' : 'Teaching Only'}
                                                     size="small"
-                                                    color="primary"
+                                                    color={classItem.role === 'teaching+attendance' ? 'success' : 'primary'}
                                                     variant="outlined"
                                                 />
+                                                {classItem.hasAttendance && (
+                                                    <Chip 
+                                                        label={attendanceStatus[`${classItem.sclassId}-whole-class`] ? 'Today: Done' : 'Today: Pending'}
+                                                        size="small"
+                                                        color={attendanceStatus[`${classItem.sclassId}-whole-class`] ? 'success' : 'warning'}
+                                                        variant="filled"
+                                                    />
+                                                )}
                                             </Box>
                                         </CardContent>
                                     </Card>

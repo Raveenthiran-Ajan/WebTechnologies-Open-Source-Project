@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getClassStudents } from '../../redux/sclassRelated/sclassHandle';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
+import { getCurrentTerm, getTermName, getTermMonths } from '../../utils/termUtils';
 import {
     Box, 
     Typography, 
@@ -17,19 +19,10 @@ import {
     Chip,
     TextField,
     Container,
-    FormControl,
-    Select,
-    MenuItem
+    Checkbox,
+    FormControlLabel
 } from '@mui/material';
-import { CheckCircle, Cancel, BeachAccess, NavigateNext } from '@mui/icons-material';
-import {
-    DataGrid,
-    GridToolbarContainer,
-    GridToolbarColumnsButton,
-    GridToolbarFilterButton,
-    GridToolbarDensitySelector,
-    GridToolbarExport
-} from '@mui/x-data-grid';
+// Removed unused icon and DataGrid imports
 import Popup from '../../components/Popup';
 
 const ClassAttendance = () => {
@@ -51,7 +44,13 @@ const ClassAttendance = () => {
     const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
-    const [bulkActionMode, setBulkActionMode] = useState('present'); // 'present', 'absent', 'holiday'
+    // Bulk toggles via checkboxes
+    const [allPresentChecked, setAllPresentChecked] = useState(false);
+    const [allHolidayChecked, setAllHolidayChecked] = useState(false);
+    // const [bulkActionMode, setBulkActionMode] = useState('present'); // removed toggle button flow
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isAlreadySubmitted, setIsAlreadySubmitted] = useState(false);
+    const [checkingSubmission, setCheckingSubmission] = useState(false);
     
     useEffect(() => {
         if (classId) {
@@ -69,6 +68,34 @@ const ClassAttendance = () => {
             setAttendanceData(initialData);
         }
     }, [sclassStudents]);
+
+    // Check if attendance already submitted for the selected date (class-wide daily attendance)
+    useEffect(() => {
+        const checkSubmitted = async () => {
+            if (!classId || !attendanceDate || !sclassStudents || sclassStudents.length === 0) {
+                setIsAlreadySubmitted(false);
+                return;
+            }
+            try {
+                setCheckingSubmission(true);
+                // Query first student for the selected date; if has a daily record, assume class submitted
+                const firstStudent = sclassStudents[0];
+                const resp = await axios.get(`${API_BASE_URL}/Student/${firstStudent._id}`);
+                const att = resp.data?.attendance || [];
+                const exists = att.some(a => {
+                    const sameDay = new Date(a.date).toDateString() === new Date(attendanceDate).toDateString();
+                    const isDaily = a.isTermAttendance === false || a.isTermAttendance === undefined;
+                    return sameDay && isDaily && (!a.subName || a.subName === null);
+                });
+                setIsAlreadySubmitted(Boolean(exists));
+            } catch (e) {
+                setIsAlreadySubmitted(false);
+            } finally {
+                setCheckingSubmission(false);
+            }
+        };
+        checkSubmitted();
+    }, [classId, attendanceDate, sclassStudents]);
     
     const handleAttendanceChange = (studentId, status) => {
         setAttendanceData(prev => ({
@@ -92,7 +119,7 @@ const ClassAttendance = () => {
         });
         setAttendanceData(newData);
     };
-    
+
     const markAllHoliday = () => {
         const newData = { ...attendanceData };
         sclassStudents.forEach(student => {
@@ -101,38 +128,52 @@ const ClassAttendance = () => {
         setAttendanceData(newData);
     };
     
-    const handleBulkAction = () => {
-        switch (bulkActionMode) {
-            case 'present':
-                markAllPresent();
-                break;
-            case 'absent':
-                markAllAbsent();
-                break;
-            case 'holiday':
-                markAllHoliday();
-                break;
-            default:
-                markAllPresent();
+    // Handlers for top-level checkboxes
+    const handleAllPresentToggle = (e) => {
+        const checked = e.target.checked;
+        setAllPresentChecked(checked);
+        if (checked) {
+            setAllHolidayChecked(false);
+            markAllPresent();
+        } else {
+            // Unchecking All Present sets everyone to Absent
+            markAllAbsent();
         }
     };
-    
-    const cycleBulkActionMode = () => {
-        setBulkActionMode(prev => {
-            switch (prev) {
-                case 'present':
-                    return 'absent';
-                case 'absent':
-                    return 'holiday';
-                case 'holiday':
-                    return 'present';
-                default:
-                    return 'present';
-            }
-        });
+
+    const handleAllHolidayToggle = (e) => {
+        const checked = e.target.checked;
+        setAllHolidayChecked(checked);
+        if (checked) {
+            setAllPresentChecked(false);
+            markAllHoliday();
+        } else {
+            // Unchecking Holiday (All) sets everyone to Absent
+            markAllAbsent();
+        }
     };
+
+    // Keep master checkboxes in sync with row-level changes
+    useEffect(() => {
+        if (!sclassStudents || sclassStudents.length === 0) {
+            setAllPresentChecked(false);
+            setAllHolidayChecked(false);
+            return;
+        }
+        const statuses = sclassStudents.map(s => attendanceData[s._id]);
+        const allArePresent = statuses.length > 0 && statuses.every(st => st === 'Present');
+        const allAreHoliday = statuses.length > 0 && statuses.every(st => st === 'Holiday');
+        setAllPresentChecked(allArePresent);
+        setAllHolidayChecked(allAreHoliday);
+    }, [attendanceData, sclassStudents]);
     
     const handleSubmitAttendance = async () => {
+        if (isAlreadySubmitted) {
+            setMessage('Attendance already submitted for this date!');
+            setShowPopup(true);
+            setTimeout(() => setShowPopup(false), 2000);
+            return;
+        }
         try {
             setMessage("Submitting daily attendance...");
             setShowPopup(true);
@@ -158,6 +199,7 @@ const ClassAttendance = () => {
             const holidayCount = Object.values(attendanceData).filter(status => status === 'Holiday').length;
             
             setMessage(`Daily attendance submitted successfully! Present: ${presentCount}, Absent: ${absentCount}, Holiday: ${holidayCount}`);
+            setIsAlreadySubmitted(true);
             
             // Navigate back after a delay
             setTimeout(() => {
@@ -202,6 +244,11 @@ const ClassAttendance = () => {
     const presentCount = Object.values(attendanceData).filter(status => status === 'Present').length;
     const absentCount = Object.values(attendanceData).filter(status => status === 'Absent').length;
     
+    const filteredStudents = sclassStudents ? sclassStudents.filter(student =>
+        student.rollNum.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ) : [];
+    
     return (
         <Container maxWidth="lg">
             <Paper elevation={0} sx={{ p: 4, borderRadius: 2, backgroundColor: 'white', border: '2px solid', borderColor: 'primary.main', mb: 3 }}>
@@ -235,33 +282,53 @@ const ClassAttendance = () => {
                         />
                     </Box>
                     
-                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mb: 3 }}>
-                        <Button 
-                            variant="contained" 
-                            color={
-                                bulkActionMode === 'present' ? 'success' :
-                                bulkActionMode === 'absent' ? 'error' : 'warning'
+                    {/* Term Details */}
+                    <Box sx={{ mb: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+                        <Typography variant="h6" gutterBottom color="primary">
+                            Term Details
+                        </Typography>
+                        {(() => {
+                            const currentTermKey = getCurrentTerm(new Date(attendanceDate));
+                            const termName = getTermName(currentTermKey);
+                            const termMonths = getTermMonths(currentTermKey);
+                            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                            const termMonthNames = termMonths.map(m => monthNames[m - 1]).join(', ');
+                            return (
+                                <>
+                                    <Typography variant="body1">
+                                        Current Term: {termName}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Months: {termMonthNames}
+                                    </Typography>
+                                </>
+                            );
+                        })()}
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', gap: 4, justifyContent: 'center', flexWrap: 'wrap', mb: 3 }}>
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    color="success"
+                                    checked={allPresentChecked}
+                                    onChange={handleAllPresentToggle}
+                                />
                             }
-                            onClick={handleBulkAction}
-                            startIcon={
-                                bulkActionMode === 'present' ? <CheckCircle /> :
-                                bulkActionMode === 'absent' ? <Cancel /> : <BeachAccess />
+                            label="All Present"
+                        />
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    color="warning"
+                                    checked={allHolidayChecked}
+                                    onChange={handleAllHolidayToggle}
+                                />
                             }
-                            sx={{ minWidth: 160 }}
-                        >
-                            Mark All {bulkActionMode === 'present' ? 'Present' : 
-                                     bulkActionMode === 'absent' ? 'Absent' : 'Holiday'}
-                        </Button>
-                        <Button 
-                            variant="outlined" 
-                            size="small"
-                            onClick={cycleBulkActionMode}
-                            sx={{ minWidth: 40, px: 1 }}
-                        >
-                            <NavigateNext />
-                        </Button>
-                        <Typography variant="body2" color="text.secondary">
-                            Click cycle button to change action
+                            label="Holiday (All Students)"
+                        />
+                        <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
+                            Tip: Unchecked student rows are counted as Absent
                         </Typography>
                     </Box>
                     
@@ -295,6 +362,16 @@ const ClassAttendance = () => {
                     Student Attendance List
                 </Typography>
                 
+                <Box sx={{ mb: 2 }}>
+                    <TextField
+                        label="Search by Roll Number or Name"
+                        variant="outlined"
+                        fullWidth
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </Box>
+                
                 <TableContainer component={Paper} sx={{ mt: 2 }}>
                     <Table>
                         <TableHead>
@@ -302,26 +379,20 @@ const ClassAttendance = () => {
                                 <TableCell><strong>Roll Number</strong></TableCell>
                                 <TableCell><strong>Student Name</strong></TableCell>
                                 <TableCell><strong>Email</strong></TableCell>
-                                <TableCell><strong>Attendance Status</strong></TableCell>
+                                <TableCell><strong>Present</strong></TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {sclassStudents && sclassStudents.map((student) => (
+                            {filteredStudents && filteredStudents.map((student) => (
                                 <TableRow key={student._id}>
                                     <TableCell>{student.rollNum}</TableCell>
                                     <TableCell>{student.name}</TableCell>
                                     <TableCell>{student.email || 'N/A'}</TableCell>
                                     <TableCell>
-                                        <FormControl size="small" sx={{ minWidth: 120 }}>
-                                            <Select
-                                                value={attendanceData[student._id] || 'Present'}
-                                                onChange={(e) => handleAttendanceChange(student._id, e.target.value)}
-                                            >
-                                                <MenuItem value="Present">Present</MenuItem>
-                                                <MenuItem value="Absent">Absent</MenuItem>
-                                                <MenuItem value="Holiday">Holiday</MenuItem>
-                                            </Select>
-                                        </FormControl>
+                                        <Checkbox
+                                            checked={attendanceData[student._id] === 'Present'}
+                                            onChange={(e) => handleAttendanceChange(student._id, e.target.checked ? 'Present' : 'Absent')}
+                                        />
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -343,11 +414,11 @@ const ClassAttendance = () => {
                     </Button>
                     <Button 
                         variant="contained" 
-                        color="primary"
+                        color={isAlreadySubmitted ? 'error' : 'primary'}
                         onClick={handleSubmitAttendance}
-                        disabled={!sclassStudents || sclassStudents.length === 0}
+                        disabled={!sclassStudents || sclassStudents.length === 0 || checkingSubmission}
                     >
-                        Submit Daily Attendance
+                        {isAlreadySubmitted ? 'Already Submitted' : 'Submit Daily Attendance'}
                     </Button>
                 </Box>
             </Paper>
