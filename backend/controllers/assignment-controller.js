@@ -40,6 +40,8 @@ const upload = multer({
 const mongoose = require("mongoose");
 const Sclass = require("../models/sclassSchema");
 
+// Removed any duplicate mongoose declarations if present
+
 const createAssignment = async (req, res) => {
   try {
     console.log("Request body:", req.body);
@@ -272,10 +274,47 @@ const deleteAssignment = async (req, res) => {
   }
 };
 
+const getTeacherSubjectsForClass = async (req, res) => {
+  try {
+    const { teacherId, classId } = req.params;
+
+    // Find the class and populate its subjects with teacher field
+    const classData = await Sclass.findById(classId).populate({
+      path: 'subjects.subject',
+      select: 'subName teacher',
+    });
+
+    console.log("Class data for getTeacherSubjectsForClass:", JSON.stringify(classData, null, 2));
+
+    if (!classData) {
+      return res.status(404).json({ error: "Class not found" });
+    }
+
+    // Filter subjects that belong to this class and are taught by the teacher
+    const teacherSubjects = classData.subjects
+      .map(subjectInfo => subjectInfo.subject)
+      .filter(subject => subject && subject.teacher && subject.teacher.equals(mongoose.Types.ObjectId(teacherId)));
+
+    console.log("Filtered teacherSubjects:", JSON.stringify(teacherSubjects, null, 2));
+
+    // Return only necessary fields
+    const result = teacherSubjects.map(subj => ({
+      _id: subj._id,
+      subName: subj.subName,
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error("Error in getTeacherSubjectsForClass:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.submitAssignment = createAssignment;   // teacher creates
 exports.getAssignmentsByStudent = getAssignmentsByStudent;
 exports.getAllAssignments = getAllAssignments;
 exports.getAssignmentsByTeacher = getAssignmentsByTeacher;
+exports.getTeacherSubjectsForClass = getTeacherSubjectsForClass;
 exports.updateAssignment = updateAssignment;
 exports.extendDeadline = extendDeadline;
 exports.deleteAssignment = deleteAssignment;

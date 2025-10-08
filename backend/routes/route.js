@@ -32,13 +32,14 @@ const {
     checkClassAttendanceStatus,
     studentBulkRegister
 } = require('../controllers/student_controller.js');
-const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects } = require('../controllers/subject-controller.js');
+const { subjectCreate, classSubjects, deleteSubjectsByClass, getSubjectDetail, deleteSubject, freeSubjectList, allSubjects, deleteSubjects, teacherSubjects } = require('../controllers/subject-controller.js');
 const { teacherRegister, teacherLogIn, getTeachers, getTeacherDetail, deleteTeachers, deleteTeachersByClass, deleteTeacher, updateTeacherSubject, assignMultipleSubjects, updateTeacherAssignments, testTeacherAssignment, teacherAttendance, changePassword: teacherChangePassword } = require('../controllers/teacher-controller.js');
 const {
   submitAssignment,
   getAssignmentsByStudent,
   getAllAssignments,
   getAssignmentsByTeacher,
+  getTeacherSubjectsForClass,
   upload,
 } = require("../controllers/assignment-controller");
 const {
@@ -198,6 +199,7 @@ router.get('/AllSubjects/:id', allSubjects);
 router.get('/ClassSubjects/:id', classSubjects);
 router.get('/FreeSubjectList/:id', freeSubjectList);
 router.get("/Subject/:id", getSubjectDetail)
+router.get("/TeacherSubjects/:id", teacherSubjects);
 router.delete("/Subject/:id", deleteSubject)
 router.delete("/Subjects/:id", deleteSubjects)
 router.delete("/SubjectsClass/:id", deleteSubjectsByClass)
@@ -208,6 +210,7 @@ router.post("/assignments/submit", upload.single('file'), submitAssignment);
 router.get("/assignments/student/:studentId", getAssignmentsByStudent);
 router.get("/assignments", getAllAssignments);
 router.get("/assignments/teacher/:teacherId", getAssignmentsByTeacher);
+router.get("/assignments/teacher-subjects/:teacherId/:classId", getTeacherSubjectsForClass);
 router.put("/assignments/:id", upload.single('file'), require("../controllers/assignment-controller").updateAssignment);
 router.put("/assignments/:id/extend", require("../controllers/assignment-controller").extendDeadline);
 router.delete("/assignments/:id", require("../controllers/assignment-controller").deleteAssignment);

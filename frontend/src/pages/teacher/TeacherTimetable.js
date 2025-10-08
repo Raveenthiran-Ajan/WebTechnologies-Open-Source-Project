@@ -12,6 +12,8 @@ import {
   Paper,
   Button
 } from "@mui/material";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const periods = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -69,25 +71,30 @@ const TeacherTimetable = () => {
   }, [currentUser]);
 
   const downloadTimetable = () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Time," + daysOfWeek.join(",") + "\n";
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Teacher Timetable', 14, 22);
+    const tableColumn = ['Time', ...daysOfWeek];
+    const tableRows = [];
+
     periods.forEach(period => {
-      let row = timeSlots[period - 1];
+      const row = [timeSlots[period - 1]];
       daysOfWeek.forEach(day => {
         const cell = timetable[day]?.[period];
         const classLabel = cell ? formatClass(cell.className) : "";
         const subject = cell ? `${classLabel} - ${cell.subject}` : "";
-        row += "," + subject;
+        row.push(subject);
       });
-      csvContent += row + "\n";
+      tableRows.push(row);
     });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "teacher_timetable.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+    });
+
+    doc.save('teacher_timetable.pdf');
   };
 
   return (

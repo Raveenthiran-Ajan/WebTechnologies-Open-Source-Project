@@ -200,5 +200,19 @@ const deleteSubjectsByClass = async (req, res) => {
     }
 };
 
+const teacherSubjects = async (req, res) => {
+    try {
+        let subjects = await Subject.find({ teacher: req.params.id })
+            .populate("sclassName", "sclassName");
+        if (subjects.length > 0) {
+            res.send(subjects);
+        } else {
+            res.send({ message: "No subjects found" });
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
 
-module.exports = { subjectCreate, freeSubjectList, classSubjects, getSubjectDetail, deleteSubjectsByClass, deleteSubjects, deleteSubject, allSubjects };
+
+module.exports = { subjectCreate, freeSubjectList, classSubjects, getSubjectDetail, deleteSubjectsByClass, deleteSubjects, deleteSubject, allSubjects, teacherSubjects };

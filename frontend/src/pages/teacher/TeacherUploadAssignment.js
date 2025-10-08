@@ -26,6 +26,7 @@ import {
   Step,
   StepLabel,
   Stack, // added to fix 'Stack' is not defined
+  MenuItem,
 } from "@mui/material";
 import {
   Download as DownloadIcon,
@@ -87,6 +88,9 @@ const TeacherUploadAssignment = () => {
   const [teacherClasses, setTeacherClasses] = useState([]);
   const [selectedClassIds, setSelectedClassIds] = useState([]);
 
+  // Subjects assigned to the teacher
+  const [teacherSubjects, setTeacherSubjects] = useState([]);
+
   // New state for selected class filter
   const [selectedClassId, setSelectedClassId] = useState("");
 
@@ -100,7 +104,7 @@ const TeacherUploadAssignment = () => {
 
   // Stepper states
   const [activeStep, setActiveStep] = useState(0);
-  const steps = ['Assignment Details', 'Class & Deadline', 'File Upload'];
+  const steps = ['Assignment Details', 'Class, Subject & Deadline', 'File Upload'];
 
   // Manage Uploaded Assignments states
   const [editingAssignment, setEditingAssignment] = useState(null);
@@ -148,8 +152,46 @@ const TeacherUploadAssignment = () => {
         .catch((err) => {
           console.error("Failed to fetch teacher classes", err);
         });
+
+      // Note: Teacher subjects fetching moved to separate useEffect for upload form filter
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    if (selectedClassIds.length > 0 && currentUser && currentUser._id) {
+      console.log("Selected class IDs:", selectedClassIds);
+      // Fetch subjects for all selected classes
+      Promise.all(
+        selectedClassIds.map((classId) =>
+          axios.get(`${API_BASE_URL}/assignments/teacher-subjects/${currentUser._id}/${classId}`)
+            .then(res => res.data)
+            .catch(err => {
+              console.error(`Failed to fetch teacher subjects for class ${classId}`, err);
+              return [];
+            })
+        )
+      ).then(results => {
+        // Flatten and deduplicate subjects by _id
+        const allSubjects = results.flat();
+        const uniqueSubjectsMap = {};
+        allSubjects.forEach(subj => {
+          if (subj && subj._id && !uniqueSubjectsMap[subj._id]) {
+            uniqueSubjectsMap[subj._id] = subj;
+          }
+        });
+        const uniqueSubjects = Object.values(uniqueSubjectsMap);
+        console.log("Combined unique teacher subjects:", uniqueSubjects);
+        setTeacherSubjects(uniqueSubjects);
+      });
+    } else {
+      setTeacherSubjects([]);
+    }
+  }, [selectedClassIds, currentUser]);
+
+  // Clear subject when selected classes change
+  useEffect(() => {
+    setSubject("");
+  }, [selectedClassIds]);
 
   useEffect(() => {
     if (currentUser && currentUser.teachSclass && currentUser.teachSclass._id) {
@@ -193,8 +235,10 @@ const TeacherUploadAssignment = () => {
     // Filter by selected class
     if (selectedClassId) {
       filtered = filtered.filter((submission) => {
-        // Check if submission's student class matches selectedClassId
-        return submission.studentId?.sclassName?._id === selectedClassId || submission.studentId?.sclassName === selectedClassId;
+        const sclass = submission.studentId?.sclassName;
+        if (!sclass) return false;
+        if (typeof sclass === 'object' && sclass.sclassName) return sclass.sclassName === selectedClassId;
+        return String(sclass) === selectedClassId;
       });
     }
 
@@ -264,6 +308,7 @@ const TeacherUploadAssignment = () => {
         setUploading(false);
         setUploadProgress(0);
         setSelectedClassIds([]);
+        setActiveStep(0);
         return axios.get(`${API_BASE_URL}/assignments/teacher/${currentUser._id}`);
       })
       .then((res) => {
@@ -366,19 +411,19 @@ const TeacherUploadAssignment = () => {
     e.preventDefault(); // Prevents accidental submit
     // Validation before moving to next step
     if (activeStep === 0) {
-      if (!title.trim() || !subject.trim()) {
+      if (!title.trim()) {
         setAlert({
           open: true,
-          message: "Please fill in all required fields: Title and Subject.",
+          message: "Please fill in the required field: Title.",
           severity: "error",
         });
         return;
       }
     } else if (activeStep === 1) {
-      if (selectedClassIds.length === 0 || !dueDate) {
+      if (selectedClassIds.length === 0 || !subject.trim() || !dueDate) {
         setAlert({
           open: true,
-          message: "Please select at least one class and set a deadline date.",
+          message: "Please select at least one class, choose a subject, and set a deadline date.",
           severity: "error",
         });
         return;
@@ -404,10 +449,6 @@ const TeacherUploadAssignment = () => {
                   <TextField fullWidth required value={title} onChange={(e) => setTitle(e.target.value)} />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Subject</Typography>
-                  <TextField fullWidth required value={subject} onChange={(e) => setSubject(e.target.value)} />
-                </Grid>
-                <Grid item xs={12}>
                   <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Description</Typography>
                   <TextField fullWidth multiline rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
                 </Grid>
@@ -418,10 +459,10 @@ const TeacherUploadAssignment = () => {
       case 1:
         return (
           <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#333' }}>Class & Deadline</Typography>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: '#333' }}>Class, Subject & Deadline</Typography>
             <Paper sx={{ p: 2, bgcolor: '#f9f9f9', border: '1px solid #e0e0e0' }}>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={4}>
                   <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Select Class(es):</Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, p: 2, border: '1px solid #ddd', borderRadius: 2, bgcolor: '#f9f9f9', maxHeight: '300px', overflowY: 'auto' }}>
                     {Array.isArray(teacherClasses) && teacherClasses.length > 0 ? (
@@ -448,7 +489,17 @@ const TeacherUploadAssignment = () => {
                     )}
                   </Box>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={4}>
+                  <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Subject</Typography>
+                <TextField
+                  fullWidth
+                  required
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder="Enter Subject"
+                />
+                </Grid>
+                <Grid item xs={12} sm={4}>
                   <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Deadline Date & Time (Required)</Typography>
                   <TextField
                     type="datetime-local"
@@ -887,7 +938,7 @@ const TeacherUploadAssignment = () => {
                 >
                   <option value="">All Classes</option>
                   {Array.isArray(teacherClasses) && teacherClasses.filter(cls => cls && cls._id).map((cls) => (
-                    <option key={cls._id} value={cls._id}>
+                    <option key={cls._id} value={cls.sclassName}>
                       Class {cls.sclassName}
                     </option>
                   ))}
@@ -1090,21 +1141,14 @@ const TeacherUploadAssignment = () => {
                     {/* Classes: center (robust handling) */}
                     <TableCell align="center">
                       <Typography variant="body2">
-                        {Array.isArray(assignment.classIds) && assignment.classIds.length > 0
-                          ? assignment.classIds
-                              .map((cls) => {
-                                if (!cls) return null;
-                                if (typeof cls === 'string' || typeof cls === 'number') {
-                                  const found = teacherClasses?.find((c) => String(c._id) === String(cls));
-                                  return found ? `Class ${found.sclassName ?? found.name ?? cls}` : `Class ${cls}`;
-                                }
-                                if (cls.sclassName) return `Class ${cls.sclassName}`;
-                                if (cls.name) return `Class ${cls.name}`;
-                                if (cls._id) {
-                                  const found = teacherClasses?.find((c) => String(c._id) === String(cls._id));
-                                  return found ? `Class ${found.sclassName ?? found.name}` : `Class ${cls._id}`;
-                                }
-                                return null;
+                        {Array.isArray(assignment.assignments) && assignment.assignments.length > 0
+                          ? assignment.assignments
+                              .map((a) => {
+                                if (!a || !a.classId) return null;
+                                const classId = typeof a.classId === 'object' && a.classId !== null ? a.classId._id : a.classId;
+                                if (!classId) return null;
+                                const found = teacherClasses?.find((c) => String(c._id) === String(classId));
+                                return found ? `Class ${found.sclassName ?? found.name ?? classId}` : `Class ${classId}`;
                               })
                               .filter(Boolean)
                               .join(', ')

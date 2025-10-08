@@ -12,6 +12,8 @@ import {
   Paper,
   Button
 } from "@mui/material";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const AppTable = ({ title, columns, rows, renderRow, actions }) => (
   <Box sx={{ p: { xs: 1, sm: 3 }, background: "#f4f8fb", minHeight: "100vh" }}>
@@ -125,23 +127,28 @@ const StudentTimetable = () => {
   }, [currentUser]);
 
   const downloadTimetable = () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Time," + daysOfWeek.join(",") + "\n";
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Student Timetable', 14, 22);
+    const tableColumn = ['Time', ...daysOfWeek];
+    const tableRows = [];
+
     periods.forEach(period => {
-      let row = timeSlots[period - 1];
+      const row = [timeSlots[period - 1]];
       daysOfWeek.forEach(day => {
         const subject = timetable[day]?.[period] || "";
-        row += "," + subject;
+        row.push(subject);
       });
-      csvContent += row + "\n";
+      tableRows.push(row);
     });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "student_timetable.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+    });
+
+    doc.save('student_timetable.pdf');
   };
 
   return (

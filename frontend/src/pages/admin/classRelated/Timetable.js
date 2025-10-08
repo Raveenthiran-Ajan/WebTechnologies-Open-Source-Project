@@ -20,6 +20,8 @@ import {
   FormControl,
   InputLabel,
 } from "@mui/material";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const periods = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -174,6 +176,34 @@ const Timetable = ({ classID }) => {
   };
 
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
+
+  const downloadTimetable = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Class Timetable', 14, 22);
+    const tableColumn = ['Time', ...daysOfWeek];
+    const tableRows = [];
+
+    periods.forEach(period => {
+      const row = [timeSlots[period - 1]];
+      daysOfWeek.forEach(day => {
+        const slot = timetable[day]?.[period];
+        const subject = slot?.subjectName && slot?.teacherName
+          ? `${slot.subjectName} (${slot.teacherName})`
+          : slot?.subjectName || "";
+        row.push(subject);
+      });
+      tableRows.push(row);
+    });
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+    });
+
+    doc.save('class_timetable.pdf');
+  };
 
   const handleSave = async () => {
     try {
@@ -338,9 +368,14 @@ const Timetable = ({ classID }) => {
             </Button>
           </>
         ) : (
-          <Button variant="contained" onClick={() => setEditMode(true)}>
-            Edit Timetable
-          </Button>
+          <>
+            <Button variant="contained" onClick={() => setEditMode(true)} sx={{ mr: 1 }}>
+              Edit Timetable
+            </Button>
+            <Button variant="outlined" onClick={downloadTimetable}>
+              Download Timetable
+            </Button>
+          </>
         )}
       </Box>
       <Snackbar

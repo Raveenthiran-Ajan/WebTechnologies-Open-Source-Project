@@ -3,8 +3,17 @@ import { useParams } from "react-router-dom";
 import {
   Box,
   Typography,
-  Button
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
 } from "@mui/material";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const periods = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -44,29 +53,162 @@ const AdminTimetable = () => {
   }, [classId]);
 
   const downloadTimetable = () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Time," + daysOfWeek.join(",") + "\n";
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Admin Class Timetable', 14, 22);
+    const tableColumn = ['Time', ...daysOfWeek];
+    const tableRows = [];
+
     periods.forEach(period => {
-      let row = timeSlots[period - 1];
+      const row = [timeSlots[period - 1]];
       daysOfWeek.forEach(day => {
         const subject = timetable[day]?.[period] || "";
-        row += "," + subject;
+        row.push(subject);
       });
-      csvContent += row + "\n";
+      tableRows.push(row);
     });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "admin_timetable.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+    });
+
+    doc.save('admin_class_timetable.pdf');
   };
 
   return (
     <Box sx={{ p: { xs: 1, sm: 3 }, background: "#f4f8fb", minHeight: "100vh" }}>
       {/* Heading removed per request */}
-      {/* Read-only timetable removed per request */}
+      {/* Read-only admin timetable removed */}
+      {/* <TableContainer
+        component={Paper}
+        sx={{
+          borderRadius: 0,
+          boxShadow: "0 8px 32px 0 rgba(25, 118, 210, 0.12)",
+          overflowX: "auto",
+          background: "#fff",
+          border: "1.5px solid #e3f2fd"
+        }}
+      >
+        <Table>
+          <TableHead>
+            <TableRow sx={{ backgroundColor: "#1976d2" }}>
+              <TableCell
+                sx={{
+                  color: "#fff",
+                  fontWeight: "bold",
+                  fontSize: "1.1rem",
+                  letterSpacing: "0.08em",
+                  position: "sticky",
+                  left: 0,
+                  backgroundColor: "#1976d2",
+                  zIndex: 1
+                }}
+              >
+                Time
+              </TableCell>
+              {daysOfWeek.map(day => (
+                <TableCell
+                  key={day}
+                  sx={{
+                    color: "#fff",
+                    fontWeight: "bold",
+                    fontSize: "1.1rem",
+                    letterSpacing: "0.08em",
+                    textAlign: "center"
+                  }}
+                >
+                  {day}
+                </TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {periods.map((period, idx) => (
+              <React.Fragment key={period}>
+                <TableRow
+                  sx={{
+                    backgroundColor: idx % 2 === 0 ? "#f7fafd" : "#f0f4f8",
+                    "&:hover": { backgroundColor: "#e3f2fd" },
+                    transition: "background 0.3s"
+                  }}
+                >
+                  <TableCell
+                    sx={{
+                      fontWeight: "bold",
+                      backgroundColor: "#e3f2fd",
+                      position: "sticky",
+                      left: 0,
+                      zIndex: 1,
+                      letterSpacing: "0.08em",
+                      borderRight: "2px solid #e3f2fd"
+                    }}
+                  >
+                    {timeSlots[period - 1]}
+                  </TableCell>
+                  {daysOfWeek.map((day, dayIdx) => {
+                    const subject = timetable?.[day]?.[period] || "";
+                    return (
+                      <TableCell
+                        key={`${day}-${period}`}
+                        sx={{
+                          backgroundColor: "inherit",
+                          color: "#1976d2",
+                          fontWeight: 600,
+                          borderRadius: 0,
+                          textAlign: "center",
+                          fontSize: "1.08rem",
+                          letterSpacing: "0.10em",
+                          boxShadow: "none",
+                          cursor: "default",
+                          transition: "background 0.3s, transform 0.2s",
+                          borderRight: dayIdx !== daysOfWeek.length - 1 ? "2px solid #90caf9" : "none"
+                        }}
+                      >
+                        {subject}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+                {period === 4 && (
+                  <TableRow key="interval">
+                    <TableCell
+                      colSpan={daysOfWeek.length + 1}
+                      sx={{
+                        fontWeight: "bold",
+                        backgroundColor: "#90caf9",
+                        fontStyle: "italic",
+                        textAlign: "center",
+                        letterSpacing: "0.12em",
+                        fontSize: "1.1rem",
+                        borderRadius: 0,
+                        color: "#1565c0"
+                      }}
+                    >
+                      Interval (10:30 - 10:45)
+                    </TableCell>
+                  </TableRow>
+                )}
+              </React.Fragment>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <Box sx={{ mt: 3, textAlign: 'right' }}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={downloadTimetable}
+          sx={{
+            fontWeight: 600,
+            borderRadius: 3,
+            boxShadow: "0 2px 8px 0 rgba(25, 118, 210, 0.10)"
+          }}
+        >
+          Download Timetable
+        </Button>
+      </Box> */}
     </Box>
   );
 };

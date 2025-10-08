@@ -157,7 +157,7 @@ const deleteSclasses = async (req, res) => {
 
 const getTimetable = async (req, res) => {
     try {
-        const sclass = await Sclass.findById(req.params.id);
+        const sclass = await Sclass.findById(req.params.id).populate('timetable.teacher', 'name');
         if (sclass) {
             res.send(sclass.timetable);
         } else {
@@ -218,7 +218,7 @@ const updateTimetable = async (req, res) => {
             classId,
             { timetable: filteredTimetable },
             { new: true }
-        );
+        ).populate('timetable.teacher', 'name');
         if (sclass) {
             res.send(sclass.timetable);
         } else {
