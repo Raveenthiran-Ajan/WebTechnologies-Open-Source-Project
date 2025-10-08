@@ -150,38 +150,17 @@ const StudentSubjects = () => {
 
     const renderClassDetailsSection = () => {
         const subjectColumns = [
-            { field: 'subName', headerName: 'Subject Name', width: 250 },
-            { field: 'subCode', headerName: 'Subject Code', width: 150 },
+            { field: 'subName', headerName: 'Subject Name', width: 300 },
+            { field: 'subCode', headerName: 'Subject Code', width: 200 },
             { field: 'teacher', headerName: 'Teacher', width: 250 },
-            {
-                field: 'pendingAssignments',
-                headerName: 'Pending Assignments',
-                width: 200,
-                renderCell: (params) => (
-                    <Link to="/assignments" style={{ textDecoration: 'none' }}>
-                        <Typography
-                            color={params.value > 0 ? "error" : "success.main"}
-                            sx={{ '&:hover': { textDecoration: 'underline' } }}
-                        >
-                            {params.value > 0 ? `${params.value} Pending` : 'View All'}
-                        </Typography>
-                    </Link>
-                )
-            },
         ];
 
         const subjectRows = Array.isArray(subjectsList) ? subjectsList.map((subject) => {
-            const pendingCount = assignments.filter(
-                (assignment) =>
-                    assignment.subject === subject._id &&
-                    !submissions.some((submission) => submission.assignmentId === assignment._id)
-            ).length;
             return {
                 id: subject._id,
                 subName: subject.subName,
                 subCode: subject.subCode,
                 teacher: subject.teacher?.name || 'No Teacher Assigned',
-                pendingAssignments: pendingCount,
             };
         }) : [];
 
