@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useSelector } from 'react-redux';
 import Homepage from './pages/Homepage';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -17,12 +17,16 @@ import LanguageSwitcher from './components/LanguageSwitcher';
 import AdminTimetable from './pages/admin/AdminTimetable';
 
 
-const App = () => {
+const AppContent = () => {
   const { currentRole } = useSelector(state => state.user);
+  const location = useLocation();
+
+  const isPublicPage = location.pathname === "/" || location.pathname === "/choose" || location.pathname === "/chooseasguest";
+  const showLanguageSwitcher = currentRole === "Parent" || (currentRole === null && (location.pathname.includes("Parent") || isPublicPage));
 
   return (
-    <Router>
-      {(currentRole === null || currentRole === "Parent") && <LanguageSwitcher />}
+    <>
+      {showLanguageSwitcher && <LanguageSwitcher />}
       {currentRole === null &&
         <Routes>
           <Route path="/" element={<Homepage />} />
@@ -76,8 +80,16 @@ const App = () => {
           {/* Add parent-specific <Routes> here if needed */}
         </>
       }
-    </Router>
-  )
+   </>
+ )
+}
+
+const App = () => {
+ return (
+   <Router>
+     <AppContent />
+   </Router>
+ )
 }
 
 export default App

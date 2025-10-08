@@ -124,6 +124,38 @@ const LoginPage = ({ role }) => {
     }, [status, currentRole, navigate, error, response, currentUser]);
 
     const { t } = useTranslation();
+
+    // Only use translations for parent login
+    const isParent = role === "Parent";
+    const getText = (key, options = {}) => {
+        if (isParent) {
+            if (key === 'title') {
+                // Handle title interpolation for parents
+                return t('loginPage.title', { role: t('loginPage.' + role.toLowerCase()) });
+            }
+            return t(`loginPage.${key}`, options);
+        } else {
+            return {
+                title: `${role} Login`,
+                welcome: "Welcome back! Please enter your details",
+                rollLabel: "Enter your Roll Number",
+                rollRequired: "Roll Number is required",
+                nameLabel: "Enter your name",
+                nameRequired: "Name is required",
+                emailLabel: "Enter your email",
+                emailRequired: "Email is required",
+                passwordLabel: "Password",
+                passwordRequired: "Password is required",
+                remember: "Remember me",
+                forgot: "Forgot password?",
+                login: "Login",
+                loginGuest: "Login as Guest",
+                noAccount: "Don't have an account?",
+                signup: "Sign up"
+            }[key];
+        }
+    };
+
     return (
         <ThemeProvider theme={defaultTheme}>
             <Grid container component="main" sx={{ height: '100vh' }}>
@@ -139,10 +171,10 @@ const LoginPage = ({ role }) => {
                         }}
                     >
                         <Typography variant="h4" sx={{ mb: 2, color: "#2c2143" }}>
-                            {t('loginPage.title', { role: t('loginPage.' + role.toLowerCase()) })}
+                            {getText('title')}
                         </Typography>
                         <Typography variant="h7">
-                            {t('loginPage.welcome')}
+                            {getText('welcome')}
                         </Typography>
                         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 2 }}>
                             {role === "Student" ? (
@@ -152,13 +184,13 @@ const LoginPage = ({ role }) => {
                                         required
                                         fullWidth
                                         id="rollNumber"
-                                        label={t('loginPage.rollLabel')}
+                                        label={getText('rollLabel')}
                                         name="rollNumber"
                                         autoComplete="off"
                                         type="number"
                                         autoFocus
                                         error={rollNumberError}
-                                        helperText={rollNumberError && t('loginPage.rollRequired')}
+                                        helperText={rollNumberError && getText('rollRequired')}
                                         onChange={handleInputChange}
                                     />
                                     <TextField
@@ -166,12 +198,12 @@ const LoginPage = ({ role }) => {
                                         required
                                         fullWidth
                                         id="studentName"
-                                        label={t('loginPage.nameLabel')}
+                                        label={getText('nameLabel')}
                                         name="studentName"
                                         autoComplete="name"
                                         autoFocus
                                         error={studentNameError}
-                                        helperText={studentNameError && t('loginPage.nameRequired')}
+                                        helperText={studentNameError && getText('nameRequired')}
                                         onChange={handleInputChange}
                                     />
                                 </>
@@ -181,12 +213,12 @@ const LoginPage = ({ role }) => {
                                     required
                                     fullWidth
                                     id="email"
-                                    label={t('loginPage.emailLabel')}
+                                    label={getText('emailLabel')}
                                     name="email"
                                     autoComplete="email"
                                     autoFocus
                                     error={emailError}
-                                    helperText={emailError && t('loginPage.emailRequired')}
+                                    helperText={emailError && getText('emailRequired')}
                                     onChange={handleInputChange}
                                 />
                             )}
@@ -195,12 +227,12 @@ const LoginPage = ({ role }) => {
                                 required
                                 fullWidth
                                 name="password"
-                                label={t('loginPage.passwordLabel')}
+                                label={getText('passwordLabel')}
                                 type={toggle ? 'text' : 'password'}
                                 id="password"
                                 autoComplete="current-password"
                                 error={passwordError}
-                                helperText={passwordError && t('loginPage.passwordRequired')}
+                                helperText={passwordError && getText('passwordRequired')}
                                 onChange={handleInputChange}
                                 InputProps={{
                                     endAdornment: (
@@ -219,10 +251,10 @@ const LoginPage = ({ role }) => {
                             <Grid container sx={{ display: "flex", justifyContent: "space-between" }}>
                                 <FormControlLabel
                                     control={<Checkbox value="remember" color="primary" />}
-                                    label={t('loginPage.remember')}
+                                    label={getText('remember')}
                                 />
                                 <Link to={`/forgot-password/${role}`}>
-                                   {t('loginPage.forgot')}
+                                   {getText('forgot')}
                                 </Link>
                             </Grid>
                             <LightPurpleButton
@@ -233,7 +265,7 @@ const LoginPage = ({ role }) => {
                             >
                                 {loader ?
                                     <CircularProgress size={24} color="inherit" />
-                                    : t('loginPage.login')}
+                                    : getText('login')}
                             </LightPurpleButton>
                             <Button
                                 fullWidth
@@ -241,16 +273,16 @@ const LoginPage = ({ role }) => {
                                 variant="outlined"
                                 sx={{ mt: 2, mb: 3, color: "#7f56da", borderColor: "#7f56da" }}
                             >
-                                {t('loginPage.loginGuest')}
+                                {getText('loginGuest')}
                             </Button>
                             {role === "Admin" &&
                                 <Grid container>
                                     <Grid>
-                                        {t('loginPage.noAccount')}
+                                        {getText('noAccount')}
                                     </Grid>
                                     <Grid item sx={{ ml: 2 }}>
                                         <Link to="/Adminregister">
-                                            {t('loginPage.signup')}
+                                            {getText('signup')}
                                         </Link>
                                     </Grid>
                                 </Grid>

@@ -22,6 +22,16 @@ const ForgotPassword = () => {
 
     const { status, error } = useSelector(state => state.user);
 
+    // Only use translations for parent role
+    const isParent = userRole === "Parent";
+    const getText = (key) => isParent ? t(`forgotPassword.${key}`) : {
+        title: "Forgot Password",
+        emailLabel: "Email Address",
+        sending: "Sending...",
+        sendButton: "Send Password Reset Email",
+        successMessage: "Password reset link has been sent to your email."
+    }[key];
+
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
 
@@ -53,7 +63,7 @@ const ForgotPassword = () => {
                     <LockOutlinedIcon />
                 </Avatar>
                 <Typography component="h1" variant="h5">
-                    {t('forgotPassword.title')}
+                    {getText('title')}
                 </Typography>
                 <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
                     <TextField
@@ -61,7 +71,7 @@ const ForgotPassword = () => {
                         required
                         fullWidth
                         id="email"
-                        label={t('forgotPassword.emailLabel')}
+                        label={getText('emailLabel')}
                         name="email"
                         autoComplete="email"
                         autoFocus
@@ -75,11 +85,11 @@ const ForgotPassword = () => {
                         sx={{ mt: 3, mb: 2 }}
                         disabled={status === 'loading'}
                     >
-                        {status === 'loading' ? t('forgotPassword.sending') : t('forgotPassword.sendButton')}
+                        {status === 'loading' ? getText('sending') : getText('sendButton')}
                     </Button>
                     {message && (
                         <Typography color="green" align="center">
-                            {t('forgotPassword.successMessage')}
+                            {getText('successMessage')}
                         </Typography>
                     )}
                     {error && (
