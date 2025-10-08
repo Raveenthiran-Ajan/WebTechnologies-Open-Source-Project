@@ -30,7 +30,7 @@ const AppTable = ({ title, columns, rows, renderRow, actions }) => (
     <TableContainer
       component={Paper}
       sx={{
-        borderRadius: 5,
+        borderRadius: 0,
         boxShadow: "0 8px 32px 0 rgba(25, 118, 210, 0.12)",
         overflowX: "auto",
         background: "#fff",
@@ -180,7 +180,7 @@ const StudentTimetable = () => {
                     backgroundColor: "inherit",
                     color: "#1976d2",
                     fontWeight: 600,
-                    borderRadius: 2,
+                    borderRadius: 0,
                     textAlign: "center",
                     fontSize: "1.08rem",
                     letterSpacing: "0.10em",
@@ -206,7 +206,7 @@ const StudentTimetable = () => {
                   textAlign: "center",
                   letterSpacing: "0.12em",
                   fontSize: "1.1rem",
-                  borderRadius: 2,
+                  borderRadius: 0,
                   color: "#1565c0"
                 }}
               >

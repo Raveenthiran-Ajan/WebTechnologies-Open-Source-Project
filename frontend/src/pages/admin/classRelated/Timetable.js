@@ -67,15 +67,15 @@ const Timetable = ({ classID }) => {
             if (!timetableObj[entry.day]) timetableObj[entry.day] = {};
             timetableObj[entry.day][entry.period] = {
               subjectId: entry.subjectId || '',
-              teacherId: entry.teacher || '',
+              teacherId: entry.teacher ? entry.teacher._id : '',
               subjectName: entry.subject || '',
-              teacherName: '' // Will populate if needed
+              teacherName: entry.teacher ? entry.teacher.name : ''
             };
             if (entry.subjectId) {
               newSelectedSubjects[`${entry.day}-${entry.period}`] = entry.subjectId;
             }
             if (entry.teacher) {
-              newSelectedTeachers[`${entry.day}-${entry.period}`] = entry.teacher;
+              newSelectedTeachers[`${entry.day}-${entry.period}`] = entry.teacher._id;
             }
           });
           setTimetable(timetableObj);
@@ -94,11 +94,12 @@ const Timetable = ({ classID }) => {
   const fetchAvailableSubjects = async () => {
     setLoadingSubjects(true);
     try {
-      const response = await fetch(`http://localhost:5000/Sclass/AvailableSubjects/${classID}`);
+      const response = await fetch(`http://localhost:5000/ClassSubjects/${classID}`);
       const data = await response.json();
-      setAvailableSubjects(data);
+      setAvailableSubjects(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch available subjects", error);
+      setAvailableSubjects([]);
     } finally {
       setLoadingSubjects(false);
     }
@@ -110,9 +111,10 @@ const Timetable = ({ classID }) => {
     try {
       const response = await fetch(`http://localhost:5000/Sclass/AvailableTeachers/${classID}/${subjectId}/${day}/${period}`);
       const data = await response.json();
-      setAvailableTeachers(prev => ({ ...prev, [key]: data }));
+      setAvailableTeachers(prev => ({ ...prev, [key]: Array.isArray(data) ? data : [] }));
     } catch (error) {
       console.error("Failed to fetch available teachers", error);
+      setAvailableTeachers(prev => ({ ...prev, [key]: [] }));
     } finally {
       setLoadingTeachers(prev => ({ ...prev, [key]: false }));
     }
@@ -135,7 +137,7 @@ const Timetable = ({ classID }) => {
     }
 
     // Update timetable with subjectId and name
-    const selectedSubject = availableSubjects.find(s => s._id === subjectId);
+    const selectedSubject = Array.isArray(availableSubjects) ? availableSubjects.find(s => s._id === subjectId) : null;
     setTimetable(prev => ({
       ...prev,
       [day]: {
@@ -175,9 +177,31 @@ const Timetable = ({ classID }) => {
 
   const handleSave = async () => {
     try {
+      // Clear subject if teacher is not selected
+      const cleanedTimetable = { ...timetable };
+      const cleanedSelectedSubjects = { ...selectedSubjects };
+      const cleanedSelectedTeachers = { ...selectedTeachers };
+      Object.entries(cleanedTimetable).forEach(([day, periodsObj]) => {
+        Object.entries(periodsObj).forEach(([period, slot]) => {
+          if (slot.subjectId && !slot.teacherId) {
+            cleanedTimetable[day][period] = {
+              subjectId: '',
+              teacherId: '',
+              subjectName: '',
+              teacherName: ''
+            };
+            const key = `${day}-${period}`;
+            delete cleanedSelectedSubjects[key];
+            delete cleanedSelectedTeachers[key];
+          }
+        });
+      });
+      setSelectedSubjects(cleanedSelectedSubjects);
+      setSelectedTeachers(cleanedSelectedTeachers);
+
       // Convert object to array
       const timetableArray = [];
-      Object.entries(timetable).forEach(([day, periodsObj]) => {
+      Object.entries(cleanedTimetable).forEach(([day, periodsObj]) => {
         Object.entries(periodsObj).forEach(([period, slot]) => {
           if (slot.subjectId && slot.teacherId) {
             timetableArray.push({
@@ -197,7 +221,8 @@ const Timetable = ({ classID }) => {
         body: JSON.stringify({ timetable: timetableArray }),
       });
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
       console.log('Save response data:', data);
@@ -207,9 +232,9 @@ const Timetable = ({ classID }) => {
         if (!timetableObj[entry.day]) timetableObj[entry.day] = {};
         timetableObj[entry.day][entry.period] = {
           subjectId: entry.subjectId || '',
-          teacherId: entry.teacher || '',
+          teacherId: entry.teacher ? entry.teacher._id : '',
           subjectName: entry.subject || '',
-          teacherName: '' // Will populate if needed
+          teacherName: entry.teacher ? entry.teacher.name : ''
         };
       });
       setTimetable(timetableObj);
@@ -217,7 +242,7 @@ const Timetable = ({ classID }) => {
       setAlert({ open: true, message: 'Timetable saved successfully', severity: 'success' });
     } catch (error) {
       console.error("Failed to update timetable", error);
-      setAlert({ open: true, message: 'Failed to save timetable', severity: 'error' });
+      setAlert({ open: true, message: error.message || 'Failed to save timetable', severity: 'error' });
     }
   };
 
@@ -255,11 +280,11 @@ const Timetable = ({ classID }) => {
                               <MenuItem value="">
                                 <em>None</em>
                               </MenuItem>
-                              {availableSubjects.map((subject) => (
+                              {Array.isArray(availableSubjects) ? availableSubjects.map((subject) => (
                                 <MenuItem key={subject._id} value={subject._id}>
                                   {subject.subName}
                                 </MenuItem>
-                              ))}
+                              )) : null}
                             </Select>
                           </FormControl>
                           <FormControl size="small" fullWidth>
