@@ -190,7 +190,7 @@ const EditClass = () => {
                                 </Typography>
                                 {availableSubjects.length > 0 ? (
                                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                                        {availableSubjects.slice(0, 5).map((subject) => {
+                                        {availableSubjects.map((subject) => {
                                             const isAlreadyAdded = selectedSubjects.some(item => item.subjectId === subject._id);
                                             return (
                                                 <Chip
@@ -205,11 +205,6 @@ const EditClass = () => {
                                                 />
                                             );
                                         })}
-                                        {availableSubjects.length > 5 && (
-                                            <Typography variant="body2" color="text.secondary">
-                                                +{availableSubjects.length - 5} more available
-                                            </Typography>
-                                        )}
                                     </Box>
                                 ) : (
                                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -290,8 +285,8 @@ const EditClass = () => {
                                                     // s may be an object with .subject populated or an id/string; try to resolve
                                                     let subjObj = null;
                                                     if (s && typeof s === 'object' && s.subject && typeof s.subject === 'object') subjObj = s.subject;
-                                                    else if (s && typeof s === 'object' && s.subject && typeof s.subject === 'string') subjObj = subjectsList?.find(x => String(x._id) === String(s.subject)) || null;
-                                                    else if (typeof s === 'string') subjObj = subjectsList?.find(x => String(x._id) === String(s)) || null;
+                                                    else if (s && typeof s === 'object' && s.subject && typeof s.subject === 'string') subjObj = null;
+                                                    else if (typeof s === 'string') subjObj = null;
 
                                                     const subjectId = (subjObj && (subjObj._id || subjObj.id)) ? (subjObj._id || subjObj.id) : (s.subject && typeof s.subject === 'string' ? s.subject : s.subjectId || (s._id || null));
                                                     const sessions = (s && (s.sessions || s.sessionsPerWeek)) || (subjObj && subjObj.periodsPerWeek) || 'Unknown';
