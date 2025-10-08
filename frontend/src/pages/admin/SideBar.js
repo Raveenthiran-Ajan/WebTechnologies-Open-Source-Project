@@ -13,8 +13,9 @@ import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
-import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
-import AssignmentIcon from '@mui/icons-material/Assignment';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
+import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom'; 
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useTranslation } from 'react-i18next';
 
 const SideBar = () => {
@@ -70,7 +71,7 @@ const SideBar = () => {
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <AssignmentIcon />
+                        <MenuBookIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('adminSideBar.subjects')} />
                 </ListItemButton>
@@ -116,7 +117,7 @@ const SideBar = () => {
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <AssessmentOutlinedIcon />
+                        <HowToRegIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('adminSideBar.attendanceReports')} />
                 </ListItemButton>
