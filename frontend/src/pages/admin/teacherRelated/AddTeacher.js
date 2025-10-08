@@ -31,6 +31,7 @@ const AddTeacher = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [message, setMessage] = useState("");
   const [loader, setLoader] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('');
 
   const steps = ['Select Classes', 'Select Subjects', 'Add Teacher Details'];
 
@@ -175,47 +176,51 @@ const AddTeacher = () => {
                 Select Classes
               </Typography>
 
+              <TextField
+                label="Search Classes"
+                variant="outlined"
+                fullWidth
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                sx={{ mb: 3 }}
+              />
+
               {sclassesList && sclassesList.length > 0 ? (
                 <Box>
                   <Typography variant="subtitle1" sx={{ mb: 3 }}>
                     Select one or more classes this teacher will teach.
                   </Typography>
-                  <Grid container spacing={3}>
-                    {sclassesList.map((classItem) => {
-                      const isSelected = selectedClasses.some(cls => cls._id === classItem._id);
-                      return (
-                        <Grid item xs={12} sm={6} md={4} key={classItem._id}>
-                          <Card
-                            sx={{
-                              cursor: 'pointer',
-                              transition: 'all 0.3s ease',
-                              border: isSelected ? '2px solid #2196f3' : '1px solid #e0e0e0',
-                              '&:hover': {
-                                transform: 'translateY(-8px)',
-                                boxShadow: 6,
-                                bgcolor: 'primary.light',
-                                color: 'white'
-                              },
-                              height: '100%',
-                              display: 'flex',
-                              flexDirection: 'column'
-                            }}
-                            onClick={() => handleClassSelect(classItem)}
-                          >
-                            <CardContent sx={{ textAlign: 'center', flexGrow: 1, py: 4 }}>
-                              <ClassIcon sx={{ fontSize: 60, mb: 2, color: isSelected ? 'white' : 'primary.main' }} />
-                              <Typography variant="h5" component="h2" sx={{ fontWeight: 'bold', mb: 1 }}>
-                                {classItem.sclassName}
-                              </Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {isSelected ? 'Selected' : 'Click to select'}
-                              </Typography>
-                            </CardContent>
-                          </Card>
+                  {(() => {
+                    const filteredClasses = sclassesList.filter(cls => cls.sclassName.toLowerCase().includes(searchTerm.toLowerCase()));
+                    return (
+                      <>
+                        <Grid container spacing={2}>
+                          {filteredClasses.map((classItem) => {
+                            const isSelected = selectedClasses.some(cls => cls._id === classItem._id);
+                            return (
+                              <Grid item xs={2} key={classItem._id}>
+                                <FormControlLabel
+                                  control={
+                                    <Checkbox
+                                      checked={isSelected}
+                                      onChange={() => handleClassSelect(classItem)}
+                                      color="primary"
+                                    />
+                                  }
+                                  label={classItem.sclassName}
+                                />
+                              </Grid>
+                            );
+                          })}
                         </Grid>
-                      );
-                    })}
-                  </Grid>
+                        {filteredClasses.length === 0 && searchTerm && (
+                          <Typography variant="body1" sx={{ textAlign: 'center', mt: 3 }}>
+                            No classes match your search.
+                          </Typography>
+                        )}
+                      </>
+                    );
+                  })()}
 
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
                     <Button
@@ -261,9 +266,9 @@ const AddTeacher = () => {
 
               <Grid container spacing={3}>
                 {selectedClasses.map((classItem) => (
-                  <Grid item xs={12} md={6} key={classItem._id}>
+                  <Grid item xs={12} sm={6} md={4} key={classItem._id}>
                     <Card sx={{ height: '100%', border: '1px solid #e0e0e0' }}>
-                      <CardContent>
+                      <CardContent sx={{ py: 2 }}>
                         <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', color: 'primary.main' }}>
                           {classItem.sclassName}
                         </Typography>
