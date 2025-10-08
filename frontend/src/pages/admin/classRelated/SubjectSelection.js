@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Container, Box, Typography, Grid, Card, CardContent, Checkbox, CircularProgress, FormControlLabel, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import { Button, Container, Box, Typography, Grid, Checkbox, CircularProgress, FormControlLabel, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
@@ -155,22 +155,22 @@ const SubjectSelection = () => {
                     <Typography variant="h6" gutterBottom>
                         Available Subjects
                     </Typography>
-                    <Box sx={{ maxHeight: 300, overflowY: 'auto', border: '1px solid #ddd', borderRadius: 1, p: 2 }}>
+                    <Grid container spacing={2} sx={{ maxHeight: 300, overflowY: 'auto', border: '1px solid #ddd', borderRadius: 1, p: 2 }}>
                         {subjectsList && subjectsList.map((subject) => (
-                            <FormControlLabel
-                                key={subject._id}
-                                control={
-                                    <Checkbox
-                                        checked={selectedSubjects.includes(subject._id)}
-                                        onChange={() => handleSubjectToggle(subject._id)}
-                                        color="primary"
-                                    />
-                                }
-                                label={subject.subName}
-                                sx={{ display: 'block', mb: 1 }}
-                            />
+                            <Grid item xs={2.4} key={subject._id}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={selectedSubjects.includes(subject._id)}
+                                            onChange={() => handleSubjectToggle(subject._id)}
+                                            color="primary"
+                                        />
+                                    }
+                                    label={subject.subName}
+                                />
+                            </Grid>
                         ))}
-                    </Box>
+                    </Grid>
                 </Box>
 
                 {selectedSubjects.length > 0 && (
