@@ -104,8 +104,10 @@ const StudentGrades = () => {
           boxShadow: "0 8px 32px 0 rgba(25, 118, 210, 0.12)",
           background: "#fff",
           border: "1.5px solid #e3f2fd",
-          maxWidth: 700,
-          mx: "auto"
+          width: "90vw",           // Make table responsive to viewport width
+          maxWidth: "1200px",      // Optional: limit max width for large screens
+          mx: "auto",              // Center horizontally
+          my: 4                    // Add vertical margin
         }}
       >
         <Table>
