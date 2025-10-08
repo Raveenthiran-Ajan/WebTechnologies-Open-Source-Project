@@ -31,17 +31,17 @@ const ViewChildDetails = () => {
 
     // Helper function to get class name
     const getClassName = (sclassName) => {
-        if (!sclassName) return 'Not Assigned';
-        
+        if (!sclassName) return t('viewChildDetails.notAssigned');
+
         // Check if it's a MongoDB ObjectId (24 character hex string)
         if (typeof sclassName === 'string' && sclassName.length === 24 && /^[0-9a-fA-F]{24}$/.test(sclassName)) {
-            return 'Class Not Available'; // Show meaningful message for ObjectId
+            return t('viewChildDetails.classNotAvailable'); // Show meaningful message for ObjectId
         }
-        
+
         if (typeof sclassName === 'string') return sclassName;
         if (typeof sclassName === 'object' && sclassName.sclassName) return sclassName.sclassName;
         if (typeof sclassName === 'object' && sclassName.name) return sclassName.name;
-        return 'Class Info';
+        return t('viewChildDetails.classInfo');
     };
 
     if (loading) {
@@ -61,7 +61,7 @@ const ViewChildDetails = () => {
         return (
             <Container maxWidth="lg" sx={{ py: 4 }}>
                 <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'error.light', color: 'error.contrastText' }}>
-                    <Typography variant="h6">Error: {error.message}</Typography>
+                    <Typography variant="h6">{t('viewChildDetails.error')}: {error.message}</Typography>
                 </Paper>
             </Container>
         );

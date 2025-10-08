@@ -414,6 +414,15 @@
     "subject": "Subject",
     "marks": "Marks",
     "noExamResults": "No exam results available",
-    "resultsAppear": "Results will appear here once exams are conducted."
+    "resultsAppear": "Results will appear here once exams are conducted.",
+    "error": "Error",
+    "notAssigned": "Not Assigned",
+    "classNotAvailable": "Class Not Available",
+    "classInfo": "Class Info"
+  },
+  "seeNotice": {
+    "noNoticesToShow": "No Notices to Show Right Now",
+    "recentNotices": "Recent Notices",
+    "noNoticesAvailable": "No notices available."
   }
 }

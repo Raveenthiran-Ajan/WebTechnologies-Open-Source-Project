@@ -414,6 +414,15 @@
     "subject": "විෂයය",
     "marks": "ලකුණු",
     "noExamResults": "පරීක්ෂණ ප්‍රතිඵල නොමැත",
-    "resultsAppear": "පරීක්ෂණ සිදු කරන විට ප්‍රතිඵල මෙහි පෙනුම ගනු ඇත."
+    "resultsAppear": "පරීක්ෂණ සිදු කරන විට ප්‍රතිඵල මෙහි පෙනුම ගනු ඇත.",
+    "error": "දෝෂය",
+    "notAssigned": "නියම නොකර ඇත",
+    "classNotAvailable": "පන්තිය ලබා ගත නොහැක",
+    "classInfo": "පන්ති තොරතුරු"
+  },
+  "seeNotice": {
+    "noNoticesToShow": "දැනට දැන්වීම් පෙන්වීමට නොමැත",
+    "recentNotices": "මෑත දැන්වීම්",
+    "noNoticesAvailable": "දැන්වීම් කිසිවක් නොමැත."
   }
 }
