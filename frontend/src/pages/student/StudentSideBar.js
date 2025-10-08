@@ -14,7 +14,6 @@ import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 
@@ -22,7 +21,6 @@ import axios from 'axios';
 
 const StudentSideBar = () => {
     const location = useLocation();
-    const { t } = useTranslation();
     const { currentUser } = useSelector((state) => state.user);
     const { noticesList } = useSelector((state) => state.notice);
     const [assignments, setAssignments] = useState([]);
@@ -72,10 +70,10 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <HomeIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('studentSideBar.home')} />
+                    <ListItemText primary="Home" />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
+                <ListItemButton
+                    component={Link}
                     to="/Student/subjects"
                     selected={location.pathname.startsWith("/Student/subjects")}
                     sx={selectedItemStyles}
@@ -83,10 +81,10 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <MenuBookIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('studentSideBar.subjects')} />
+                    <ListItemText primary="Subjects" />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
+                <ListItemButton
+                    component={Link}
                     to="/Student/timetable"
                     selected={location.pathname.startsWith("/Student/timetable")}
                     sx={selectedItemStyles}
@@ -94,10 +92,10 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <ScheduleIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('studentSideBar.timetable')} />
+                    <ListItemText primary="Timetable" />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
+                <ListItemButton
+                    component={Link}
                     to="/Student/attendance"
                     selected={location.pathname.startsWith("/Student/attendance")}
                     sx={selectedItemStyles}
@@ -105,10 +103,10 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <HowToRegIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('studentSideBar.attendance')} />
+                    <ListItemText primary="Attendance" />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
+                <ListItemButton
+                    component={Link}
                     to="/Student/term-report"
                     selected={location.pathname.startsWith("/Student/term-report")}
                     sx={selectedItemStyles}
@@ -116,10 +114,10 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <AssessmentIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('studentSideBar.termReport')} />
+                    <ListItemText primary="Term Report" />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
+                <ListItemButton
+                    component={Link}
                     to="/Student/notices"
                     selected={location.pathname.startsWith("/Student/notices")}
                     sx={selectedItemStyles}
@@ -128,11 +126,11 @@ const StudentSideBar = () => {
                         <NotificationsIcon />
                     </ListItemIcon>
                     <Badge badgeContent={unreadNoticesCount} color="error" max={99}>
-                        <ListItemText primary={t('studentSideBar.notices')} />
+                        <ListItemText primary="Notices" />
                     </Badge>
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
+                <ListItemButton
+                    component={Link}
                     to="/Student/complain"
                     selected={location.pathname.startsWith("/Student/complain")}
                     sx={selectedItemStyles}
@@ -140,10 +138,10 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <FeedbackOutlinedIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('studentSideBar.complain')} />
+                    <ListItemText primary="Complain" />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
+                <ListItemButton
+                    component={Link}
                     to="/assignments"
                     selected={location.pathname === "/assignments"}
                     sx={selectedItemStyles}
@@ -153,16 +151,16 @@ const StudentSideBar = () => {
                             <AssignmentIcon />
                         </Badge>
                     </ListItemIcon>
-                    <ListItemText primary={t('Assignments')} />
+                    <ListItemText primary="Assignments" />
                 </ListItemButton>
             </React.Fragment>
             <Divider sx={{ my: 1 }} />
             <React.Fragment>
                 <ListSubheader component="div" inset>
-                    {t('studentSideBar.user')}
+                    User
                 </ListSubheader>
-                <ListItemButton 
-                    component={Link} 
+                <ListItemButton
+                    component={Link}
                     to="/Student/profile"
                     selected={location.pathname.startsWith("/Student/profile")}
                     sx={selectedItemStyles}
@@ -170,10 +168,10 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <AccountCircleOutlinedIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('studentSideBar.profile')} />
+                    <ListItemText primary="Profile" />
                 </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
+                <ListItemButton
+                    component={Link}
                     to="/logout"
                     selected={location.pathname.startsWith("/logout")}
                     sx={selectedItemStyles}
@@ -181,7 +179,7 @@ const StudentSideBar = () => {
                     <ListItemIcon>
                         <ExitToAppIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('studentSideBar.logout')} />
+                    <ListItemText primary="Logout" />
                 </ListItemButton>
             </React.Fragment>
         </>

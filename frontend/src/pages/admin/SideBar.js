@@ -14,13 +14,11 @@ import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccount
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
-import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom'; 
+import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
-import { useTranslation } from 'react-i18next';
 
 const SideBar = () => {
     const location = useLocation();
-    const { t } = useTranslation();
     const { complainsList } = useSelector((state) => state.complain);
 
     const selectedItemStyles = {
@@ -51,7 +49,7 @@ const SideBar = () => {
                     <ListItemIcon>
                         <HomeIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('adminSideBar.home')} />
+                    <ListItemText primary="Home" />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -62,7 +60,7 @@ const SideBar = () => {
                     <ListItemIcon>
                         <ClassOutlinedIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('adminSideBar.classes')} />
+                    <ListItemText primary="Classes" />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -73,7 +71,7 @@ const SideBar = () => {
                     <ListItemIcon>
                         <MenuBookIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('adminSideBar.subjects')} />
+                    <ListItemText primary="Subjects" />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -84,7 +82,7 @@ const SideBar = () => {
                     <ListItemIcon>
                         <SupervisorAccountOutlinedIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('adminSideBar.teachers')} />
+                    <ListItemText primary="Teachers" />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -95,7 +93,7 @@ const SideBar = () => {
                     <ListItemIcon>
                         <PersonOutlineIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('adminSideBar.students')} />
+                    <ListItemText primary="Students" />
                 </ListItemButton>
 
                 <ListItemButton 
@@ -107,7 +105,7 @@ const SideBar = () => {
                     <ListItemIcon>
                         <FamilyRestroomIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('adminSideBar.parents')} />
+                    <ListItemText primary="Parents" />
                 </ListItemButton>
 
                 <ListItemButton 
@@ -119,7 +117,7 @@ const SideBar = () => {
                     <ListItemIcon>
                         <HowToRegIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('adminSideBar.attendanceReports')} />
+                    <ListItemText primary="Attendance Reports" />
                 </ListItemButton>
 
 
@@ -132,7 +130,7 @@ const SideBar = () => {
                     <ListItemIcon>
                         <NotificationsIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('adminSideBar.notices')} />
+                    <ListItemText primary="Notices" />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -149,14 +147,14 @@ const SideBar = () => {
                           <FeedbackOutlinedIcon />
                         </Badge>
                     </ListItemIcon>
-                    <ListItemText primary={t('adminSideBar.complains')} />
+                    <ListItemText primary="Complains" />
                 </ListItemButton>
                 
             </React.Fragment>
             <Divider sx={{ my: 1 }} />
             <React.Fragment>
                 <ListSubheader component="div" inset>
-                    {t('adminSideBar.user')}
+                    User
                 </ListSubheader>
                 <ListItemButton 
                     component={Link} 
@@ -167,7 +165,7 @@ const SideBar = () => {
                     <ListItemIcon>
                         <AccountCircleOutlinedIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('adminSideBar.profile')} />
+                    <ListItemText primary="Profile" />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -178,7 +176,7 @@ const SideBar = () => {
                     <ListItemIcon>
                         <ExitToAppIcon />
                     </ListItemIcon>
-                    <ListItemText primary={t('adminSideBar.logout')} />
+                    <ListItemText primary="Logout" />
                 </ListItemButton>
             </React.Fragment>
         </>

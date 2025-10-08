@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
     CssBaseline,
     Box,
@@ -58,7 +57,6 @@ const AdminDashboard = () => {
     const toggleDrawer = () => {
         setOpen(!open);
     };
-    const { t } = useTranslation();
     return (
         <>
             <Box sx={{ display: 'flex' }}>
@@ -88,7 +86,7 @@ const AdminDashboard = () => {
                                 letterSpacing: '0.1rem',
                             }}
                         >
-                            {t('adminDashboard.title')}
+                            Admin Dashboard
                         </Typography>
                         <AccountMenu />
                     </Toolbar>

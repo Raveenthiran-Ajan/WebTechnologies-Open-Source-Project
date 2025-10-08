@@ -10,6 +10,14 @@ const SeeNotice = () => {
     const dispatch = useDispatch();
 
     const { currentUser, currentRole } = useSelector(state => state.user);
+
+    // Only use translations for parent role
+    const isParent = currentRole === "Parent";
+    const getText = (key) => isParent ? t(`seeNotice.${key}`) : {
+        noNoticesToShow: "No Notices to Show Right Now",
+        recentNotices: "Recent Notices",
+        noNoticesAvailable: "No notices available."
+    }[key];
     const { noticesList, loading, error, response } = useSelector((state) => state.notice);
 
     useEffect(() => {
@@ -31,13 +39,13 @@ const SeeNotice = () => {
                 <CircularProgress color="primary" sx={{ display: 'block', margin: 'auto' }} />
             ) : response ? (
                 <Typography variant="body1" sx={{ fontSize: '20px', textAlign: 'center' }}>
-                    {t('seeNotice.noNoticesToShow')}
+                    {getText('noNoticesToShow')}
                 </Typography>
             ) : (
                 <>
                     <Typography variant="h4" component="h3" sx={{ fontSize: '30px', marginBottom: '40px', color: 'purple', display: 'flex', alignItems: 'center', gap: 1 }}>
                         <AnnouncementOutlinedIcon />
-                        {t('seeNotice.recentNotices')}
+                        {getText('recentNotices')}
                     </Typography>
                     <Paper sx={{ width: '100%', p: 2, borderRadius: 2, border: '1px solid purple' }}>
                         <Grid container spacing={2}>
@@ -66,7 +74,7 @@ const SeeNotice = () => {
                                 })
                             ) : (
                                 <Typography variant="body1" sx={{ width: '100%', textAlign: 'center' }}>
-                                    {t('seeNotice.noNoticesAvailable')}
+                                    {getText('noNoticesAvailable')}
                                 </Typography>
                             )}
                         </Grid>
