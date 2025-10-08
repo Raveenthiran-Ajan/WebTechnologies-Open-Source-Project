@@ -389,5 +389,40 @@
     "downloadTimetable": "Download Timetable",
     "selectChildMessage": "Please select a child to view their timetable.",
     "interval": "Interval (10:30-10:45)"
+  },
+  "childrenList": {
+    "loading": "Loading children list...",
+    "noParentInfo": "No parent information available.",
+    "title": "My Children",
+    "childTotal": "{{count}} Child Total",
+    "childrenTotal": "{{count}} Children Total",
+    "pageOf": "Page {{page}} of {{total}}",
+    "roll": "Roll",
+    "class": "Class",
+    "noChildren": "No child details found."
+  },
+  "viewChildDetails": {
+    "loading": "Loading child details...",
+    "noChildDetails": "No child details found.",
+    "roll": "Roll",
+    "class": "Class",
+    "attendance": "Attendance",
+    "overallAttendance": "Overall Attendance",
+    "present": "Present",
+    "total": "Total",
+    "examResults": "Exam Results",
+    "subject": "Subject",
+    "marks": "Marks",
+    "noExamResults": "No exam results available",
+    "resultsAppear": "Results will appear here once exams are conducted.",
+    "error": "Error",
+    "notAssigned": "Not Assigned",
+    "classNotAvailable": "Class Not Available",
+    "classInfo": "Class Info"
+  },
+  "seeNotice": {
+    "noNoticesToShow": "No Notices to Show Right Now",
+    "recentNotices": "Recent Notices",
+    "noNoticesAvailable": "No notices available."
   }
 }

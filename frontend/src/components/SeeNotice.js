@@ -3,8 +3,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAllNotices } from '../redux/noticeRelated/noticeHandle';
 import { Paper, Card, CardContent, CardHeader, Typography, Grid, CircularProgress } from '@mui/material';
 import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
+import { useTranslation } from 'react-i18next';
 
 const SeeNotice = () => {
+    const { t } = useTranslation();
     const dispatch = useDispatch();
 
     const { currentUser, currentRole } = useSelector(state => state.user);
@@ -29,13 +31,13 @@ const SeeNotice = () => {
                 <CircularProgress color="primary" sx={{ display: 'block', margin: 'auto' }} />
             ) : response ? (
                 <Typography variant="body1" sx={{ fontSize: '20px', textAlign: 'center' }}>
-                    No Notices to Show Right Now
+                    {t('seeNotice.noNoticesToShow')}
                 </Typography>
             ) : (
                 <>
                     <Typography variant="h4" component="h3" sx={{ fontSize: '30px', marginBottom: '40px', color: 'purple', display: 'flex', alignItems: 'center', gap: 1 }}>
                         <AnnouncementOutlinedIcon />
-                        Recent Notices
+                        {t('seeNotice.recentNotices')}
                     </Typography>
                     <Paper sx={{ width: '100%', p: 2, borderRadius: 2, border: '1px solid purple' }}>
                         <Grid container spacing={2}>
@@ -64,7 +66,7 @@ const SeeNotice = () => {
                                 })
                             ) : (
                                 <Typography variant="body1" sx={{ width: '100%', textAlign: 'center' }}>
-                                    No notices available.
+                                    {t('seeNotice.noNoticesAvailable')}
                                 </Typography>
                             )}
                         </Grid>

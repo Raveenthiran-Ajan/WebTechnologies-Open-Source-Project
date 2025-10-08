@@ -5,8 +5,10 @@ import { Link } from 'react-router-dom';
 import PersonIcon from '@mui/icons-material/Person';
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import GradeIcon from '@mui/icons-material/Grade';
+import { useTranslation } from 'react-i18next';
 
 const ChildrenList = () => {
+    const { t } = useTranslation();
     const { currentUser, loading } = useSelector((state) => state.user);
     const [page, setPage] = useState(1);
     const childrenPerPage = 9; // Show 9 children per page for grid layout
@@ -32,7 +34,7 @@ const ChildrenList = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <CircularProgress size={60} />
                     <Typography variant="h6" sx={{ mt: 2 }}>
-                        Loading children list...
+                        {t('childrenList.loading')}
                     </Typography>
                 </Box>
             </Container>
@@ -44,7 +46,7 @@ const ChildrenList = () => {
             <Container maxWidth="lg" sx={{ py: 4 }}>
                 <Paper sx={{ p: 4, textAlign: 'center' }}>
                     <PersonIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                    <Typography variant="h6">No parent information available.</Typography>
+                    <Typography variant="h6">{t('childrenList.noParentInfo')}</Typography>
                 </Paper>
             </Container>
         );
@@ -88,18 +90,18 @@ const ChildrenList = () => {
                         WebkitTextFillColor: 'transparent',
                     }}
                 >
-                    My Children
+                    {t('childrenList.title')}
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
                     <Chip 
                         icon={<GradeIcon />}
-                        label={`${children.length} ${children.length === 1 ? 'Child' : 'Children'} Total`} 
+                        label={t(children.length === 1 ? 'childrenList.childTotal' : 'childrenList.childrenTotal', { count: children.length })}
                         color="primary" 
                         size="large"
                     />
                     {totalPages > 1 && (
                         <Chip 
-                            label={`Page ${page} of ${totalPages}`}
+                            label={t('childrenList.pageOf', { page, total: totalPages })}
                             color="secondary" 
                             size="large"
                         />
@@ -147,14 +149,14 @@ const ChildrenList = () => {
                                     {child.name}
                                 </Typography>
                                 <Chip 
-                                    label={`Roll: ${child.rollNum}`} 
+                                    label={`${t('childrenList.roll')}: ${child.rollNum}`}
                                     size="small" 
                                     color="primary" 
                                     sx={{ mb: 1 }}
                                 />
                                 {getClassName(child.sclassName) && (
                                     <Typography variant="body2" color="text.secondary">
-                                        Class: {getClassName(child.sclassName)}
+                                        {t('childrenList.class')}: {getClassName(child.sclassName)}
                                     </Typography>
                                 )}
                             </CardContent>
@@ -164,7 +166,7 @@ const ChildrenList = () => {
                     <Grid item xs={12}>
                         <Paper sx={{ p: 4, textAlign: 'center' }}>
                             <PersonIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
-                            <Typography variant="h6">No child details found.</Typography>
+                            <Typography variant="h6">{t('childrenList.noChildren')}</Typography>
                         </Paper>
                     </Grid>
                 )}
