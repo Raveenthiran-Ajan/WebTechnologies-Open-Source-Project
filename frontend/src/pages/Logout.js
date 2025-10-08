@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import { useTranslation } from 'react-i18next';
 
 const Logout = () => {
-    const currentUser = useSelector(state => state.user.currentUser);
+    const { currentUser, currentRole } = useSelector(state => state.user);
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -17,6 +17,15 @@ const Logout = () => {
     };
 
     const { t } = useTranslation();
+
+    // Only use translations for parent role
+    const isParent = currentRole === "Parent";
+    const getText = (key) => isParent ? t(`logout.${key}`) : {
+        confirm: "Are you sure you want to log out?",
+        logout: "Logout",
+        cancel: "Cancel"
+    }[key];
+
     const handleCancel = () => {
         navigate(-1);
     };
@@ -24,9 +33,9 @@ const Logout = () => {
     return (
         <LogoutContainer>
             <h1>{currentUser.name}</h1>
-            <LogoutMessage>{t('logout.confirm')}</LogoutMessage>
-            <LogoutButtonLogout onClick={handleLogout}>{t('logout.logout')}</LogoutButtonLogout>
-            <LogoutButtonCancel onClick={handleCancel}>{t('logout.cancel')}</LogoutButtonCancel>
+            <LogoutMessage>{getText('confirm')}</LogoutMessage>
+            <LogoutButtonLogout onClick={handleLogout}>{getText('logout')}</LogoutButtonLogout>
+            <LogoutButtonCancel onClick={handleCancel}>{getText('cancel')}</LogoutButtonCancel>
         </LogoutContainer>
     );
 };
