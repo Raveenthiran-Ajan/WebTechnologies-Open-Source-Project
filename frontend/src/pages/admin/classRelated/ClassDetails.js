@@ -454,6 +454,7 @@ const ClassDetails = () => {
                                     <Button
                                         variant="contained"
                                         color="success"
+                                        startIcon={<PersonAddAlt1Icon />}
                                         onClick={() => navigate("/Admin/class/addstudents/" + classID)}
                                     >
                                         Add Students

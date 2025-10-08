@@ -17,17 +17,28 @@ const studentRegister = async (req, res) => {
             res.send({ message: 'Roll Number already exists' });
         }
         else {
-            const student = new Student({
-                ...req.body,
-                rollNum: Number(req.body.rollNum),
-                school: req.body.adminID,
-                password: hashedPass
+            // Check for existing email
+            const existingEmail = await Student.findOne({
+                email: req.body.email.toLowerCase(),
             });
 
-            let result = await student.save();
+            if (existingEmail) {
+                res.send({ message: 'Email already exists' });
+            }
+            else {
+                const student = new Student({
+                    ...req.body,
+                    email: req.body.email.toLowerCase(),
+                    rollNum: Number(req.body.rollNum),
+                    school: req.body.adminID,
+                    password: hashedPass
+                });
 
-            result.password = undefined;
-            res.send(result);
+                let result = await student.save();
+
+                result.password = undefined;
+                res.send(result);
+            }
         }
     } catch (err) {
         res.status(500).json(err);
@@ -530,6 +541,89 @@ const checkClassAttendanceStatus = async (req, res) => {
     }
 };
 
+const studentBulkRegister = async (req, res) => {
+    try {
+        const { students, classId } = req.body;
+        const adminID = req.body.adminID || req.params.adminID; // Assuming adminID is passed
+
+        // Check for duplicate roll numbers within the batch
+        const rollNumbers = students.map(s => s.rollNumber);
+        const duplicateRolls = rollNumbers.filter((roll, index) => rollNumbers.indexOf(roll) !== index);
+        const uniqueDuplicateRolls = [...new Set(duplicateRolls)];
+
+        if (uniqueDuplicateRolls.length > 0) {
+            return res.status(400).json({ 
+                message: `Duplicate roll numbers in the batch: ${uniqueDuplicateRolls.join(', ')}. Please fix and try again.` 
+            });
+        }
+
+        // Check for duplicate emails within the batch
+        const emails = students.map(s => s.email.toLowerCase());
+        const duplicateEmails = emails.filter((email, index) => emails.indexOf(email) !== index);
+        const uniqueDuplicateEmails = [...new Set(duplicateEmails)];
+
+        if (uniqueDuplicateEmails.length > 0) {
+            return res.status(400).json({ 
+                message: `Duplicate email addresses in the batch: ${uniqueDuplicateEmails.join(', ')}. Please fix and try again.` 
+            });
+        }
+
+        const results = [];
+
+        for (const studentData of students) {
+            try {
+                const salt = await bcrypt.genSalt(10);
+                const hashedPass = await bcrypt.hash(studentData.password, salt);
+
+                // Check for existing roll number
+                const existingStudentByRoll = await Student.findOne({
+                    rollNum: Number(studentData.rollNumber),
+                    school: adminID,
+                    sclassName: classId,
+                });
+
+                if (existingStudentByRoll) {
+                    return res.status(400).json({ 
+                        message: `Roll number ${studentData.rollNumber} already exists in the database. Operation cancelled.` 
+                    });
+                }
+
+                // Check for existing email
+                const existingStudentByEmail = await Student.findOne({
+                    email: studentData.email.toLowerCase(),
+                });
+
+                if (existingStudentByEmail) {
+                    return res.status(400).json({ 
+                        message: `Email address ${studentData.email} already exists in the database. Operation cancelled.` 
+                    });
+                }
+
+                const student = new Student({
+                    name: studentData.name,
+                    email: studentData.email.toLowerCase(),
+                    rollNum: Number(studentData.rollNumber),
+                    password: hashedPass,
+                    sclassName: classId,
+                    school: adminID
+                });
+
+                let result = await student.save();
+                result.password = undefined;
+                results.push(result);
+            } catch (err) {
+                return res.status(400).json({ 
+                    message: `Error adding student with roll number ${studentData.rollNumber}: ${err.message}. Operation cancelled.` 
+                });
+            }
+        }
+
+        res.send({ message: `${results.length} students added successfully!` });
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
 module.exports = {
     studentRegister,
     studentLogIn,
@@ -550,4 +644,5 @@ module.exports = {
     changePassword,
     getStudentTermReport,
     checkClassAttendanceStatus,
+    studentBulkRegister,
 };

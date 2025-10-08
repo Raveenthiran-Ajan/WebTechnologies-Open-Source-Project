@@ -17,7 +17,7 @@ import SideBar from './SideBar';
 import AdminProfile from './AdminProfile';
 import AdminHomePage from './AdminHomePage';
 
-import AddStudent from './studentRelated/AddStudent';
+import AddBulkStudent from './studentRelated/AddBulkStudent';
 import SeeComplains from './studentRelated/SeeComplains';
 import ShowStudents from './studentRelated/ShowStudents';
 import ViewStudent from './studentRelated/ViewStudent';
@@ -133,8 +133,7 @@ const AdminDashboard = () => {
                         <Route path="/Admin/classes/edit/:id" element={<EditClass />} />
 
                         {/* Student */}
-                        <Route path="/Admin/addstudents" element={<AddStudent situation="Student" />} />
-                        <Route path="/Admin/class/addstudents/:id" element={<AddStudent situation="Class" />} />
+                        <Route path="/Admin/class/addstudents/:id" element={<AddBulkStudent />} />
                         <Route path="/Admin/students" element={<ShowStudents />} />
                         <Route path="/Admin/students/student/:id" element={<ViewStudent />} />
                         <Route path="/Admin/attendance-report" element={<AdminAttendanceReport />} />

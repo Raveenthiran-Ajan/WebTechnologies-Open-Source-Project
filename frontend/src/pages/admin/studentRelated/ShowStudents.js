@@ -149,6 +149,7 @@ const ShowStudents = () => {
     const columns = [
         { field: 'name', headerName: 'Student Name', width: 200 },
         { field: 'rollNum', headerName: 'Roll Number', width: 150 },
+        { field: 'email', headerName: 'Email Address', width: 200 },
         { field: 'sclassName', headerName: 'Class', width: 150 },
         {
             field: 'actions',
@@ -191,6 +192,7 @@ const ShowStudents = () => {
         id: student._id,
         name: student.name,
         rollNum: student.rollNum,
+        email: student.email,
         sclassName: student.sclassName ? student.sclassName.sclassName : 'No Class',
     }));
 
@@ -204,7 +206,8 @@ const ShowStudents = () => {
 
                 <Button
                     startIcon={<PersonAddAlt1Icon />}
-                    onClick={() => navigate(selectedClass ? `/Admin/class/addstudents/${selectedClass._id}` : '/Admin/addstudents')}
+                    onClick={() => navigate(`/Admin/class/addstudents/${selectedClass._id}`)}
+                    disabled={!selectedClass}
                 >
                     Add Student
                 </Button>

@@ -21,18 +21,18 @@ const Popup = ({ message, setShowPopup, showPopup }) => {
     };
 
     // Always show green for any success message
-    const isSuccess = message && (message.toLowerCase().includes('success') || message.toLowerCase().includes('deleted'));
+    const isSuccess = message && typeof message === 'string' && (message.toLowerCase().includes('success') || message.toLowerCase().includes('deleted'));
     return (
         <>
             <Snackbar open={showPopup} autoHideDuration={2000} onClose={handleClose} anchorOrigin={{ vertical, horizontal }} key={vertical + horizontal}>
                 {
                     isSuccess ?
                         <Alert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
-                            {message}
+                            {typeof message === 'string' ? message : String(message)}
                         </Alert>
                         :
                         <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-                            {message}
+                            {typeof message === 'string' ? message : String(message)}
                         </Alert>
                 }
             </Snackbar>
