@@ -6,18 +6,18 @@ import { updateUser } from '../../redux/userRelated/userHandle';
 import { underControl } from '../../redux/userRelated/userSlice';
 
 const TeacherProfile = () => {
-  const dispatch = useDispatch();
-  const { currentUser, status } = useSelector((state) => state.user);
+ const dispatch = useDispatch();
+ const { currentUser, status } = useSelector((state) => state.user);
 
-  const [open, setOpen] = useState(false);
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+ const [open, setOpen] = useState(false);
+ const [oldPassword, setOldPassword] = useState('');
+ const [newPassword, setNewPassword] = useState('');
 
-  const [openSnackbar, setOpenSnackbar] = useState(false);
+ const [openSnackbar, setOpenSnackbar] = useState(false);
 
-  const teachSclass = currentUser.teachSclass;
-  const teachSubject = currentUser.teachSubject;
-  const teachSchool = currentUser.school;
+ const teachSclass = currentUser.teachSclass;
+ const teachSubject = currentUser.teachSubject;
+ const teachSchool = currentUser.school;
 
   const handleOpen = () => {
     setOpen(true);
@@ -50,11 +50,11 @@ const TeacherProfile = () => {
     <>
       <ProfileCard>
         <ProfileCardContent>
-          <ProfileText>Name: {currentUser.name}</ProfileText>
-          <ProfileText>Email: {currentUser.email}</ProfileText>
-          <ProfileText>Class: {teachSclass.sclassName}</ProfileText>
-          <ProfileText>Subject: {teachSubject.subName}</ProfileText>
-          <ProfileText>School: {teachSchool.schoolName}</ProfileText>
+          <ProfileText>Name: {currentUser?.name || 'N/A'}</ProfileText>
+          <ProfileText>Email: {currentUser?.email || 'N/A'}</ProfileText>
+          <ProfileText>Class: {teachSclass?.sclassName || 'Not Assigned'}</ProfileText>
+          <ProfileText>Subject: {teachSubject?.subName || 'Not Assigned'}</ProfileText>
+          <ProfileText>School: {teachSchool?.schoolName || 'Not Assigned'}</ProfileText>
           <Button variant="contained" onClick={handleOpen}>Change Password</Button>
         </ProfileCardContent>
       </ProfileCard>
