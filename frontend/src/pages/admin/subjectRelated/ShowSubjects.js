@@ -39,7 +39,6 @@ const ShowSubjects = () => {
     const columns = [
         { field: 'subName', headerName: 'Subject Name', width: 200 },
         { field: 'subCode', headerName: 'Subject Code', width: 150 },
-        { field: 'periodsPerWeek', headerName: 'Periods Per Week', width: 150 },
         {
             field: 'actions',
             headerName: 'Actions',

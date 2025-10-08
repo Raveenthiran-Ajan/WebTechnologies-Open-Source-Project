@@ -5,7 +5,7 @@ const fs = require('fs');
 
 const { parentRegister, parentLogIn, getParents, getParentDetails, getParentChildDetails, addAnotherChild,deleteParent, changePassword: parentChangePassword } = require('../controllers/parent-controller.js');
 const { adminRegister, adminLogIn, getAdminDetail, changePassword: adminChangePassword } = require('../controllers/admin-controller.js');
-const { sclassCreate, sclassUpdate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTeacherClasses, updateTeacherClasses } = require('../controllers/class-controller.js');
+const { sclassCreate, sclassUpdate, sclassList, deleteSclass, deleteSclasses, getSclassDetail, getSclassStudents, getTeacherClasses, updateTeacherClasses, updateSubjectSessions } = require('../controllers/class-controller.js');
 const { complainCreate, complainList, complainUpdate, complainDelete } = require('../controllers/complain-controller.js');
 const { leaveRequestCreate, leaveRequestList, leaveRequestUpdate, leaveRequestDelete, getLeaveRequestsByParent, getLeaveRequestsByTeacher } = require('../controllers/leaveRequest-controller.js');
 const { noticeCreate, noticeList, deleteNotices, deleteNotice, updateNotice, markNoticeAsRead } = require('../controllers/notice-controller.js');
@@ -183,6 +183,7 @@ router.delete("/Sclass/:id", deleteSclass)
 router.get("/Sclass/Teachers/:id", require("../controllers/class-controller").getClassTeachers);
 router.get("/Sclass/Timetable/:id", require("../controllers/class-controller").getTimetable);
 router.put("/Sclass/Timetable/:id", require("../controllers/class-controller").updateTimetable);
+router.put("/Sclass/SubjectSessions/:id", updateSubjectSessions);
 router.get("/Sclass/AvailableSubjects/:id", require("../controllers/class-controller").getAvailableSubjects);
 router.get("/Sclass/AvailableTeachers/:classId/:subjectId/:day/:period", require("../controllers/class-controller").getAvailableTeachers);
 router.get("/Sclass/TeacherClasses/:id", getTeacherClasses);

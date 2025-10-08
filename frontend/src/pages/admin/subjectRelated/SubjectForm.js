@@ -9,7 +9,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const SubjectForm = () => {
-    const [subjects, setSubjects] = useState([{ subName: "", subCode: "", periodsPerWeek: "" }]);
+    const [subjects, setSubjects] = useState([{ subName: "", subCode: "" }]);
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -37,14 +37,8 @@ const SubjectForm = () => {
         setSubjects(newSubjects);
     };
 
-    const handlePeriodsPerWeekChange = (index) => (event) => {
-        const newSubjects = [...subjects];
-        newSubjects[index].periodsPerWeek = event.target.value;
-        setSubjects(newSubjects);
-    };
-
     const handleAddSubject = () => {
-        setSubjects([...subjects, { subName: "", subCode: "", periodsPerWeek: "" }]);
+        setSubjects([...subjects, { subName: "", subCode: "" }]);
     };
 
     const handleRemoveSubject = (index) => () => {
@@ -57,7 +51,6 @@ const SubjectForm = () => {
         subjects: subjects.map((subject) => ({
             subName: subject.subName,
             subCode: subject.subCode,
-            periodsPerWeek: subject.periodsPerWeek,
         })),
         adminID,
     };
@@ -101,9 +94,8 @@ const SubjectForm = () => {
                     <Table>
                         <TableHead>
                             <TableRow sx={{ bgcolor: 'grey.50' }}>
-                                <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Subject Name</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Subject Code</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', width: '30%' }}>Periods Per Week</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', width: '45%' }}>Subject Name</TableCell>
+                                <TableCell sx={{ fontWeight: 'bold', width: '45%' }}>Subject Code</TableCell>
                                 <TableCell sx={{ fontWeight: 'bold', width: '10%', textAlign: 'center' }}>Actions</TableCell>
                             </TableRow>
                         </TableHead>
@@ -129,18 +121,6 @@ const SubjectForm = () => {
                                             size="small"
                                             value={subject.subCode}
                                             onChange={handleSubjectCodeChange(index)}
-                                            required
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <TextField
-                                            fullWidth
-                                            placeholder="Enter periods per week"
-                                            variant="outlined"
-                                            size="small"
-                                            type="number"
-                                            value={subject.periodsPerWeek}
-                                            onChange={handlePeriodsPerWeekChange(index)}
                                             required
                                         />
                                     </TableCell>
@@ -187,7 +167,7 @@ const SubjectForm = () => {
                     variant="contained"
                     color="primary"
                     onClick={submitHandler}
-                    disabled={loader || subjects.some(s => !s.subName.trim() || !s.subCode.trim() || !s.periodsPerWeek.trim())}
+                    disabled={loader || subjects.some(s => !s.subName.trim() || !s.subCode.trim())}
                 >
                     {loader ? (
                         <CircularProgress size={24} color="inherit" />
