@@ -26,6 +26,12 @@ const timeSlots = [
   '12:45 - 1:25 pm'
 ];
 
+// helper to ensure "class " prefix (avoid double prefix if already present)
+const formatClass = (name) => {
+  if (!name) return '';
+  return /^class\b/i.test(String(name).trim()) ? String(name).trim() : `class ${String(name).trim()}`;
+};
+
 const TeacherTimetable = () => {
   const { currentUser } = useSelector((state) => state.user);
   const [timetable, setTimetable] = useState({});
@@ -33,17 +39,28 @@ const TeacherTimetable = () => {
   useEffect(() => {
     async function fetchTimetable() {
       try {
-        if (!currentUser || !currentUser.teachSclass) return;
-        const response = await fetch(`http://localhost:5000/Sclass/Timetable/${currentUser.teachSclass._id}`);
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          const timetableObj = {};
-          data.forEach(entry => {
-            if (!timetableObj[entry.day]) timetableObj[entry.day] = {};
-            timetableObj[entry.day][entry.period] = entry.subject;
-          });
-          setTimetable(timetableObj);
+        if (!currentUser) return;
+        // First, fetch the teacher's classes
+        const classesResponse = await fetch(`http://localhost:5000/Sclass/TeacherClasses/${currentUser._id}`);
+        const classes = await classesResponse.json();
+        if (!Array.isArray(classes)) return;
+
+        const timetableObj = {};
+        // For each class, fetch timetable
+        for (const cls of classes) {
+          const response = await fetch(`http://localhost:5000/Sclass/Timetable/${cls._id}`);
+          const data = await response.json();
+          if (Array.isArray(data)) {
+            data.forEach(entry => {
+              if (!timetableObj[entry.day]) timetableObj[entry.day] = {};
+              timetableObj[entry.day][entry.period] = {
+                className: cls.sclassName,
+                subject: entry.subject
+              };
+            });
+          }
         }
+        setTimetable(timetableObj);
       } catch (error) {
         console.error("Failed to fetch timetable", error);
       }
@@ -57,7 +74,9 @@ const TeacherTimetable = () => {
     periods.forEach(period => {
       let row = timeSlots[period - 1];
       daysOfWeek.forEach(day => {
-        const subject = timetable[day]?.[period] || "";
+        const cell = timetable[day]?.[period];
+        const classLabel = cell ? formatClass(cell.className) : "";
+        const subject = cell ? `${classLabel} - ${cell.subject}` : "";
         row += "," + subject;
       });
       csvContent += row + "\n";
@@ -83,12 +102,12 @@ const TeacherTimetable = () => {
           mb: 3
         }}
       >
-        Class Timetable
+        Teacher Timetable
       </Typography>
       <TableContainer
         component={Paper}
         sx={{
-          borderRadius: 5,
+          borderRadius: 0,
           boxShadow: "0 8px 32px 0 rgba(25, 118, 210, 0.12)",
           overflowX: "auto",
           background: "#fff",
@@ -152,7 +171,7 @@ const TeacherTimetable = () => {
                     {timeSlots[period - 1]}
                   </TableCell>
                   {daysOfWeek.map((day, dayIdx) => {
-                    const subject = timetable?.[day]?.[period] || "";
+                    const cell = timetable?.[day]?.[period];
                     return (
                       <TableCell
                         key={`${day}-${period}`}
@@ -160,7 +179,7 @@ const TeacherTimetable = () => {
                           backgroundColor: "inherit",
                           color: "#1976d2",
                           fontWeight: 600,
-                          borderRadius: 2,
+                          borderRadius: 0,
                           textAlign: "center",
                           fontSize: "1.08rem",
                           letterSpacing: "0.10em",
@@ -170,7 +189,16 @@ const TeacherTimetable = () => {
                           borderRight: dayIdx !== daysOfWeek.length - 1 ? "2px solid #90caf9" : "none"
                         }}
                       >
-                        {subject}
+                        {cell ? (
+                          <Box>
+                            <Typography variant="body1" sx={{ color: "#1976d2", fontWeight: 700 }}>
+                              {cell.subject}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+                              ({formatClass(cell.className)})
+                            </Typography>
+                          </Box>
+                        ) : null}
                       </TableCell>
                     );
                   })}
@@ -186,7 +214,7 @@ const TeacherTimetable = () => {
                         textAlign: "center",
                         letterSpacing: "0.12em",
                         fontSize: "1.1rem",
-                        borderRadius: 2,
+                        borderRadius: 0,
                         color: "#1565c0"
                       }}
                     >
