@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Container, Box, Typography, Grid, Card, CardContent, Checkbox, CircularProgress } from "@mui/material";
+import { Button, Container, Box, Typography, Grid, Card, CardContent, Checkbox, CircularProgress, FormControlLabel } from "@mui/material";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
@@ -122,13 +122,16 @@ const SubjectSelection = () => {
                     <Typography variant="body1" color="text.secondary">
                         Select the subjects you want to add to this class
                     </Typography>
-                    <Button
-                        variant="outlined"
-                        onClick={handleSelectAll}
-                        size="small"
-                    >
-                        {selectedSubjects.length === (subjectsList?.length || 0) ? 'Deselect All' : 'Select All'}
-                    </Button>
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={selectedSubjects.length === (subjectsList?.length || 0) && subjectsList?.length > 0}
+                                onChange={handleSelectAll}
+                                color="primary"
+                            />
+                        }
+                        label={selectedSubjects.length === (subjectsList?.length || 0) ? 'Deselect All' : 'Select All'}
+                    />
                 </Box>
 
                 <Grid container spacing={2}>
