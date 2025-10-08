@@ -389,5 +389,16 @@
     "downloadTimetable": "Download Timetable",
     "selectChildMessage": "Please select a child to view their timetable.",
     "interval": "Interval (10:30-10:45)"
+  },
+  "childrenList": {
+    "loading": "Loading children list...",
+    "noParentInfo": "No parent information available.",
+    "title": "My Children",
+    "childTotal": "{{count}} Child Total",
+    "childrenTotal": "{{count}} Children Total",
+    "pageOf": "Page {{page}} of {{total}}",
+    "roll": "Roll",
+    "class": "Class",
+    "noChildren": "No child details found."
   }
 }

@@ -389,5 +389,16 @@
     "downloadTimetable": "කාලසටහන බාගත කරන්න",
     "selectChildMessage": "ඔවුන්ගේ කාලසටහන බැලීමට කරුණාකර දරුවෙකු තෝරන්න.",
     "interval": "විරාමය (10:30-10:45)"
+  },
+  "childrenList": {
+    "loading": "දරුවන්ගේ ලැයිස්තුව පූරණය වෙමින්...",
+    "noParentInfo": "පිවිසෙන පුද්ගලයින්ගේ තොරතුරු නොමැත.",
+    "title": "මගේ දරුවන්",
+    "childTotal": "{{count}} දරුවා මුළු",
+    "childrenTotal": "{{count}} දරුවන් මුළු",
+    "pageOf": "පිටුව {{page}} න් {{total}}",
+    "roll": "රෝල්",
+    "class": "පන්තිය",
+    "noChildren": "දරුවන්ගේ විස්තර කිසිවක් නොමැත."
   }
 }
