@@ -1,31 +1,46 @@
 
 import * as React from 'react';
+import { useEffect, useState } from 'react';
 import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader, Badge } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
 
 import HomeIcon from '@mui/icons-material/Home';
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
-import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
-import AssignmentIcon from '@mui/icons-material/Assignment';
+import AssignmentIcon from '@mui/icons-material/Assignment'; 
+import MenuBookIcon from '@mui/icons-material/MenuBook';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
+import axios from 'axios';
 
 
 
 const StudentSideBar = () => {
     const location = useLocation();
     const { t } = useTranslation();
-    const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
     const { noticesList } = useSelector((state) => state.notice);
+    const [assignments, setAssignments] = useState([]);
+    const [submissions, setSubmissions] = useState([]);
 
     // Count unread notices
     const unreadNoticesCount = noticesList ? noticesList.filter(notice => 
         !notice.readBy || !notice.readBy.includes(currentUser?._id)
     ).length : 0;
+
+    useEffect(() => {
+        if (currentUser && currentUser._id) {
+            axios.get(`${process.env.REACT_APP_API_BASE_URL}/assignments/student/${currentUser._id}`).then(response => setAssignments(response.data.assignments || []));
+            axios.get(`${process.env.REACT_APP_API_BASE_URL}/submissions/student/${currentUser._id}`).then(response => setSubmissions(response.data || []));
+        }
+    }, [currentUser]);
+
+    const unsubmittedAssignmentsCount = assignments.filter(assignment => !submissions.some(submission => submission.assignmentId?._id === assignment._id)).length;
 
 
 
@@ -66,7 +81,7 @@ const StudentSideBar = () => {
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <AssignmentIcon />
+                        <MenuBookIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('studentSideBar.subjects')} />
                 </ListItemButton>
@@ -88,20 +103,9 @@ const StudentSideBar = () => {
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <ClassOutlinedIcon />
+                        <HowToRegIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('studentSideBar.attendance')} />
-                </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
-                    to="/Student/grades"
-                    selected={location.pathname.startsWith("/Student/grades")}
-                    sx={selectedItemStyles}
-                >
-                    <ListItemIcon>
-                        <AssignmentIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={t('studentSideBar.grades')} />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
@@ -110,7 +114,7 @@ const StudentSideBar = () => {
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <AssignmentIcon />
+                        <AssessmentIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('studentSideBar.termReport')} />
                 </ListItemButton>
@@ -134,7 +138,7 @@ const StudentSideBar = () => {
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <AssignmentIcon />
+                        <FeedbackOutlinedIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('studentSideBar.complain')} />
                 </ListItemButton>
@@ -145,9 +149,11 @@ const StudentSideBar = () => {
                     sx={selectedItemStyles}
                 >
                     <ListItemIcon>
-                        <AssignmentIcon />
+                        <Badge badgeContent={unsubmittedAssignmentsCount} color="error" max={99}>
+                            <AssignmentIcon />
+                        </Badge>
                     </ListItemIcon>
-                    <ListItemText primary={t('studentSideBar.assignments')} />
+                    <ListItemText primary={t('Assignments')} />
                 </ListItemButton>
             </React.Fragment>
             <Divider sx={{ my: 1 }} />
