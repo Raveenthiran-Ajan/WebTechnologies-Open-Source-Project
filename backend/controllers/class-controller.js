@@ -248,12 +248,17 @@ const getClassTeachers = async (req, res) => {
 
 const getAvailableSubjects = async (req, res) => {
     try {
-        const subjects = await Subject.find({ sclassName: req.params.id }).populate('teacher', 'name');
-        if (subjects.length > 0) {
-            res.send(subjects);
-        } else {
-            res.send({ message: "No subjects found for this class" });
+        const classId = req.params.id;
+        const sclass = await Sclass.findById(classId);
+        if (!sclass) {
+            return res.status(404).json({ message: "Class not found" });
         }
+        const assignedSubjectIds = sclass.subjects.map(sub => sub.subject.toString());
+        const availableSubjects = await Subject.find({
+            school: sclass.school,
+            _id: { $nin: assignedSubjectIds }
+        }).populate('teacher', 'name');
+        res.send(availableSubjects);
     } catch (err) {
         res.status(500).json(err);
     }
