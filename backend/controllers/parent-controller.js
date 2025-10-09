@@ -119,9 +119,14 @@ const parentLogIn = async (req, res) => {
             const validated = await bcrypt.compare(password, parent.password);
             if (validated) {
                 // Populate children details for the parent's dashboard
+                // Also populate each child's class (sclassName) so UI can show proper class name
                 parent = await parent.populate({
                     path: "children",
-                    select: "-password -attendance -examResult" // Exclude sensitive/large fields
+                    select: "-password -attendance -examResult", // Exclude sensitive/large fields
+                    populate: {
+                        path: "sclassName",
+                        select: "sclassName"
+                    }
                 });
                 parent = await parent.populate("school", "schoolName");
 

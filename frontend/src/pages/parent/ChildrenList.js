@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Box, Typography, Paper, Grid, CircularProgress, Card, CardContent, Avatar, Container, Pagination, Chip, Dialog, DialogContent, LinearProgress, IconButton, Table, TableBody, TableHead, TableRow, TableCell, TableContainer, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Link } from 'react-router-dom';
 import PersonIcon from '@mui/icons-material/Person';
@@ -11,10 +11,13 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
+import { getParentDetails } from '../../redux/parentRelated/parentHandle';
 
 const ChildrenList = () => {
+    const dispatch = useDispatch();
     const { t } = useTranslation();
     const { currentUser, loading } = useSelector((state) => state.user);
+    const { parentDetails, loading: parentLoading } = useSelector((state) => state.parent);
     const [page, setPage] = useState(1);
     const [selectedChild, setSelectedChild] = useState(null);
     const [open, setOpen] = useState(false);
@@ -23,7 +26,19 @@ const ChildrenList = () => {
     const [month, setMonth] = useState('all');
     const childrenPerPage = 9; // Show 9 children per page for grid layout
 
-    if (loading) {
+    // If user children look unpopulated (ObjectId string), fetch populated parent details once
+    useEffect(() => {
+        if (!currentUser?._id) return;
+        const children = currentUser.children || [];
+        const hasUnpopulated = children.some(
+            (ch) => typeof ch?.sclassName === 'string' && ch.sclassName.length === 24 && /^[0-9a-fA-F]{24}$/.test(ch.sclassName)
+        );
+        if (hasUnpopulated && !parentDetails?.children?.length) {
+            dispatch(getParentDetails(currentUser._id));
+        }
+    }, [currentUser, parentDetails, dispatch]);
+
+    if (loading || parentLoading) {
         return (
             <Container maxWidth="lg" sx={{ py: 8 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -47,7 +62,10 @@ const ChildrenList = () => {
         );
     }
 
-    const children = currentUser.children || [];
+    // Prefer populated children from parentDetails if available
+    const children = (parentDetails?.children && parentDetails.children.length > 0)
+        ? parentDetails.children
+        : (currentUser.children || []);
     const totalPages = Math.ceil(children.length / childrenPerPage);
     const startIndex = (page - 1) * childrenPerPage;
     const currentChildren = children.slice(startIndex, startIndex + childrenPerPage);
@@ -113,7 +131,8 @@ const ChildrenList = () => {
         
         // Check if it's a MongoDB ObjectId (24 character hex string)
         if (typeof sclassName === 'string' && sclassName.length === 24 && /^[0-9a-fA-F]{24}$/.test(sclassName)) {
-            return 'Class Info Pending'; // Show pending instead of ObjectId
+            // Try to avoid showing placeholder if parentDetails is loaded
+            return 'Class Info Pending'; // Fallback label if still not populated
         }
         
         if (typeof sclassName === 'string') return sclassName;
@@ -150,7 +169,7 @@ const ChildrenList = () => {
                 </Typography>
                 {getClassName(row.sclassName) && (
                     <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                        {getClassName(row.sclassName)}
+                        {t('childrenList.class')}: {getClassName(row.sclassName)}
                     </Typography>
                 )}
             </Box>
