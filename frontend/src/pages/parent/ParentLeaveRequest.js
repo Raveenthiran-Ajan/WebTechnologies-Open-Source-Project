@@ -48,6 +48,7 @@ const ParentLeaveRequest = () => {
     const [reason, setReason] = useState('');
     const [viewing, setViewing] = useState(null);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const today = new Date().toISOString().split('T')[0];
     const [submitLoading, setSubmitLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [alertSeverity, setAlertSeverity] = useState('success');
@@ -82,6 +83,21 @@ const ParentLeaveRequest = () => {
         event.preventDefault();
         if (!student || !startDate || !endDate || !reason.trim()) {
             setMessage("Please fill all required fields.");
+            setAlertSeverity('warning');
+            return;
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set to start of day for comparison
+
+        if (new Date(startDate) < today) {
+            setMessage("Start date cannot be in the past.");
+            setAlertSeverity('warning');
+            return;
+        }
+
+        if (new Date(endDate) < today) {
+            setMessage("End date cannot be in the past.");
             setAlertSeverity('warning');
             return;
         }
@@ -203,7 +219,7 @@ const ParentLeaveRequest = () => {
         },
         {
             field: 'approvedBy',
-            headerName: 'Approved By',
+            headerName: 'Processed By',
             width: 150,
             renderCell: (params) => (
                 tabValue === 1 && params.value ? ( // Only show for processed requests
@@ -445,6 +461,9 @@ const ParentLeaveRequest = () => {
                                     InputLabelProps={{
                                         shrink: true,
                                     }}
+                                    inputProps={{
+                                        min: today
+                                    }}
                                     required
                                 />
                             </Grid>
@@ -457,6 +476,9 @@ const ParentLeaveRequest = () => {
                                     onChange={(e) => setEndDate(e.target.value)}
                                     InputLabelProps={{
                                         shrink: true,
+                                    }}
+                                    inputProps={{
+                                        min: today
                                     }}
                                     required
                                 />
@@ -552,7 +574,9 @@ const ParentLeaveRequest = () => {
 
                             {viewing.approvedBy && (
                                 <Grid item xs={12}>
-                                    <Typography variant="subtitle2" color="textSecondary">Approved By</Typography>
+                                    <Typography variant="subtitle2" color="textSecondary">
+                                        {viewing.status === 'Approved' ? 'Approved By' : 'Rejected By'}
+                                    </Typography>
                                     <Typography variant="body1">
                                         {viewing.approvedBy.name || 'N/A'}
                                     </Typography>

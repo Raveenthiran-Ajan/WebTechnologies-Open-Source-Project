@@ -2,6 +2,24 @@ const LeaveRequest = require('../models/leaveRequestSchema.js');
 
 const leaveRequestCreate = async (req, res) => {
     try {
+        const { startDate, endDate } = req.body;
+
+        // Validate dates are not in the past
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (new Date(startDate) < today) {
+            return res.status(400).json({ message: "Start date cannot be in the past" });
+        }
+
+        if (new Date(endDate) < today) {
+            return res.status(400).json({ message: "End date cannot be in the past" });
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            return res.status(400).json({ message: "End date cannot be before start date" });
+        }
+
         const leaveRequest = new LeaveRequest(req.body);
         const result = await leaveRequest.save();
         res.send(result);
