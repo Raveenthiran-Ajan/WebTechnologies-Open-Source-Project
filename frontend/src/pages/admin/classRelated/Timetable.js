@@ -302,8 +302,8 @@ const Timetable = ({ classID }) => {
       daysOfWeek.forEach(day => {
         const slot = timetable[day]?.[period];
         const subject = slot?.subjectName && slot?.teacherName
-          ? `${slot.subjectName} (${slot.teacherName})`
-          : slot?.subjectName || "";
+          ? `${slot.subjectName}\n${slot.teacherName}`
+          : slot?.subjectName || slot?.teacherName || "";
         row.push(subject);
       });
       tableRows.push(row);
@@ -468,9 +468,14 @@ const Timetable = ({ classID }) => {
                                 </FormControl>
                               </Box>
                             ) : (
-                              timetable[day]?.[period]?.subjectName && timetable[day]?.[period]?.teacherName
-                                ? `${timetable[day][period].subjectName} (${timetable[day][period].teacherName})`
-                                : timetable[day]?.[period]?.subjectName || ''
+                              timetable[day]?.[period]?.subjectName && timetable[day]?.[period]?.teacherName ? (
+                                <Box>
+                                  <Typography variant="body2" sx={{ fontWeight: 'bold' }}>{timetable[day][period].subjectName}</Typography>
+                                  <Typography variant="body2">{timetable[day][period].teacherName}</Typography>
+                                </Box>
+                              ) : (
+                                timetable[day]?.[period]?.subjectName || timetable[day]?.[period]?.teacherName || ''
+                              )
                             )}
                           </Box>
                         </Tooltip>
