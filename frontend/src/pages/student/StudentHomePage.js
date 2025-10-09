@@ -233,7 +233,7 @@ const StudentHomePage = () => {
                     {currentUser.sclassName?.sclassName}
                 </Typography>
                 <Grid container spacing={3}>
-                    <Grid item xs={12} md={3} lg={3}>
+                    <Grid item xs={12} md={4} lg={4}>
                         <StyledPaper>
                             <img src={Subject} alt="Subjects" />
                             <Title>
@@ -242,7 +242,7 @@ const StudentHomePage = () => {
                             <Data><CountUp start={0} end={numberOfSubjects} duration={2.5} /></Data>
                         </StyledPaper>
                     </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
+                    <Grid item xs={12} md={4} lg={4}>
                         <StyledPaper>
                             <img src={Assignment} alt="Assignments" />
                             <Title>
@@ -251,7 +251,7 @@ const StudentHomePage = () => {
                             <Data><CountUp start={0} end={assignments.length} duration={4} /></Data>
                         </StyledPaper>
                     </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
+                    <Grid item xs={12} md={4} lg={4}>
                         <StyledPaper>
                             <Title>Overall Attendance</Title>
                             <Data>
@@ -270,33 +270,23 @@ const StudentHomePage = () => {
                             />
                         </StyledPaper>
                     </Grid>
-                    <Grid item xs={12} md={3} lg={3}>
-                        <ChartContainer>
-                            {
-                                response ?
-                                    <Typography variant="h6">No attendance records found</Typography>
-                                    :
-                                    <>
-                                        {loading
-                                            ? (
-                                                <Typography variant="h6">Loading...</Typography>
-                                            )
-                                            :
-                                            <>
-                                                {
-                                                    subjectAttendance && Array.isArray(subjectAttendance) && subjectAttendance.length > 0 ? (
-                                                        <>
-                                                            <CustomPieChart data={chartData} />
-                                                        </>
-                                                    )
-                                                        :
-                                                        <Typography variant="h6">No attendance records found</Typography>
-                                                }
-                                            </>
-                                        }
-                                    </>
-                            }
-                        </ChartContainer>
+                    <Grid item xs={12}>
+                        <StudentSubmissions
+                            assignments={assignments}
+                            submissions={submissions}
+                            onOpenSubmissionForm={handleOpenSubmissionForm}
+                            onDownload={(assignment) => {
+                                if (assignment.fileUrl) {
+                                    window.open(`${API_BASE_URL}${assignment.fileUrl}`, '_blank');
+                                }
+                            }}
+                            onViewSubmission={handleViewSubmission}
+                            onEditSubmission={handleEditSubmission}
+                            onDeleteSubmission={handleDeleteSubmission}
+                            onFeedback={(assignmentId) => {
+                                alert(`Feedback feature for assignment ${assignmentId} coming soon!`);
+                            }}
+                        />
                     </Grid>
                     <Grid item xs={12}>
                         <Paper sx={{ p: 3, display: 'flex', flexDirection: 'column', maxHeight: 400, overflow: 'auto' }}>
@@ -306,24 +296,6 @@ const StudentHomePage = () => {
                             <SeeNotice />
                         </Paper>
                     </Grid>
-                <Grid item xs={12}>
-                    <StudentSubmissions
-                        assignments={assignments}
-                        submissions={submissions}
-                        onOpenSubmissionForm={handleOpenSubmissionForm}
-                        onDownload={(assignment) => {
-                            if (assignment.fileUrl) {
-                                window.open(`${API_BASE_URL}${assignment.fileUrl}`, '_blank');
-                            }
-                        }}
-                        onViewSubmission={handleViewSubmission}
-                        onEditSubmission={handleEditSubmission}
-                        onDeleteSubmission={handleDeleteSubmission}
-                        onFeedback={(assignmentId) => {
-                            alert(`Feedback feature for assignment ${assignmentId} coming soon!`);
-                        }}
-                    />
-                </Grid>
                 </Grid>
 
                 {/* Submission Form Inline Below Assignments */}
