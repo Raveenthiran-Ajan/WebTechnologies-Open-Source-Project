@@ -8,6 +8,8 @@
     "signup": "Sign up"
   },
   "chooseUser": {
+    "chooseUserTitle": "Choose Your Role",
+    "chooseUserDesc": "Select your role to continue to the dashboard",
     "admin": "Admin",
     "adminDesc": "Login as an administrator to access the dashboard to manage app data.",
     "student": "Student",
