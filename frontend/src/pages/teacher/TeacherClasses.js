@@ -19,12 +19,12 @@ import {
     IconButton,
     Tooltip
 } from '@mui/material';
-import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ViewListIcon from '@mui/icons-material/ViewList';
 import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import ClassIcon from '@mui/icons-material/Class';
 import PeopleIcon from '@mui/icons-material/People';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -226,7 +226,7 @@ const TeacherClasses = () => {
                             variant="outlined"
                             size="small"
                             color="primary"
-                            startIcon={<EventAvailableIcon />}
+                            startIcon={<HowToRegIcon />}
                             onClick={() => {
                                 navigate(`/teacher/class/${params.row.sclassId}/attendance`);
                             }}
@@ -384,7 +384,7 @@ const TeacherClasses = () => {
                                                                 navigate(`/teacher/class/${classItem.sclassId}/attendance`);
                                                             }}
                                                         >
-                                                            <EventAvailableIcon fontSize="small" />
+                                                            <HowToRegIcon fontSize="small" />
                                                         </IconButton>
                                                     </Tooltip>
                                                 )}
