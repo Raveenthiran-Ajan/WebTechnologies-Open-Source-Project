@@ -11,13 +11,13 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
-import { getParentDetails } from '../../redux/parentRelated/parentHandle';
+import { getParentDetails, getChildDetails } from '../../redux/parentRelated/parentHandle';
 
 const ChildrenList = () => {
     const dispatch = useDispatch();
     const { t } = useTranslation();
     const { currentUser, loading } = useSelector((state) => state.user);
-    const { parentDetails, loading: parentLoading } = useSelector((state) => state.parent);
+    const { parentDetails, currentChild, loading: parentLoading, error: parentError } = useSelector((state) => state.parent);
     const [page, setPage] = useState(1);
     const [selectedChild, setSelectedChild] = useState(null);
     const [open, setOpen] = useState(false);
@@ -25,6 +25,29 @@ const ChildrenList = () => {
     const [term, setTerm] = useState('all');
     const [month, setMonth] = useState('all');
     const childrenPerPage = 9; // Show 9 children per page for grid layout
+
+    // Term to month mapping
+    const termMonths = {
+        'TERM_1': [1, 2, 3, 4],    // Jan-Apr
+        'TERM_2': [5, 6, 7, 8],    // May-Aug
+        'TERM_3': [9, 10, 11, 12]  // Sep-Dec
+    };
+
+    const monthNames = {
+        1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June',
+        7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December'
+    };
+
+    // Adjust month when term changes to keep it consistent
+    useEffect(() => {
+        if (term === 'all') return;
+        const allowed = termMonths[term] || [];
+        const monthNum = parseInt(month, 10);
+        if (!allowed.includes(monthNum)) {
+            // Reset to first month of selected term if current month not in range
+            setMonth(String(allowed[0]));
+        }
+    }, [term]);
 
     // If user children look unpopulated (ObjectId string), fetch populated parent details once
     useEffect(() => {
@@ -38,7 +61,8 @@ const ChildrenList = () => {
         }
     }, [currentUser, parentDetails, dispatch]);
 
-    if (loading || parentLoading) {
+    // Only block entire page while user is loading; show modal-level loader for parent requests
+    if (loading) {
         return (
             <Container maxWidth="lg" sx={{ py: 8 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -99,11 +123,6 @@ const ChildrenList = () => {
 
             // Term filter
             if (term !== 'all') {
-                const termMonths = {
-                    'TERM_1': [1, 2, 3, 4],    // Jan-Apr
-                    'TERM_2': [5, 6, 7, 8],    // May-Aug
-                    'TERM_3': [9, 10, 11, 12]  // Sep-Dec
-                };
                 if (!termMonths[term]?.includes(recordMonth)) return false;
             }
 
@@ -114,6 +133,9 @@ const ChildrenList = () => {
     const handleCardClick = (child) => {
         setSelectedChild(child);
         setOpen(true);
+        if (child?._id) {
+            dispatch(getChildDetails(child._id));
+        }
     };
 
     const handleClose = () => {
@@ -285,6 +307,9 @@ const ChildrenList = () => {
 
                         {/* Filters */}
                         <Paper sx={{ p: 2, mx: 3, mt: 2 }}>
+                            {parentLoading && (
+                                <LinearProgress sx={{ mb: 2 }} />
+                            )}
                             <Grid container spacing={2}>
                                 <Grid item xs={12} sm={4}>
                                     <FormControl fullWidth size="small">
@@ -325,19 +350,18 @@ const ChildrenList = () => {
                                             label="Month"
                                             onChange={(e) => setMonth(e.target.value)}
                                         >
-                                            <MenuItem value="all">All Months</MenuItem>
-                                            <MenuItem value="1">January</MenuItem>
-                                            <MenuItem value="2">February</MenuItem>
-                                            <MenuItem value="3">March</MenuItem>
-                                            <MenuItem value="4">April</MenuItem>
-                                            <MenuItem value="5">May</MenuItem>
-                                            <MenuItem value="6">June</MenuItem>
-                                            <MenuItem value="7">July</MenuItem>
-                                            <MenuItem value="8">August</MenuItem>
-                                            <MenuItem value="9">September</MenuItem>
-                                            <MenuItem value="10">October</MenuItem>
-                                            <MenuItem value="11">November</MenuItem>
-                                            <MenuItem value="12">December</MenuItem>
+                                            {term === 'all' ? (
+                                                [
+                                                    <MenuItem key="all" value="all">All Months</MenuItem>,
+                                                    ...Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                                                        <MenuItem key={m} value={String(m)}>{monthNames[m]}</MenuItem>
+                                                    ))
+                                                ]
+                                            ) : (
+                                                (termMonths[term] || []).map((m) => (
+                                                    <MenuItem key={m} value={String(m)}>{monthNames[m]}</MenuItem>
+                                                ))
+                                            )}
                                         </Select>
                                     </FormControl>
                                 </Grid>
@@ -346,13 +370,21 @@ const ChildrenList = () => {
 
                         {/* Summary Cards */}
                         <Box sx={{ p: 3 }}>
+                            {parentError && (
+                                <Typography color="error" sx={{ mb: 2, textAlign: 'center' }}>
+                                    {String(parentError)}
+                                </Typography>
+                            )}
                             <Grid container spacing={2} sx={{ mb: 3 }}>
                                 <Grid item xs={12} sm={6} md={4}>
                                     <Card sx={{ backgroundColor: 'rgba(76, 175, 80, 0.1)', border: '1px solid #4caf50' }}>
                                         <CardContent sx={{ textAlign: 'center' }}>
                                             <CheckCircleIcon sx={{ fontSize: 40, color: '#4caf50', mb: 1 }} />
                                             <Typography variant="h4" fontWeight="bold" color="#4caf50">
-                                                {filterAttendance(selectedChild.attendance).filter(att => att.status === 'Present').length}
+                                                {(() => {
+                                                    const att = (currentChild && selectedChild && currentChild._id === selectedChild._id && currentChild.attendance) ? currentChild.attendance : (selectedChild?.attendance || []);
+                                                    return filterAttendance(att).filter(a => a.status === 'Present').length;
+                                                })()}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
                                                 Present Days
@@ -366,7 +398,10 @@ const ChildrenList = () => {
                                         <CardContent sx={{ textAlign: 'center' }}>
                                             <CancelIcon sx={{ fontSize: 40, color: '#f44336', mb: 1 }} />
                                             <Typography variant="h4" fontWeight="bold" color="#f44336">
-                                                {filterAttendance(selectedChild.attendance).filter(att => att.status === 'Absent').length}
+                                                {(() => {
+                                                    const att = (currentChild && selectedChild && currentChild._id === selectedChild._id && currentChild.attendance) ? currentChild.attendance : (selectedChild?.attendance || []);
+                                                    return filterAttendance(att).filter(a => a.status === 'Absent').length;
+                                                })()}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
                                                 Absent Days
@@ -380,7 +415,10 @@ const ChildrenList = () => {
                                         <CardContent sx={{ textAlign: 'center' }}>
                                             <AssessmentIcon sx={{ fontSize: 40, color: '#2196f3', mb: 1 }} />
                                             <Typography variant="h4" fontWeight="bold" color="#2196f3">
-                                                {calculateAttendancePercentage(filterAttendance(selectedChild.attendance))}%
+                                                {(() => {
+                                                    const att = (currentChild && selectedChild && currentChild._id === selectedChild._id && currentChild.attendance) ? currentChild.attendance : (selectedChild?.attendance || []);
+                                                    return calculateAttendancePercentage(filterAttendance(att));
+                                                })()}%
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
                                                 Attendance %
@@ -396,18 +434,21 @@ const ChildrenList = () => {
                                     <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
                                         Attendance Records
                                     </Typography>
-                                    {filterAttendance(selectedChild.attendance).length > 0 ? (
+                                    {(() => {
+                                        const att = (currentChild && selectedChild && currentChild._id === selectedChild._id && currentChild.attendance) ? currentChild.attendance : (selectedChild?.attendance || []);
+                                        const filtered = filterAttendance(att);
+                                        return filtered.length > 0 ? (
                                         <TableContainer>
                                             <Table size="small">
                                                 <TableHead>
                                                     <TableRow sx={{ bgcolor: 'grey.50' }}>
                                                         <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
                                                         <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                                                        <TableCell sx={{ fontWeight: 'bold' }}>Subject</TableCell>
+                                                        {/* Subject column removed as per requirement */}
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
-                                                    {filterAttendance(selectedChild.attendance).slice(-10).reverse().map((record, index) => (
+                                                    {filtered.slice(-10).reverse().map((record, index) => (
                                                         <TableRow key={index}>
                                                             <TableCell>
                                                                 {new Date(record.date).toLocaleDateString()}
@@ -422,19 +463,18 @@ const ChildrenList = () => {
                                                                     size="small"
                                                                 />
                                                             </TableCell>
-                                                            <TableCell>
-                                                                {record.subName?.subName || 'N/A'}
-                                                            </TableCell>
+                                                            {/* Subject cell removed */}
                                                         </TableRow>
                                                     ))}
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>
-                                    ) : (
+                                        ) : (
                                         <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
                                             No attendance records match the selected filters
                                         </Typography>
-                                    )}
+                                        );
+                                    })()}
                                 </CardContent>
                             </Card>
                         </Box>
