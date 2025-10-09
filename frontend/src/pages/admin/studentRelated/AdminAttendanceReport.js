@@ -112,13 +112,32 @@ const AdminAttendanceReport = () => {
                         const overallPercentage = calculateOverallAttendancePercentage(filteredAttendance);
                         const attendanceBySubject = groupAttendanceBySubject(filteredAttendance);
                         
+                        // Calculate per-student academic days (unique dates where attendance was marked as Present or Absent)
+                        const attendanceByDateForStudent = {};
+                        (filteredAttendance || []).forEach(att => {
+                            const dateKey = new Date(att.date).toDateString();
+                            if (!attendanceByDateForStudent[dateKey]) {
+                                attendanceByDateForStudent[dateKey] = {
+                                    hasPresent: false,
+                                    hasAbsent: false,
+                                    hasHoliday: false
+                                };
+                            }
+                            if (att.status === 'Present') attendanceByDateForStudent[dateKey].hasPresent = true;
+                            else if (att.status === 'Absent') attendanceByDateForStudent[dateKey].hasAbsent = true;
+                            else if (att.status === 'Holiday') attendanceByDateForStudent[dateKey].hasHoliday = true;
+                        });
+
+                        const studentAcademicDays = Object.values(attendanceByDateForStudent).filter(d => !d.hasHoliday && (d.hasPresent || d.hasAbsent)).length;
+                        const studentPresentDays = Object.values(attendanceByDateForStudent).filter(d => d.hasPresent).length;
+
                         return {
                             ...student,
                             attendance: filteredAttendance,
                             overallPercentage,
                             attendanceBySubject,
-                            totalClasses: filteredAttendance.length,
-                            presentClasses: filteredAttendance.filter(a => a.status === 'Present').length
+                            totalClasses: studentAcademicDays,
+                            presentClasses: studentPresentDays
                         };
                     } catch (error) {
                         console.error(`Error fetching data for student ${student._id}:`, error);
@@ -149,9 +168,27 @@ const AdminAttendanceReport = () => {
             };
 
             // Calculate overall attendance statistics
-            const allAttendanceRecords = studentsWithAttendance.flatMap(student => student.attendance);
-            const workingDays = allAttendanceRecords.length;
-            const holidayCount = allAttendanceRecords.filter(record => record.status === 'Holiday').length;
+            // Calculate class-level statistics based on unique dates
+            const allAttendanceRecords = studentsWithAttendance.flatMap(student => student.attendance || []);
+            const attendanceByDateClass = {};
+            allAttendanceRecords.forEach(record => {
+                const dateKey = new Date(record.date).toDateString();
+                if (!attendanceByDateClass[dateKey]) {
+                    attendanceByDateClass[dateKey] = {
+                        hasPresent: false,
+                        hasAbsent: false,
+                        hasHoliday: false
+                    };
+                }
+                if (record.status === 'Present') attendanceByDateClass[dateKey].hasPresent = true;
+                else if (record.status === 'Absent') attendanceByDateClass[dateKey].hasAbsent = true;
+                else if (record.status === 'Holiday') attendanceByDateClass[dateKey].hasHoliday = true;
+            });
+
+            const academicDays = Object.values(attendanceByDateClass).filter(d => !d.hasHoliday && (d.hasPresent || d.hasAbsent)).length;
+            const holidayCount = Object.values(attendanceByDateClass).filter(d => d.hasHoliday).length;
+
+            // presentCount/absentCount remain the total occurrences across students (optional: could be converted to per-day counts)
             const presentCount = allAttendanceRecords.filter(record => record.status === 'Present').length;
             const absentCount = allAttendanceRecords.filter(record => record.status === 'Absent').length;
 
@@ -159,7 +196,7 @@ const AdminAttendanceReport = () => {
                 totalStudents,
                 classAverage: classAverage.toFixed(1),
                 attendanceRanges,
-                workingDays,
+                academicDays,
                 holidayCount,
                 presentCount,
                 absentCount
@@ -218,7 +255,7 @@ const AdminAttendanceReport = () => {
         }
         yPosition += 20; // Space before table
 
-        const tableColumn = ['Roll No', 'Student Name', 'Working Days', 'Present Days', 'Attendance %', 'Status'];
+    const tableColumn = ['Roll No', 'Student Name', 'Academic Days', 'Present Days', 'Attendance %', 'Status'];
         const tableRows = studentsData.map(student => [
             student.rollNum,
             student.name,
@@ -329,7 +366,7 @@ const AdminAttendanceReport = () => {
                     <CardContent sx={{ textAlign: 'center' }}>
                         <EventIcon sx={{ fontSize: 40, color: '#4caf50', mb: 1 }} />
                         <Typography variant="h4" fontWeight="bold" color="#4caf50">
-                            {reportData.workingDays}
+                            {reportData.academicDays}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                             Academic Days
