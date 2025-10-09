@@ -109,17 +109,17 @@ const ChildrenList = () => {
 
     // Helper function to get class name
     const getClassName = (sclassName) => {
-        if (!sclassName) return 'Not Assigned';
-        
+        if (!sclassName) return t('childrenList.notAssigned');
+
         // Check if it's a MongoDB ObjectId (24 character hex string)
         if (typeof sclassName === 'string' && sclassName.length === 24 && /^[0-9a-fA-F]{24}$/.test(sclassName)) {
-            return 'Class Info Pending'; // Show pending instead of ObjectId
+            return t('childrenList.classInfoPending'); // Show pending instead of ObjectId
         }
-        
+
         if (typeof sclassName === 'string') return sclassName;
         if (typeof sclassName === 'object' && sclassName.sclassName) return sclassName.sclassName;
         if (typeof sclassName === 'object' && sclassName.name) return sclassName.name;
-        return 'Unknown Class'; // Show something for unknown formats
+        return t('childrenList.unknownClass'); // Show something for unknown formats
     };
 
     const CustomCard = ({ row }) => (
@@ -260,7 +260,7 @@ const ChildrenList = () => {
                         }}>
                             <EventAvailableIcon sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                                {selectedChild.name}'s Attendance Dashboard
+                                {t('childrenList.attendanceDashboard', { name: selectedChild.name })}
                             </Typography>
                         </Box>
 
@@ -269,56 +269,56 @@ const ChildrenList = () => {
                             <Grid container spacing={2}>
                                 <Grid item xs={12} sm={4}>
                                     <FormControl fullWidth size="small">
-                                        <InputLabel>Academic Year</InputLabel>
+                                        <InputLabel>{t('childrenList.academicYear')}</InputLabel>
                                         <Select
                                             value={academicYear}
-                                            label="Academic Year"
+                                            label={t('childrenList.academicYear')}
                                             onChange={(e) => setAcademicYear(e.target.value)}
                                         >
                                             <MenuItem value="2024">2024</MenuItem>
                                             <MenuItem value="2025">2025</MenuItem>
-                                            <MenuItem value="all">All Years</MenuItem>
+                                            <MenuItem value="all">{t('childrenList.allYears')}</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>
 
                                 <Grid item xs={12} sm={4}>
                                     <FormControl fullWidth size="small">
-                                        <InputLabel>Term</InputLabel>
+                                        <InputLabel>{t('childrenList.term')}</InputLabel>
                                         <Select
                                             value={term}
-                                            label="Term"
+                                            label={t('childrenList.term')}
                                             onChange={(e) => setTerm(e.target.value)}
                                         >
-                                            <MenuItem value="TERM_1">Term 1</MenuItem>
-                                            <MenuItem value="TERM_2">Term 2</MenuItem>
-                                            <MenuItem value="TERM_3">Term 3</MenuItem>
-                                            <MenuItem value="all">All Terms</MenuItem>
+                                            <MenuItem value="TERM_1">{t('parentTermReport.term1')}</MenuItem>
+                                            <MenuItem value="TERM_2">{t('parentTermReport.term2')}</MenuItem>
+                                            <MenuItem value="TERM_3">{t('parentTermReport.term3')}</MenuItem>
+                                            <MenuItem value="all">{t('childrenList.allTerms')}</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>
 
                                 <Grid item xs={12} sm={4}>
                                     <FormControl fullWidth size="small">
-                                        <InputLabel>Month</InputLabel>
+                                        <InputLabel>{t('childrenList.month')}</InputLabel>
                                         <Select
                                             value={month}
-                                            label="Month"
+                                            label={t('childrenList.month')}
                                             onChange={(e) => setMonth(e.target.value)}
                                         >
-                                            <MenuItem value="all">All Months</MenuItem>
-                                            <MenuItem value="1">January</MenuItem>
-                                            <MenuItem value="2">February</MenuItem>
-                                            <MenuItem value="3">March</MenuItem>
-                                            <MenuItem value="4">April</MenuItem>
-                                            <MenuItem value="5">May</MenuItem>
-                                            <MenuItem value="6">June</MenuItem>
-                                            <MenuItem value="7">July</MenuItem>
-                                            <MenuItem value="8">August</MenuItem>
-                                            <MenuItem value="9">September</MenuItem>
-                                            <MenuItem value="10">October</MenuItem>
-                                            <MenuItem value="11">November</MenuItem>
-                                            <MenuItem value="12">December</MenuItem>
+                                            <MenuItem value="all">{t('childrenList.allMonths')}</MenuItem>
+                                            <MenuItem value="1">{t('childrenList.january')}</MenuItem>
+                                            <MenuItem value="2">{t('childrenList.february')}</MenuItem>
+                                            <MenuItem value="3">{t('childrenList.march')}</MenuItem>
+                                            <MenuItem value="4">{t('childrenList.april')}</MenuItem>
+                                            <MenuItem value="5">{t('childrenList.may')}</MenuItem>
+                                            <MenuItem value="6">{t('childrenList.june')}</MenuItem>
+                                            <MenuItem value="7">{t('childrenList.july')}</MenuItem>
+                                            <MenuItem value="8">{t('childrenList.august')}</MenuItem>
+                                            <MenuItem value="9">{t('childrenList.september')}</MenuItem>
+                                            <MenuItem value="10">{t('childrenList.october')}</MenuItem>
+                                            <MenuItem value="11">{t('childrenList.november')}</MenuItem>
+                                            <MenuItem value="12">{t('childrenList.december')}</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>
@@ -336,7 +336,7 @@ const ChildrenList = () => {
                                                 {filterAttendance(selectedChild.attendance).filter(att => att.status === 'Present').length}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
-                                                Present Days
+                                                {t('childrenList.presentDays')}
                                             </Typography>
                                         </CardContent>
                                     </Card>
@@ -350,7 +350,7 @@ const ChildrenList = () => {
                                                 {filterAttendance(selectedChild.attendance).filter(att => att.status === 'Absent').length}
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
-                                                Absent Days
+                                                {t('childrenList.absentDays')}
                                             </Typography>
                                         </CardContent>
                                     </Card>
@@ -364,7 +364,7 @@ const ChildrenList = () => {
                                                 {calculateAttendancePercentage(filterAttendance(selectedChild.attendance))}%
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary">
-                                                Attendance %
+                                                {t('childrenList.attendancePercentage')}
                                             </Typography>
                                         </CardContent>
                                     </Card>
@@ -375,16 +375,16 @@ const ChildrenList = () => {
                             <Card>
                                 <CardContent>
                                     <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
-                                        Attendance Records
+                                        {t('childrenList.attendanceRecords')}
                                     </Typography>
                                     {filterAttendance(selectedChild.attendance).length > 0 ? (
                                         <TableContainer>
                                             <Table size="small">
                                                 <TableHead>
                                                     <TableRow sx={{ bgcolor: 'grey.50' }}>
-                                                        <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
-                                                        <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                                                        <TableCell sx={{ fontWeight: 'bold' }}>Subject</TableCell>
+                                                        <TableCell sx={{ fontWeight: 'bold' }}>{t('childrenList.date')}</TableCell>
+                                                        <TableCell sx={{ fontWeight: 'bold' }}>{t('childrenList.status')}</TableCell>
+                                                        <TableCell sx={{ fontWeight: 'bold' }}>{t('childrenList.subject')}</TableCell>
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
@@ -413,7 +413,7 @@ const ChildrenList = () => {
                                         </TableContainer>
                                     ) : (
                                         <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                                            No attendance records match the selected filters
+                                            {t('childrenList.noAttendanceRecords')}
                                         </Typography>
                                     )}
                                 </CardContent>

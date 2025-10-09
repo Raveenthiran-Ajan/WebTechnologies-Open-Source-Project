@@ -86,7 +86,7 @@ const ParentHomePage = () => {
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
             >
                 <Alert onClose={() => setShowPwdChanged(false)} severity="success" sx={{ width: '100%' }}>
-                    Password changed successfully!
+                    {t('parentHomePage.passwordChangedSuccess')}
                 </Alert>
             </Snackbar>
             {/* Header Section */}
