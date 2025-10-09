@@ -27,7 +27,7 @@ export const deleteParent = (id, address) => async (dispatch) => {
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
-            dispatch(getDeleteSuccess());
+            dispatch(getDeleteSuccess(id));
         }
     } catch (error) {
         dispatch(getError(error));

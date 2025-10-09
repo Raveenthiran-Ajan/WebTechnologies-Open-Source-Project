@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getClassStudents } from "../../redux/sclassRelated/sclassHandle";
-import { Paper, Box, Typography, Container, Button, Grid, TextField, Alert, CircularProgress } from '@mui/material';
+import { Paper, Box, Typography, Container, Button, TextField, Alert, CircularProgress, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { updateStudentTermMarks } from '../../redux/studentRelated/studentHandle';
 import { underStudentControl } from '../../redux/studentRelated/studentSlice';
+import { getTeacherDetails } from '../../redux/teacherRelated/teacherHandle';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -30,6 +31,7 @@ const TeacherClassDetails = () => {
     const { sclassStudents, loading, error: classError, getresponse } = useSelector((state) => state.sclass);
     const { classId } = useParams();
     const { statestatus, response, error: studentError, loading: studentLoading } = useSelector((state) => state.student);
+    const { teacherDetails } = useSelector((state) => state.teacher);
 
     const [marks, setMarks] = useState({});
     const [message, setMessage] = useState('');
@@ -37,7 +39,59 @@ const TeacherClassDetails = () => {
     const [marksMode, setMarksMode] = useState(false);
     const { currentUser } = useSelector((state) => state.user);
     // Use classId from params if available, otherwise fallback to current user's class
-    const classID = classId || currentUser.teachSclass?._id
+    const classID = classId || currentUser.teachSclass?._id;
+
+    // Ensure we have fresh teacher details (contains teachAssignments)
+    useEffect(() => {
+        if (currentUser?._id) {
+            dispatch(getTeacherDetails(currentUser._id));
+        }
+    }, [dispatch, currentUser?._id]);
+
+    // All subjects this teacher teaches for the current class (prefer teachAssignments)
+    const subjectsForClass = useMemo(() => {
+        if (!classID) return [];
+
+        // Prefer new mapping pairs
+        const assignments = teacherDetails?.teachAssignments || currentUser?.teachAssignments || [];
+        const list = assignments
+            .filter(a => {
+                const sId = typeof a.sclass === 'object' ? a.sclass._id : a.sclass;
+                return sId === classID;
+            })
+            .map(a => a.subject)
+            .filter(Boolean);
+
+        if (list.length) return list;
+
+        // Backwards compatibility fallbacks
+        if (currentUser.teachSubject) return [currentUser.teachSubject];
+
+        if (currentUser.teachSubjects && Array.isArray(currentUser.teachSubjects)) {
+            const found = currentUser.teachSubjects.filter(subject => {
+                if (subject.sclass && Array.isArray(subject.sclass)) {
+                    return subject.sclass.some(sclass => sclass._id === classID || sclass === classID);
+                }
+                return subject.sclass === classID || subject.sclass?._id === classID;
+            });
+            return found;
+        }
+
+        return [];
+    }, [teacherDetails?.teachAssignments, currentUser?.teachAssignments, currentUser?.teachSubject, currentUser?.teachSubjects, classID]);
+
+    // Currently selected subject for marks entry
+    const [selectedSubject, setSelectedSubject] = useState(null);
+
+    // Keep selectedSubject in sync with available subjects
+    useEffect(() => {
+        if (!selectedSubject && subjectsForClass.length > 0) {
+            setSelectedSubject(subjectsForClass[0]);
+        } else if (selectedSubject) {
+            const exists = subjectsForClass.some(s => (typeof s === 'object' ? s._id : s) === (typeof selectedSubject === 'object' ? selectedSubject._id : selectedSubject));
+            if (!exists) setSelectedSubject(subjectsForClass[0] || null);
+        }
+    }, [subjectsForClass, selectedSubject]);
 
     useEffect(() => {
         if (classID) {
@@ -46,26 +100,20 @@ const TeacherClassDetails = () => {
     }, [dispatch, classID]);
 
     useEffect(() => {
-        if (sclassStudents && sclassStudents.length > 0) {
-            // For teachers with multiple subjects, we can't pre-fill marks
-            // Only pre-fill if teacher has a single subject
-            const teacherSubject = currentUser.teachSubject || (currentUser.teachSubjects && currentUser.teachSubjects.length === 1 ? currentUser.teachSubjects[0] : null);
-            
-            if (teacherSubject) {
-                const initialMarks = {};
-                sclassStudents.forEach(student => {
-                    const subjectId = typeof teacherSubject === 'object' ? teacherSubject._id : teacherSubject;
-                    const getMarkForTerm = (term) => student.examResult?.find(res => res.subName?._id === subjectId && res.term === term);
-                    initialMarks[student._id] = {
-                        TERM_1: { grade: getMarkForTerm('TERM_1')?.grade || '', marksObtained: getMarkForTerm('TERM_1')?.marksObtained ?? '' },
-                        TERM_2: { grade: getMarkForTerm('TERM_2')?.grade || '', marksObtained: getMarkForTerm('TERM_2')?.marksObtained ?? '' },
-                        TERM_3: { grade: getMarkForTerm('TERM_3')?.grade || '', marksObtained: getMarkForTerm('TERM_3')?.marksObtained ?? '' },
-                    };
-                });
-                setMarks(initialMarks);
-            }
+        if (sclassStudents && sclassStudents.length > 0 && selectedSubject) {
+            const initialMarks = {};
+            sclassStudents.forEach(student => {
+                const subjectId = typeof selectedSubject === 'object' ? selectedSubject._id : selectedSubject;
+                const getMarkForTerm = (term) => student.examResult?.find(res => res.subName?._id === subjectId && res.term === term);
+                initialMarks[student._id] = {
+                    TERM_1: { grade: getMarkForTerm('TERM_1')?.grade || '', marksObtained: getMarkForTerm('TERM_1')?.marksObtained ?? '' },
+                    TERM_2: { grade: getMarkForTerm('TERM_2')?.grade || '', marksObtained: getMarkForTerm('TERM_2')?.marksObtained ?? '' },
+                    TERM_3: { grade: getMarkForTerm('TERM_3')?.grade || '', marksObtained: getMarkForTerm('TERM_3')?.marksObtained ?? '' },
+                };
+            });
+            setMarks(initialMarks);
         }
-    }, [sclassStudents, currentUser.teachSubject, currentUser.teachSubjects]);
+    }, [sclassStudents, selectedSubject]);
     const handleMarksChange = (studentId, term, value) => {
         const newMarks = value;
         const newGrade = getGradeFromMarks(newMarks);
@@ -82,11 +130,10 @@ const TeacherClassDetails = () => {
         const terms = ['TERM_1', 'TERM_2', 'TERM_3'];
         
         // Determine which subject to use for saving marks
-        const teacherSubject = currentUser.teachSubject || (currentUser.teachSubjects && currentUser.teachSubjects.length === 1 ? currentUser.teachSubjects[0] : null);
-        const subjectId = typeof teacherSubject === 'object' ? teacherSubject._id : teacherSubject;
+        const subjectId = selectedSubject ? (typeof selectedSubject === 'object' ? selectedSubject._id : selectedSubject) : null;
         
         if (!subjectId) {
-            setMessage('Cannot save marks: No specific subject assigned to this teacher for this class');
+            setMessage('Cannot save marks: No specific subject selected for this class');
             setAlertSeverity('error');
             return;
         }
@@ -185,17 +232,6 @@ const TeacherClassDetails = () => {
             headerName: 'Student Name',
             width: 200,
             flex: 1
-        },
-        {
-            field: 'actions',
-            headerName: 'Actions',
-            width: 150,
-            headerAlign: 'center',
-            align: 'right',
-            sortable: false,
-            renderCell: (params) => (
-                <Button variant="contained" onClick={() => navigate(`/teacher/class/student/${params.row.id}`)}>View</Button>
-            )
         }
     ];
     const filteredStudents = Array.isArray(sclassStudents) ? sclassStudents : [];
@@ -225,31 +261,6 @@ const TeacherClassDetails = () => {
                 </Box>
             ) : (
                 <>
-                    {/* Class Header */}
-                    <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
-                        <Typography variant="h4" component="h1" gutterBottom align="center" color="primary">
-                            Class Details
-                        </Typography>
-                        
-                        <Grid container spacing={2} sx={{ mt: 2 }}>
-                            <Grid item xs={12} md={6}> 
-                                <Typography variant="h6" color="text.secondary">Class Information</Typography>
-                                <Typography variant="body1">Class ID: {classID}</Typography>
-                                <Typography variant="body1">
-                                    Subject: {(() => {
-                                        const teacherSubject = currentUser.teachSubject || (currentUser.teachSubjects && currentUser.teachSubjects.length === 1 ? currentUser.teachSubjects[0] : null);
-                                        return teacherSubject ? (typeof teacherSubject === 'object' ? teacherSubject.subName : 'Multiple subjects') : 'No specific subject';
-                                    })()}
-                                </Typography>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Typography variant="h6" color="text.secondary">Teacher Information</Typography>
-                                <Typography variant="body1">Name: {currentUser.name}</Typography>
-                                <Typography variant="body1">Email: {currentUser.email}</Typography>
-                            </Grid>
-                        </Grid>
-                    </Box>
-
                     {/* Students List */}
                     {getresponse ? (
                         <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, textAlign: 'center' }}>
@@ -260,12 +271,32 @@ const TeacherClassDetails = () => {
                     ) : (
                         <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3 }}>
                             {message && <Alert severity={alertSeverity} sx={{ mb: 2 }} onClose={() => setMessage('')}>{message}</Alert>}
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2, flexWrap: 'wrap' }}>
                                 {marksMode ? (
                                     <>
                                         <Typography variant="h5" component="h2" gutterBottom>
-                                            Manage Class Marks for {currentUser.teachSubject?.subName}
+                                            Add Marks for {(typeof selectedSubject === 'object' ? selectedSubject?.subName : '') || 'Subject'}
                                         </Typography>
+                                        {subjectsForClass.length > 1 && (
+                                            <FormControl size="small" sx={{ minWidth: 220 }}>
+                                                <InputLabel id="subject-select-label">Subject</InputLabel>
+                                                <Select
+                                                    labelId="subject-select-label"
+                                                    label="Subject"
+                                                    value={selectedSubject ? (typeof selectedSubject === 'object' ? selectedSubject._id : selectedSubject) : ''}
+                                                    onChange={(e) => {
+                                                        const newSel = subjectsForClass.find(s => (typeof s === 'object' ? s._id : s) === e.target.value);
+                                                        setSelectedSubject(newSel || null);
+                                                    }}
+                                                >
+                                                    {subjectsForClass.map((s) => (
+                                                        <MenuItem key={(typeof s === 'object' ? s._id : s)} value={(typeof s === 'object' ? s._id : s)}>
+                                                            {typeof s === 'object' ? s.subName : s}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </FormControl>
+                                        )}
                                         <Button variant="outlined" onClick={() => setMarksMode(false)}>Back to List</Button>
                                     </>
                                 ) : (
@@ -273,16 +304,15 @@ const TeacherClassDetails = () => {
                                         <Typography variant="h5" component="h2" gutterBottom>
                                             Students List
                                         </Typography>
-                                        {(() => {
-                                            const teacherSubject = currentUser.teachSubject || (currentUser.teachSubjects && currentUser.teachSubjects.length === 1 ? currentUser.teachSubjects[0] : null);
-                                            return teacherSubject ? (
-                                                <Button variant="contained" onClick={() => setMarksMode(true)}>Add Marks</Button>
-                                            ) : (
-                                                <Typography variant="body2" color="text.secondary">
-                                                    Marks entry not available: No specific subject assigned to this teacher for this class
-                                                </Typography>
-                                            );
-                                        })()}
+                                        {subjectsForClass.length > 0 ? (
+                                            <Button variant="contained" onClick={() => setMarksMode(true)}>
+                                                Add Marks{subjectsForClass.length > 1 ? ' (select subject next)' : ''}
+                                            </Button>
+                                        ) : (
+                                            <Typography variant="body2" color="text.secondary">
+                                                Marks entry not available: No subject assigned to this teacher for this class
+                                            </Typography>
+                                        )}
                                     </>
                                 )}
                             </Box>

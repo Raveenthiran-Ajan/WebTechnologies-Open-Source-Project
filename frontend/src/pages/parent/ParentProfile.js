@@ -130,116 +130,38 @@ const ParentProfile = () => {
                 </Typography>
             </Box>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={4} justifyContent="center">
                 {/* Personal Information Card */}
-                <Grid item xs={12} md={6}>
-                    <Card sx={{ 
-                        '&:hover': { 
-                            boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
-                        },
-                        transition: 'box-shadow 0.3s ease'
-                    }}>
-                        <Box sx={{ bgcolor: 'primary.main', color: 'white', p: 2, textAlign: 'center' }}>
-                            <PersonIcon sx={{ fontSize: 32, mb: 1 }} />
+                <Grid item xs={12} md={8}>
+                    <Card 
+                        sx={{ 
+                            borderRadius: 3,
+                            minHeight: 300,
+                            '&:hover': { 
+                                transform: 'translateY(-4px)',
+                                boxShadow: '0 12px 24px rgba(0,0,0,0.15)'
+                            },
+                            transition: 'all 0.3s ease-in-out'
+                        }}
+                    >
+                        <Box sx={{
+                            background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                            color: 'white',
+                            p: 3,
+                            textAlign: 'center'
+                        }}>
+                            <PersonIcon sx={{ fontSize: 40, mb: 1 }} />
                             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                {t('parentProfile.personalInfo')}
+                                {currentUser.name}
                             </Typography>
                         </Box>
-                        <CardContent sx={{ p: 3 }}>
-                            <Box sx={{ mb: 2 }}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                    {t('parentProfile.fullName')}
-                                </Typography>
-                                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                    {currentUser.name}
-                                </Typography>
-                            </Box>
-                            
-                            <Divider sx={{ my: 2 }} />
-                            
-                            <Box sx={{ mb: 2 }}>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                    {t('parentProfile.emailAddress')}
-                                </Typography>
-                                <Typography variant="body1">
-                                    {currentUser.email}
-                                </Typography>
-                            </Box>
-                            
-                            <Divider sx={{ my: 2 }} />
-                            
-                            <Box>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                    {t('parentProfile.phoneNumber')}
-                                </Typography>
-                                <Typography variant="body1">
-                                    {currentUser.phone || t('parentProfile.notProvided')}
-                                </Typography>
-                            </Box>
-                            
-                            <Divider sx={{ my: 2 }} />
-                            
-                            <Box sx={{ textAlign: 'center', mt: 2 }}>
-                                <Button variant="contained" onClick={handleOpen} sx={{ minWidth: 150 }}>
-                                    {t('parentProfile.changePassword')}
-                                </Button>
-                            </Box>
-                        </CardContent>
-                    </Card>
-                </Grid>
-                
-                {/* Children Information Card */}
-                <Grid item xs={12} md={6}>
-                    <Card sx={{ 
-                        '&:hover': { 
-                            boxShadow: '0 4px 8px rgba(0,0,0,0.15)'
-                        },
-                        transition: 'box-shadow 0.3s ease'
-                    }}>
-                        <Box sx={{ bgcolor: 'secondary.main', color: 'white', p: 2, textAlign: 'center' }}>
-                            <FamilyRestroomIcon sx={{ fontSize: 32, mb: 1 }} />
-                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                                {t('parentProfile.childrenInfo')}
+                        <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 2 }}>
+                                {t('parentProfile.emailAddress')}: {currentUser.email}
                             </Typography>
-                        </Box>
-                        <CardContent sx={{ p: 3 }}>
-                            <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
-                                {currentUser.children ? currentUser.children.length : 0} {currentUser.children?.length === 1 ? t('parentProfile.child') : t('parentProfile.children')}
-                            </Typography>
-                            
-                            {currentUser.children && currentUser.children.length > 0 ? (
-                                <Box>
-                                    {currentUser.children.map((child, index) => (
-                                        <Box key={index} sx={{ 
-                                            mb: 2, 
-                                            p: 2, 
-                                            bgcolor: 'grey.100', 
-                                            borderRadius: 1,
-                                            borderLeft: '3px solid',
-                                            borderLeftColor: 'primary.main'
-                                        }}>
-                                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                                {child.name}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {t('parentProfile.roll')} {child.rollNum}
-                                            </Typography>
-                                            {getClassName(child.sclassName) && (
-                                                <Typography variant="body2" color="text.secondary">
-                                                    {t('parentProfile.class')} {getClassName(child.sclassName)}
-                                                </Typography>
-                                            )}
-                                        </Box>
-                                    ))}
-                                </Box>
-                            ) : (
-                                <Box sx={{ textAlign: 'center', py: 3 }}>
-                                    <FamilyRestroomIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
-                                    <Typography variant="body1" color="text.secondary">
-                                        {t('parentProfile.noChildrenLinked')}
-                                    </Typography>
-                                </Box>
-                            )}
+                            <Button variant="contained" onClick={handleOpen} sx={{ mt: 2 }}>
+                                {t('parentProfile.changePassword')}
+                            </Button>
                         </CardContent>
                     </Card>
                 </Grid>
