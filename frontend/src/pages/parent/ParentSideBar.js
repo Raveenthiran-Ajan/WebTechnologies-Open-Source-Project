@@ -8,10 +8,10 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import NotificationsIcon from '@mui/icons-material/Notifications';
-import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import { useSelector } from 'react-redux';
 
 const ParentSideBar = () => {
@@ -114,7 +114,7 @@ const ParentSideBar = () => {
                 </ListItemButton>
                 <ListItemButton component={Link} to="/Parent/complaints" selected={location.pathname.startsWith("/Parent/complaints")} sx={selectedItemStyles}>
                     <ListItemIcon>
-                        <ReportProblemIcon />
+                        <FeedbackOutlinedIcon />
                     </ListItemIcon>
                     <ListItemText primary={t('parentSideBar.complaints')} />
                 </ListItemButton>

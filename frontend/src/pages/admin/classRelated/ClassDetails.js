@@ -282,13 +282,13 @@ const ClassDetails = () => {
     }
 
     const teacherColumns = [
-        { field: 'name', headerName: 'Teacher Name', width: 180 },
-        { field: 'subject', headerName: 'Subject', width: 150 },
-        { field: 'email', headerName: 'Email', width: 180 },
+        { field: 'name', headerName: 'Teacher Name', flex: 1 },
+        { field: 'subject', headerName: 'Subject', flex: 1 },
+        { field: 'email', headerName: 'Email', flex: 1 },
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 180,
+            flex: 1,
             renderCell: (params) => {
                 return (
                     <Box>
@@ -312,7 +312,7 @@ const ClassDetails = () => {
     const teacherRows = sclassTeachers && sclassTeachers.length > 0 ? sclassTeachers.map((teacher) => ({
         id: teacher._id,
         name: teacher.name,
-        subject: teacher.teachSubject?.subName || 'N/A',
+        subject: teacher.assignedSubjects && teacher.assignedSubjects.length > 0 ? teacher.assignedSubjects.join(', ') : (teacher.teachSubject?.subName || 'N/A'),
         email: teacher.email || 'N/A',
     })) : [];
 

@@ -69,9 +69,13 @@ const sclassList = async (req, res) => {
         if (sclasses.length > 0) {
             const sclassesWithCounts = await Promise.all(sclasses.map(async (sclass) => {
                 const studentCount = await Student.countDocuments({ sclassName: sclass._id });
-                // Only teachers who teach any subject in the class
-                const subjectIds = await Subject.find({ sclassName: sclass._id }).distinct('_id');
-                const teacherObjs = await Teacher.find({ teachSubjects: { $in: subjectIds } }).select('_id name email');
+                // Find teachers directly assigned to the class
+                const teacherObjs = await Teacher.find({
+                    $or: [
+                        { teachSclasses: sclass._id },
+                        { teachSclass: sclass._id }
+                    ]
+                }).select('_id name email');
                 const teacherCount = teacherObjs.length;
                 return {
                     ...sclass,
@@ -280,10 +284,28 @@ const updateTimetable = async (req, res) => {
 
 const getClassTeachers = async (req, res) => {
     try {
-        let teachers = await Teacher.find({ teachSclass: req.params.id }).populate('teachSubject', 'subName');
+        let teachers = await Teacher.find({
+            $or: [
+                { teachSclasses: req.params.id },
+                { teachSclass: req.params.id },
+                { 'teachAssignments.sclass': req.params.id }
+            ]
+        }).populate('teachSubject', 'subName').populate('teachAssignments.subject', 'subName');
         if (teachers.length > 0) {
             let modifiedTeachers = teachers.map((teacher) => {
                 const { password, ...teacherWithoutPassword } = teacher._doc;
+                // Find subjects assigned to this class
+                let assignedSubjects = [];
+                if (teacher.teachAssignments && teacher.teachAssignments.length > 0) {
+                    assignedSubjects = teacher.teachAssignments
+                        .filter(assignment => assignment.sclass.toString() === req.params.id)
+                        .map(assignment => assignment.subject?.subName)
+                        .filter(sub => sub);
+                }
+                if (assignedSubjects.length === 0 && teacher.teachSubject) {
+                    assignedSubjects = [teacher.teachSubject.subName];
+                }
+                teacherWithoutPassword.assignedSubjects = assignedSubjects;
                 return teacherWithoutPassword;
             });
             res.send(modifiedTeachers);
