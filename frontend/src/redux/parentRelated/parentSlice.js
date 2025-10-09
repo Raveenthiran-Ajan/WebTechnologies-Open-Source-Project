@@ -54,7 +54,9 @@ const parentSlice = createSlice({
             state.error = null;
             state.status = 'updated';
         },
-        getDeleteSuccess: (state) => {
+        getDeleteSuccess: (state, action) => {
+            // Remove the deleted parent from the parentsList
+            state.parentsList = state.parentsList.filter(parent => parent._id !== action.payload);
             state.loading = false;
             state.error = null;
             state.status = 'deleted';

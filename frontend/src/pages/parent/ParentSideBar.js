@@ -83,18 +83,6 @@ const ParentSideBar = () => {
                         <ListItemText primary={t('parentSideBar.notices')} />
                     </Badge>
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Parent/reports" selected={location.pathname.startsWith("/Parent/reports")} sx={selectedItemStyles}>
-                    <ListItemIcon>
-                        <AssessmentIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={t('parentSideBar.reports')} />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Parent/timetable" selected={location.pathname.startsWith("/Parent/timetable")} sx={selectedItemStyles}>
-                    <ListItemIcon>
-                        <ScheduleIcon />
-                    </ListItemIcon>
-                    <ListItemText primary={t('parentSideBar.timetable')} />
-                </ListItemButton>
                 <ListItemButton
                     component={Link}
                     to="/Parent/term-report"

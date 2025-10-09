@@ -36,10 +36,7 @@ const ShowParents = () => {
     };
 
     const deleteHandler = (id, address) => {
-        dispatch(deleteParent(id, address))
-            .then(() => {
-                dispatch(getAllParents(adminID));
-            })
+        dispatch(deleteParent(id, address));
     }
 
     const columns = [
