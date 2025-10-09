@@ -39,6 +39,7 @@ const upload = multer({
 // Teacher creates a new assignment
 const mongoose = require("mongoose");
 const Sclass = require("../models/sclassSchema");
+const Teacher = require("../models/teacherSchema");
 
 // Removed any duplicate mongoose declarations if present
 
@@ -278,27 +279,33 @@ const getTeacherSubjectsForClass = async (req, res) => {
   try {
     const { teacherId, classId } = req.params;
 
-    // Find the class and populate its subjects with teacher field
-    const classData = await Sclass.findById(classId).populate({
-      path: 'subjects.subject',
-      select: 'subName teacher',
+    // Find the teacher and populate teachAssignments with subject
+    const teacher = await Teacher.findById(teacherId).populate({
+      path: 'teachAssignments.subject',
+      select: 'subName'
     });
 
-    console.log("Class data for getTeacherSubjectsForClass:", JSON.stringify(classData, null, 2));
-
-    if (!classData) {
-      return res.status(404).json({ error: "Class not found" });
+    if (!teacher) {
+      return res.status(404).json({ error: "Teacher not found" });
     }
 
-    // Filter subjects that belong to this class and are taught by the teacher
-    const teacherSubjects = classData.subjects
-      .map(subjectInfo => subjectInfo.subject)
-      .filter(subject => subject && subject.teacher && subject.teacher.equals(mongoose.Types.ObjectId(teacherId)));
+    // Filter teachAssignments for the specific class
+    const assignmentsForClass = teacher.teachAssignments.filter(assignment =>
+      assignment.sclass.toString() === classId
+    );
 
-    console.log("Filtered teacherSubjects:", JSON.stringify(teacherSubjects, null, 2));
+    // Get unique subjects
+    const subjectMap = new Map();
+    assignmentsForClass.forEach(assignment => {
+      if (assignment.subject && !subjectMap.has(assignment.subject._id.toString())) {
+        subjectMap.set(assignment.subject._id.toString(), assignment.subject);
+      }
+    });
+
+    const subjects = Array.from(subjectMap.values());
 
     // Return only necessary fields
-    const result = teacherSubjects.map(subj => ({
+    const result = subjects.map(subj => ({
       _id: subj._id,
       subName: subj.subName,
     }));
