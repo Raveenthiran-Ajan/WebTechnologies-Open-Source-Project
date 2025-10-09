@@ -23,7 +23,6 @@ import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import Popup from "../../../components/Popup";
 import Delete from "@mui/icons-material/Delete";
-import PostAddIcon from '@mui/icons-material/PostAdd';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import axios from 'axios';
 import { API_BASE_URL } from '../../../config';
@@ -164,13 +163,6 @@ const ClassDetails = () => {
                 <GridToolbarFilterButton />
                 <GridToolbarDensitySelector />
                 <GridToolbarExport />
-                <Box sx={{ flexGrow: 1 }} />
-                <Button
-                    startIcon={<PostAddIcon />}
-                    onClick={() => navigate("/Admin/addsubject/" + classID)}
-                >
-                    Add Subject
-                </Button>
             </GridToolbarContainer>
         );
     }
@@ -186,13 +178,6 @@ const ClassDetails = () => {
                         <Typography variant="h6" gutterBottom>
                             No subjects found
                         </Typography>
-                        <Button
-                            variant="contained"
-                            startIcon={<PostAddIcon />}
-                            onClick={() => navigate("/Admin/addsubject/" + classID)}
-                        >
-                            Add Subjects
-                        </Button>
                     </Box>
                 ) : (
                     <Box sx={{ height: 400, width: '100%' }}>

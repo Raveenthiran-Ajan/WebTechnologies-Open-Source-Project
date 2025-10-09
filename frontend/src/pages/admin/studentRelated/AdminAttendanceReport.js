@@ -24,7 +24,7 @@ import {
     TextField
 } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Download as DownloadIcon, Assessment as AssessmentIcon, Group as GroupIcon, TrendingUp as TrendingUpIcon, Warning as WarningIcon, KeyboardArrowDown, KeyboardArrowUp, Event as EventIcon, HolidayVillage as HolidayIcon, CheckCircle as CheckCircleIcon, Cancel as CancelIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { Download as DownloadIcon, Group as GroupIcon, TrendingUp as TrendingUpIcon, Warning as WarningIcon, KeyboardArrowDown, KeyboardArrowUp, Event as EventIcon, HolidayVillage as HolidayIcon, CheckCircle as CheckCircleIcon, Cancel as CancelIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { getClassStudents } from '../../../redux/sclassRelated/sclassHandle';
 import { getAllSclasses } from '../../../redux/sclassRelated/sclassHandle';
 import axios from 'axios';
@@ -73,12 +73,12 @@ const AdminAttendanceReport = () => {
 
     useEffect(() => {
         if (selectedClass) {
-            dispatch(getClassStudents(selectedClass));
+            dispatch(getClassStudents(getSelectedClassId()));
         }
     }, [dispatch, selectedClass]);
 
     useEffect(() => {
-        if (sclassStudents && sclassStudents.length > 0 && selectedClass) {
+        if (sclassStudents && sclassStudents.length > 0 && getSelectedClassId()) {
             generateReport();
         }
     }, [sclassStudents, selectedMonth, selectedYear, selectedTerm, reportType, selectedClass]);
@@ -180,9 +180,17 @@ const AdminAttendanceReport = () => {
         return months[monthIndex];
     };
 
+    const getSelectedClassId = () => {
+        const selectedClassObj = sclassesList.find(cls => cls.sclassName === selectedClass);
+        return selectedClassObj ? selectedClassObj._id : '';
+    };
+
     const getSelectedClassName = () => {
-        const selectedClassObj = sclassesList.find(cls => cls._id === selectedClass);
-        return selectedClassObj ? selectedClassObj.sclassName : '';
+        if (selectedClass) {
+            const cls = sclassesList.find(c => c.sclassName === selectedClass || c._id === selectedClass);
+            return cls ? cls.sclassName : selectedClass;
+        }
+        return '';
     };
 
     const exportToPDF = () => {
@@ -316,8 +324,8 @@ const AdminAttendanceReport = () => {
     // Redesigned Statistics Cards
     const renderStatisticsCards = () => (
         <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ backgroundColor: 'rgba(76, 175, 80, 0.1)', border: '1px solid #4caf50' }}>
+            <Grid item xs={12} sm={6} md={4}>
+                <Card sx={{ backgroundColor: 'rgba(76, 175, 80, 0.1)', border: '1px solid #4caf50', height: '100%' }}>
                     <CardContent sx={{ textAlign: 'center' }}>
                         <EventIcon sx={{ fontSize: 40, color: '#4caf50', mb: 1 }} />
                         <Typography variant="h4" fontWeight="bold" color="#4caf50">
@@ -330,8 +338,8 @@ const AdminAttendanceReport = () => {
                 </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ backgroundColor: 'rgba(255, 193, 7, 0.1)', border: '1px solid #ffc107' }}>
+            <Grid item xs={12} sm={6} md={4}>
+                <Card sx={{ backgroundColor: 'rgba(255, 193, 7, 0.1)', border: '1px solid #ffc107', height: '100%' }}>
                     <CardContent sx={{ textAlign: 'center' }}>
                         <HolidayIcon sx={{ fontSize: 40, color: '#ffc107', mb: 1 }} />
                         <Typography variant="h4" fontWeight="bold" color="#ffc107">
@@ -344,22 +352,8 @@ const AdminAttendanceReport = () => {
                 </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ backgroundColor: 'rgba(33, 150, 243, 0.1)', border: '1px solid #2196f3', height: '100%' }}>
-                    <CardContent sx={{ textAlign: 'center' }}>
-                        <AssessmentIcon sx={{ fontSize: 40, color: '#2196f3', mb: 1 }} />
-                        <Typography variant="h4" fontWeight="bold" color="#2196f3">
-                            {reportData.totalClasses || 0}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Total Scheduled Classes
-                        </Typography>
-                    </CardContent>
-                </Card>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-                <Card sx={{ backgroundColor: 'rgba(156, 39, 176, 0.1)', border: '1px solid #9c27b0' }}>
+            <Grid item xs={12} sm={6} md={4}>
+                <Card sx={{ backgroundColor: 'rgba(156, 39, 176, 0.1)', border: '1px solid #9c27b0', height: '100%' }}>
                     <CardContent sx={{ textAlign: 'center' }}>
                         <GroupIcon sx={{ fontSize: 40, color: '#9c27b0', mb: 1 }} />
                         <Typography variant="h4" fontWeight="bold" color="#9c27b0">
@@ -388,24 +382,18 @@ const AdminAttendanceReport = () => {
 
             <Grid container spacing={2}>
                 <Grid item xs={12} sm={6} md={3}>
-                    <FormControl fullWidth size="small">
-                        <InputLabel>Class</InputLabel>
-                        <Select
-                            value={selectedClass}
-                            label="Class"
-                            onChange={(e) => setSelectedClass(e.target.value)}
-                        >
-                            {sclassesList && sclassesList.map((cls) => (
-                                <MenuItem key={cls._id} value={cls._id}>
-                                    {cls.sclassName}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
+                    <TextField
+                        label="Class"
+                        placeholder="Search class"
+                        value={selectedClass}
+                        onChange={(e) => setSelectedClass(e.target.value)}
+                        size="small"
+                        fullWidth
+                    />
                 </Grid>
 
                 <Grid item xs={12} sm={6} md={3}>
-                    <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Typography variant="body2" color="text.secondary" gutterBottom>
                             Report Type
                         </Typography>

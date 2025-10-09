@@ -33,6 +33,26 @@ const studentSchema = new mongoose.Schema({
         type: String,
         default: "Student"
     },
+    dob: {
+        type: String,
+        required: false
+    },
+    gender: {
+        type: String,
+        required: false
+    },
+    phone: {
+        type: String,
+        required: false
+    },
+    address: {
+        type: String,
+        required: false
+    },
+    emergencyContact: {
+        type: String,
+        required: false
+    },
     examResult: [
         {
             subName: {

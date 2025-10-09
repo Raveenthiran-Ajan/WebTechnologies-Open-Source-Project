@@ -152,6 +152,9 @@ const updateStudent = async (req, res) => {
             { $set: req.body },
             { new: true })
 
+        result = await Student.populate(result, { path: "school", select: "schoolName" });
+        result = await Student.populate(result, { path: "sclassName", select: "sclassName" });
+
         result.password = undefined;
         res.send(result)
     } catch (error) {

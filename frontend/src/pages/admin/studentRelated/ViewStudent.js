@@ -11,7 +11,6 @@ import { KeyboardArrowUp, KeyboardArrowDown, Delete as DeleteIcon } from '@mui/i
 import { removeStuff, updateStudentFields } from '../../../redux/studentRelated/studentHandle';
 import { calculateOverallAttendancePercentage, calculateSubjectAttendancePercentage, groupAttendanceBySubject } from '../../../components/attendanceCalculator';
 import CustomBarChart from '../../../components/CustomBarChart'
-import CustomPieChart from '../../../components/CustomPieChart'
 import { StyledTableCell, StyledTableRow } from '../../../components/styles';
 
 import InsertChartIcon from '@mui/icons-material/InsertChart';
@@ -19,6 +18,7 @@ import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import Popup from '../../../components/Popup';
+import dayjs from 'dayjs';
 
 const ViewStudent = () => {
     const navigate = useNavigate()
@@ -352,18 +352,52 @@ const ViewStudent = () => {
                                     {studentSchool?.schoolName}
                                 </Typography>
                             </Box>
-                        </Box>
-                        
-                        {subjectAttendance && Array.isArray(subjectAttendance) && subjectAttendance.length > 0 && (
-                            <Box sx={{ mt: 4 }}>
-                                <Typography variant="h6" gutterBottom color="text.secondary">
-                                    Attendance Overview
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Date of Birth
                                 </Typography>
-                                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                                    <CustomPieChart data={chartData} />
-                                </Box>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {userDetails?.dob ? dayjs(userDetails.dob).format('DD/MM/YYYY') : 'N/A'}
+                                </Typography>
                             </Box>
-                        )}
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Gender
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {userDetails?.gender || 'N/A'}
+                                </Typography>
+                            </Box>
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Phone
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {userDetails?.phone || 'N/A'}
+                                </Typography>
+                            </Box>
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Address
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {userDetails?.address || 'N/A'}
+                                </Typography>
+                            </Box>
+                            
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Emergency Contact
+                                </Typography>
+                                <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                                    {userDetails?.emergencyContact || 'N/A'}
+                                </Typography>
+                            </Box>
+                        </Box>
                         
                         <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
                             <Button variant="outlined" onClick={() => navigate(-1)}>

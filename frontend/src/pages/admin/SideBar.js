@@ -53,17 +53,6 @@ const SideBar = () => {
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 
-                    to="/Admin/classes"
-                    selected={location.pathname.startsWith('/Admin/classes')}
-                    sx={selectedItemStyles}
-                >
-                    <ListItemIcon>
-                        <ClassOutlinedIcon />
-                    </ListItemIcon>
-                    <ListItemText primary="Classes" />
-                </ListItemButton>
-                <ListItemButton 
-                    component={Link} 
                     to="/Admin/subjects"
                     selected={location.pathname.startsWith("/Admin/subjects")}
                     sx={selectedItemStyles}
@@ -72,6 +61,17 @@ const SideBar = () => {
                         <MenuBookIcon />
                     </ListItemIcon>
                     <ListItemText primary="Subjects" />
+                </ListItemButton>
+                <ListItemButton 
+                    component={Link} 
+                    to="/Admin/classes"
+                    selected={location.pathname.startsWith('/Admin/classes')}
+                    sx={selectedItemStyles}
+                >
+                    <ListItemIcon>
+                        <ClassOutlinedIcon />
+                    </ListItemIcon>
+                    <ListItemText primary="Classes" />
                 </ListItemButton>
                 <ListItemButton 
                     component={Link} 

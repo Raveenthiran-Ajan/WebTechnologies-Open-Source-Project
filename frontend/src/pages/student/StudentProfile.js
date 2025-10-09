@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Card, CardContent, Typography, Grid, Box, Avatar, Container, Paper, TextField, Button, Modal, Snackbar, Alert } from '@mui/material';
+import { Card, CardContent, Typography, Grid, Box, Avatar, Container, Paper, TextField, Button, Modal, Snackbar, Alert, Select, MenuItem } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../../redux/userRelated/userHandle';
-import { underControl } from '../../redux/userRelated/userSlice';
+import { underControl, authSuccess } from '../../redux/userRelated/userSlice';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 
 const StudentProfile = () => {
   const dispatch = useDispatch();
-  const { currentUser, status } = useSelector((state) => state.user);
+  const { currentUser, status, tempDetails } = useSelector((state) => state.user);
 
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState({
@@ -26,6 +30,7 @@ const StudentProfile = () => {
   const [newPassword, setNewPassword] = useState('');
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [lastAction, setLastAction] = useState('');
 
   const sclassName = currentUser.sclassName;
   const studentSchool = currentUser.school;
@@ -51,9 +56,10 @@ const StudentProfile = () => {
   };
 
   const handleSave = () => {
-    // dispatch(updateStudentProfile(form));
+    const { name, rollNum, ...updateData } = form;
+    setLastAction('profile');
+    dispatch(updateUser(updateData, currentUser._id, 'Student'));
     setEditMode(false);
-    // Optionally show a success message
   };
 
   const handleOpen = () => {
@@ -65,6 +71,7 @@ const StudentProfile = () => {
   };
 
   const handlePasswordChange = () => {
+    setLastAction('password');
     dispatch(updateUser({ oldPassword, newPassword }, currentUser._id, 'Student/password'));
     handleClose();
   };
@@ -79,12 +86,29 @@ const StudentProfile = () => {
   useEffect(() => {
     if (status === 'added') {
       setOpenSnackbar(true);
+      if (lastAction === 'profile') {
+        dispatch(authSuccess(tempDetails));
+      }
       dispatch(underControl());
     }
-  }, [status, dispatch]);
+  }, [status, dispatch, lastAction]);
+
+  useEffect(() => {
+    setForm({
+      name: currentUser.name || '',
+      rollNum: currentUser.rollNum || '',
+      dob: currentUser.dob || '',
+      gender: currentUser.gender || '',
+      email: currentUser.email || '',
+      phone: currentUser.phone || '',
+      address: currentUser.address || '',
+      emergencyContact: currentUser.emergencyContact || '',
+    });
+  }, [currentUser]);
 
   return (
-    <Container maxWidth="md">
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <Container maxWidth="md">
       <StyledPaper elevation={3}>
         <Grid container spacing={2}>
           <Grid item xs={12}>
@@ -96,38 +120,16 @@ const StudentProfile = () => {
           </Grid>
           <Grid item xs={12}>
             <Box display="flex" justifyContent="center">
-              {editMode ? (
-                <TextField
-                  name="name"
-                  label="Name"
-                  value={form.name}
-                  onChange={handleChange}
-                  variant="outlined"
-                  size="small"
-                />
-              ) : (
-                <Typography variant="h5" component="h2" textAlign="center">
-                  {form.name}
-                </Typography>
-              )}
+              <Typography variant="h5" component="h2" textAlign="center">
+                {form.name}
+              </Typography>
             </Box>
           </Grid>
           <Grid item xs={12}>
             <Box display="flex" justifyContent="center">
-              {editMode ? (
-                <TextField
-                  name="rollNum"
-                  label="Roll Number"
-                  value={form.rollNum}
-                  onChange={handleChange}
-                  variant="outlined"
-                  size="small"
-                />
-              ) : (
-                <Typography variant="subtitle1" component="p" textAlign="center">
-                  Student Roll No: {form.rollNum}
-                </Typography>
-              )}
+              <Typography variant="subtitle1" component="p" textAlign="center">
+                Student Roll No: {form.rollNum}
+              </Typography>
             </Box>
           </Grid>
           <Grid item xs={12}>
@@ -154,24 +156,21 @@ const StudentProfile = () => {
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               {editMode ? (
-                <TextField
-                  name="dob"
+                <DatePicker
                   label="Date of Birth"
-                  value={form.dob}
-                  onChange={handleChange}
-                  variant="outlined"
-                  size="small"
-                  fullWidth
+                  value={form.dob && dayjs(form.dob).isValid() ? dayjs(form.dob) : null}
+                  onChange={(newValue) => setForm({ ...form, dob: newValue ? newValue.format('YYYY-MM-DD') : '' })}
+                  renderInput={(params) => <TextField {...params} fullWidth size="small" />}
                 />
               ) : (
                 <Typography variant="subtitle1" component="p">
-                  <strong>Date of Birth:</strong> {form.dob || 'N/A'}
+                  <strong>Date of Birth:</strong> {form.dob ? dayjs(form.dob).format('DD/MM/YYYY') : 'N/A'}
                 </Typography>
               )}
             </Grid>
             <Grid item xs={12} sm={6}>
               {editMode ? (
-                <TextField
+                <Select
                   name="gender"
                   label="Gender"
                   value={form.gender}
@@ -179,7 +178,15 @@ const StudentProfile = () => {
                   variant="outlined"
                   size="small"
                   fullWidth
-                />
+                  displayEmpty
+                >
+                  <MenuItem value="">
+                    <em>Select Gender</em>
+                  </MenuItem>
+                  <MenuItem value="Male">Male</MenuItem>
+                  <MenuItem value="Female">Female</MenuItem>
+                  <MenuItem value="Other">Other</MenuItem>
+                </Select>
               ) : (
                 <Typography variant="subtitle1" component="p">
                   <strong>Gender:</strong> {form.gender || 'N/A'}
@@ -318,10 +325,11 @@ const StudentProfile = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
-          Password changed successfully!
+          {lastAction === 'password' ? 'Password changed successfully!' : 'Profile updated successfully!'}
         </Alert>
       </Snackbar>
-    </Container>
+      </Container>
+    </LocalizationProvider>
   )
 }
 
