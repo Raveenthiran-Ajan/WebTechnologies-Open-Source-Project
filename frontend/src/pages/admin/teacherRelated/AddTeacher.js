@@ -28,6 +28,7 @@ const AddTeacher = () => {
   const [password, setPassword] = useState('');
   const [autoGeneratePassword, setAutoGeneratePassword] = useState(true);
   const [attendanceClass, setAttendanceClass] = useState('');
+  const [classesWithTeachers, setClassesWithTeachers] = useState(new Set());
   const [showPopup, setShowPopup] = useState(false);
   const [message, setMessage] = useState("");
   const [loader, setLoader] = useState(false)
@@ -46,6 +47,28 @@ const AddTeacher = () => {
       setSubjectsByClass({});
     }
   }, [selectedClasses]);
+
+  // Fetch all teachers to build classesWithTeachers
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const schoolId = currentUser._id; // Assuming admin's _id is schoolId
+        const res = await axios.get(`${API_BASE_URL}/Teachers/${schoolId}`);
+        const clsTeacherSet = new Set();
+        const list = Array.isArray(res.data) ? res.data : [];
+        list.forEach(t => {
+          if (!t) return;
+          const ac = t.attendanceClass;
+          const acId = ac && (typeof ac === 'object' ? ac._id : ac);
+          if (acId) clsTeacherSet.add(acId);
+        });
+        setClassesWithTeachers(clsTeacherSet);
+      } catch (e) {
+        // ignore
+      }
+    };
+    if (currentUser._id) load();
+  }, [currentUser._id]);
 
   const fetchSubjectsForClasses = async () => {
     try {
@@ -314,25 +337,30 @@ const AddTeacher = () => {
                 Select one class where this teacher will serve as the class teacher. Only one class can have a class teacher assigned.
               </Typography>
               <Box sx={{ mb: 4 }}>
-                {selectedClasses.map((classItem) => (
-                  <FormControlLabel
-                    key={classItem._id}
-                    control={
-                      <Checkbox
-                        checked={attendanceClass === classItem._id}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setAttendanceClass(classItem._id);
-                          } else {
-                            setAttendanceClass('');
-                          }
-                        }}
-                        color="primary"
+                {selectedClasses.map((classItem) => {
+                  const isDisabled = classesWithTeachers.has(classItem._id);
+                  return (
+                    <Tooltip key={classItem._id} title={isDisabled ? 'Class teacher already assigned' : ''}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={attendanceClass === classItem._id}
+                            disabled={isDisabled}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setAttendanceClass(classItem._id);
+                              } else {
+                                setAttendanceClass('');
+                              }
+                            }}
+                            color="primary"
+                          />
+                        }
+                        label={classItem.sclassName}
                       />
-                    }
-                    label={classItem.sclassName}
-                  />
-                ))}
+                    </Tooltip>
+                  );
+                })}
               </Box>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
