@@ -164,26 +164,18 @@ const getLeaveRequestsByTeacher = async (req, res) => {
             });
         }
 
-        // Determine which class this teacher is responsible for
-        // Priority: attendanceClass (class teacher) > teachSclass > teachSclasses
-        let responsibleClassId = null;
-
-        if (teacher.attendanceClass && teacher.attendanceClass._id) {
-            responsibleClassId = teacher.attendanceClass._id;
-        } else if (teacher.teachSclass && teacher.teachSclass._id) {
-            responsibleClassId = teacher.teachSclass._id;
-        } else if (teacher.teachSclasses && teacher.teachSclasses.length > 0) {
-            // Use the first class if multiple are assigned
-            responsibleClassId = teacher.teachSclasses[0]._id;
-        }
-
-        if (!responsibleClassId) {
+        // Only class teachers (those with attendanceClass set) should receive leave requests
+        if (!teacher.attendanceClass || !teacher.attendanceClass._id) {
+            console.log(`Teacher ${teacher.name} (${teacherId}): Not a class teacher, no attendanceClass set`);
             return res.json({
                 success: true,
                 data: { pending: [], processed: [] },
-                message: "No class assigned to this teacher"
+                message: "Only class teachers can view leave requests"
             });
         }
+
+        const responsibleClassId = teacher.attendanceClass._id;
+        console.log(`Teacher ${teacher.name} (${teacherId}): Class teacher for class ${responsibleClassId}`);
 
         // Get students in the teacher's responsible class
         const Student = require('../models/studentSchema.js');
@@ -219,6 +211,8 @@ const getLeaveRequestsByTeacher = async (req, res) => {
             .populate('student', 'name rollNum sclassName')
             .populate('approvedBy', 'name')
             .sort({ approvedDate: -1 }); // Most recently processed first
+
+        console.log(`Teacher ${teacher.name} (${teacherId}): Found ${pendingRequests.length} pending, ${processedRequests.length} processed leave requests for class ${responsibleClassId}`);
 
         res.json({
             success: true,
