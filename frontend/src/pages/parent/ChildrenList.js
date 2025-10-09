@@ -444,7 +444,6 @@ const ChildrenList = () => {
                                                     <TableRow sx={{ bgcolor: 'grey.50' }}>
                                                         <TableCell sx={{ fontWeight: 'bold' }}>{t('childrenList.date')}</TableCell>
                                                         <TableCell sx={{ fontWeight: 'bold' }}>{t('childrenList.status')}</TableCell>
-                                                        <TableCell sx={{ fontWeight: 'bold' }}>{t('childrenList.subject')}</TableCell>
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
