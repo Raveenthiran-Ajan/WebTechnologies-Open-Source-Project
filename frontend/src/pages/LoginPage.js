@@ -28,23 +28,20 @@ const LoginPage = ({ role }) => {
     const [emailError, setEmailError] = useState(false);
     const [passwordError, setPasswordError] = useState(false);
     const [rollNumberError, setRollNumberError] = useState(false);
-    const [studentNameError, setStudentNameError] = useState(false);
 
     const handleSubmit = (event) => {
         event.preventDefault();
 
         if (role === "Student") {
             const rollNum = event.target.rollNumber.value;
-            const studentName = event.target.studentName.value;
             const password = event.target.password.value;
 
-            if (!rollNum || !studentName || !password) {
+            if (!rollNum || !password) {
                 if (!rollNum) setRollNumberError(true);
-                if (!studentName) setStudentNameError(true);
                 if (!password) setPasswordError(true);
                 return;
             }
-            const fields = { rollNum, studentName, password }
+            const fields = { rollNum, password }
             setLoader(true)
             dispatch(loginUser(fields, role))
         }
@@ -70,7 +67,6 @@ const LoginPage = ({ role }) => {
         if (name === 'email') setEmailError(false);
         if (name === 'password') setPasswordError(false);
         if (name === 'rollNumber') setRollNumberError(false);
-        if (name === 'studentName') setStudentNameError(false);
     };
 
     const guestModeHandler = () => {
@@ -84,8 +80,7 @@ const LoginPage = ({ role }) => {
         }
         else if (role === "Student") {
             const rollNum = "1"
-            const studentName = "Dipesh Awasthi"
-            const fields = { rollNum, studentName, password }
+            const fields = { rollNum, password }
             setGuestLoader(true)
             dispatch(loginUser(fields, role))
         }
@@ -191,19 +186,6 @@ const LoginPage = ({ role }) => {
                                         autoFocus
                                         error={rollNumberError}
                                         helperText={rollNumberError && getText('rollRequired')}
-                                        onChange={handleInputChange}
-                                    />
-                                    <TextField
-                                        margin="normal"
-                                        required
-                                        fullWidth
-                                        id="studentName"
-                                        label={getText('nameLabel')}
-                                        name="studentName"
-                                        autoComplete="name"
-                                        autoFocus
-                                        error={studentNameError}
-                                        helperText={studentNameError && getText('nameRequired')}
                                         onChange={handleInputChange}
                                     />
                                 </>
