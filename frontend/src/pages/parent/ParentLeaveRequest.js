@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import {
     Container,
     Typography,
@@ -50,6 +51,7 @@ const ParentLeaveRequest = () => {
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
     const { leaveRequestsList, loading: leaveLoading } = useSelector((state) => state.leaveRequest);
+    const { t } = useTranslation();
 
     const [openDialog, setOpenDialog] = useState(false);
     const [student, setStudent] = useState('');
@@ -115,7 +117,7 @@ const ParentLeaveRequest = () => {
     const handleSubmit = async (event) => {
         event.preventDefault();
         if (!student || !startDate || !endDate || !reason.trim()) {
-            setMessage("Please fill all required fields.");
+            setMessage(t('parentLeaveRequest.fillRequiredFields'));
             setAlertSeverity('warning');
             return;
         }
@@ -126,20 +128,20 @@ const ParentLeaveRequest = () => {
         // Only validate past dates if not an emergency
         if (!isEmergency) {
             if (new Date(startDate) < today) {
-                setMessage("Start date cannot be in the past. For past dates, check 'Emergency/Medical Leave'.");
+                setMessage(t('parentLeaveRequest.startDatePastError'));
                 setAlertSeverity('warning');
                 return;
             }
 
             if (new Date(endDate) < today) {
-                setMessage("End date cannot be in the past. For past dates, check 'Emergency/Medical Leave'.");
+                setMessage(t('parentLeaveRequest.endDatePastError'));
                 setAlertSeverity('warning');
                 return;
             }
         }
 
         if (new Date(startDate) > new Date(endDate)) {
-            setMessage("End date cannot be before start date.");
+            setMessage(t('parentLeaveRequest.endDateBeforeStartError'));
             setAlertSeverity('warning');
             return;
         }
@@ -201,7 +203,7 @@ const ParentLeaveRequest = () => {
     const columns = [
         {
             field: 'id',
-            headerName: 'Request #',
+            headerName: t('parentLeaveRequest.requestNumber'),
             width: 120,
             headerAlign: 'center',
             align: 'center',
@@ -216,7 +218,7 @@ const ParentLeaveRequest = () => {
         },
         {
             field: 'student',
-            headerName: 'Student',
+            headerName: t('parentLeaveRequest.student'),
             width: 150,
             renderCell: (params) => (
                 <Box sx={{ py: 1 }}>
@@ -231,7 +233,7 @@ const ParentLeaveRequest = () => {
         },
         {
             field: 'dateRange',
-            headerName: 'Leave Period',
+            headerName: t('parentLeaveRequest.leavePeriod'),
             width: 200,
             renderCell: (params) => (
                 <Box sx={{ py: 1 }}>
@@ -243,7 +245,7 @@ const ParentLeaveRequest = () => {
         },
         {
             field: 'reason',
-            headerName: 'Reason',
+            headerName: t('parentLeaveRequest.reason'),
             width: 200,
             flex: 1,
             renderCell: (params) => (
@@ -262,7 +264,7 @@ const ParentLeaveRequest = () => {
         },
         {
             field: 'approvedBy',
-            headerName: 'Processed By',
+            headerName: t('parentLeaveRequest.processedBy'),
             width: 150,
             renderCell: (params) => (
                 tabValue === 1 && params.value ? ( // Only show for processed requests
@@ -271,14 +273,14 @@ const ParentLeaveRequest = () => {
                     </Typography>
                 ) : tabValue === 0 ? ( // Show "Not yet" for pending requests
                     <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
-                        Not yet
+                        {t('parentLeaveRequest.notYet')}
                     </Typography>
                 ) : null
             ),
         },
         {
             field: 'status',
-            headerName: 'Status',
+            headerName: t('parentLeaveRequest.status'),
             width: 130,
             headerAlign: 'center',
             align: 'center',
@@ -296,7 +298,7 @@ const ParentLeaveRequest = () => {
         },
         {
             field: 'actions',
-            headerName: 'Actions',
+            headerName: t('parentLeaveRequest.actions'),
             width: 200,
             headerAlign: 'center',
             align: 'center',
@@ -309,7 +311,7 @@ const ParentLeaveRequest = () => {
                         onClick={() => handleView(params.row)}
                         sx={{ textTransform: 'none', minWidth: 'auto', px: 2 }}
                     >
-                        View Details
+                        {t('parentLeaveRequest.viewDetails')}
                     </Button>
                     {tabValue === 0 && ( // Only show delete for pending requests
                         <IconButton
@@ -389,7 +391,7 @@ const ParentLeaveRequest = () => {
             <Box sx={{ backgroundColor: 'white', p: 4, borderRadius: 2, boxShadow: 3, mb: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h4" component="h1" color="primary">
-                        Leave Requests
+                        {t('parentLeaveRequest.title')}
                     </Typography>
                     <Button
                         variant="contained"
@@ -398,14 +400,14 @@ const ParentLeaveRequest = () => {
                         onClick={() => setOpenDialog(true)}
                         sx={{ textTransform: 'none' }}
                     >
-                        Request Leave
+                        {t('parentLeaveRequest.requestLeave')}
                     </Button>
                 </Box>
 
                 <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
                     <Tabs value={tabValue} onChange={handleTabChange} aria-label="parent leave request tabs">
-                        <Tab label={`Pending Requests (${userLeaveRequests.pending.length})`} />
-                        <Tab label={`Processed Requests (${userLeaveRequests.processed.length})`} />
+                        <Tab label={`${t('parentLeaveRequest.pendingRequests')} (${userLeaveRequests.pending.length})`} />
+                        <Tab label={`${t('parentLeaveRequest.processedRequests')} (${userLeaveRequests.processed.length})`} />
                     </Tabs>
                 </Box>
 
@@ -432,7 +434,7 @@ const ParentLeaveRequest = () => {
                                 toolbar: CustomToolbar,
                                 noRowsOverlay: () => (
                                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                                        <Typography>No leave requests found</Typography>
+                                        <Typography>{t('parentLeaveRequest.noLeaveRequests')}</Typography>
                                     </Box>
                                 )
                             }}
@@ -461,8 +463,12 @@ const ParentLeaveRequest = () => {
                 <Box sx={{ mt: 3, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
                     <Typography variant="body2" color="text.secondary" align="center">
                         {tabValue === 0
-                            ? `Pending Requests: ${currentRequests.length}`
-                            : `Processed Requests: ${currentRequests.length} | Approved: ${currentRequests.filter(r => r.status === 'Approved').length} | Rejected: ${currentRequests.filter(r => r.status === 'Rejected').length}`
+                            ? t('parentLeaveRequest.summaryPending', { count: currentRequests.length })
+                            : t('parentLeaveRequest.summaryProcessed', {
+                                count: currentRequests.length,
+                                approved: currentRequests.filter(r => r.status === 'Approved').length,
+                                rejected: currentRequests.filter(r => r.status === 'Rejected').length
+                            })
                         }
                     </Typography>
                 </Box>
@@ -483,18 +489,18 @@ const ParentLeaveRequest = () => {
                     color: 'white',
                     fontWeight: 'bold'
                 }}>
-                    Request Leave
+                    {t('parentLeaveRequest.requestLeaveDialog')}
                 </DialogTitle>
                 <form onSubmit={handleSubmit}>
                     <DialogContent sx={{ p: 3 }}>
                         <Grid container spacing={3}>
                             <Grid item xs={12}>
                                 <FormControl fullWidth required>
-                                    <InputLabel>Select Student</InputLabel>
+                                    <InputLabel>{t('parentLeaveRequest.selectStudent')}</InputLabel>
                                     <Select
                                         value={student}
                                         onChange={(e) => setStudent(e.target.value)}
-                                        label="Select Student"
+                                        label={t('parentLeaveRequest.selectStudent')}
                                     >
                                         {currentUser?.children?.map((child) => (
                                             <MenuItem key={child._id} value={child._id}>
@@ -507,7 +513,7 @@ const ParentLeaveRequest = () => {
                             <Grid item xs={12} sm={6}>
                                 <TextField
                                     fullWidth
-                                    label="Start Date"
+                                    label={t('parentLeaveRequest.startDate')}
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
@@ -523,7 +529,7 @@ const ParentLeaveRequest = () => {
                             <Grid item xs={12} sm={6}>
                                 <TextField
                                     fullWidth
-                                    label="End Date"
+                                    label={t('parentLeaveRequest.endDate')}
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
@@ -545,13 +551,13 @@ const ParentLeaveRequest = () => {
                                             color="primary"
                                         />
                                     }
-                                    label="Emergency/Medical Leave (allows past dates)"
+                                    label={t('parentLeaveRequest.emergencyLeave')}
                                 />
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
                                     fullWidth
-                                    label="Reason for Leave"
+                                    label={t('parentLeaveRequest.reasonForLeave')}
                                     multiline
                                     rows={3}
                                     value={reason}
@@ -562,7 +568,7 @@ const ParentLeaveRequest = () => {
                             </Grid>
                             <Grid item xs={12}>
                                 <Typography variant="subtitle2" gutterBottom>
-                                    Attach Evidence (Optional) - Photos, PDFs, or Documents
+                                    {t('parentLeaveRequest.attachEvidence')}
                                 </Typography>
                                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                                     <Button
@@ -571,7 +577,7 @@ const ParentLeaveRequest = () => {
                                         startIcon={<CloudUploadIcon />}
                                         sx={{ alignSelf: 'flex-start' }}
                                     >
-                                        Choose Files
+                                        {t('parentLeaveRequest.chooseFiles')}
                                         <Input
                                             type="file"
                                             multiple
@@ -610,7 +616,7 @@ const ParentLeaveRequest = () => {
                             onClick={() => setOpenDialog(false)}
                             sx={{ mr: 1 }}
                         >
-                            Cancel
+                            {t('parentLeaveRequest.cancel')}
                         </Button>
                         <Button
                             type="submit"
@@ -618,7 +624,7 @@ const ParentLeaveRequest = () => {
                             color="primary"
                             disabled={submitLoading}
                         >
-                            {submitLoading ? <CircularProgress size={24} color="inherit" /> : 'Submit Request'}
+                            {submitLoading ? <CircularProgress size={24} color="inherit" /> : t('parentLeaveRequest.submitRequest')}
                         </Button>
                     </DialogActions>
                 </form>
@@ -646,21 +652,21 @@ const ParentLeaveRequest = () => {
                     }}
                 >
                     <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        Leave Request Details
+                        {t('parentLeaveRequest.leaveRequestDetails')}
                     </Typography>
                 </DialogTitle>
                 <DialogContent sx={{ py: 3 }}>
                     {viewing && (
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
-                                <Typography variant="subtitle2" color="textSecondary">Student</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">{t('parentLeaveRequest.student')}</Typography>
                                 <Typography variant="body1" sx={{ fontWeight: 500 }}>
                                     {viewing.student?.name || 'N/A'} (Roll: {viewing.student?.rollNum || 'N/A'})
                                 </Typography>
                             </Grid>
 
                             <Grid item xs={12}>
-                                <Typography variant="subtitle2" color="textSecondary">Leave Period</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">{t('parentLeaveRequest.leavePeriod')}</Typography>
                                 <Typography variant="body1">
                                     {new Date(viewing.startDate).toLocaleDateString()} - {new Date(viewing.endDate).toLocaleDateString()}
                                 </Typography>
@@ -692,7 +698,7 @@ const ParentLeaveRequest = () => {
                             {viewing.approvedBy && (
                                 <Grid item xs={12}>
                                     <Typography variant="subtitle2" color="textSecondary">
-                                        {viewing.status === 'Approved' ? 'Approved By' : 'Rejected By'}
+                                        {viewing.status === 'Approved' ? t('parentLeaveRequest.approvedBy') : t('parentLeaveRequest.rejectedBy')}
                                     </Typography>
                                     <Typography variant="body1">
                                         {viewing.approvedBy.name || 'N/A'}
@@ -701,7 +707,7 @@ const ParentLeaveRequest = () => {
                             )}
 
                             <Grid item xs={12}>
-                                <Typography variant="subtitle2" color="textSecondary">Reason</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">{t('parentLeaveRequest.reason')}</Typography>
                                 <Paper
                                     elevation={0}
                                     sx={{
@@ -727,7 +733,7 @@ const ParentLeaveRequest = () => {
 
                             {viewing.status === 'Rejected' && viewing.rejectionReason && (
                                 <Grid item xs={12}>
-                                    <Typography variant="subtitle2" color="textSecondary">Rejection Reason</Typography>
+                                    <Typography variant="subtitle2" color="textSecondary">{t('parentLeaveRequest.rejectionReason')}</Typography>
                                     <Paper
                                         elevation={0}
                                         sx={{
@@ -799,7 +805,7 @@ const ParentLeaveRequest = () => {
                             )}
 
                             <Grid item xs={12}>
-                                <Typography variant="subtitle2" color="textSecondary">Requested Date</Typography>
+                                <Typography variant="subtitle2" color="textSecondary">{t('parentLeaveRequest.requestedDate')}</Typography>
                                 <Typography variant="body1">
                                     {new Date(viewing.date).toLocaleDateString('en-US', {
                                         year: 'numeric',
@@ -812,7 +818,7 @@ const ParentLeaveRequest = () => {
                             {viewing.approvedDate && (
                                 <Grid item xs={12}>
                                     <Typography variant="subtitle2" color="textSecondary">
-                                        {viewing.status === 'Approved' ? 'Approved Date' : 'Rejected Date'}
+                                        {viewing.status === 'Approved' ? t('parentLeaveRequest.approvedDate') : t('parentLeaveRequest.rejectedDate')}
                                     </Typography>
                                     <Typography variant="body1">
                                         {new Date(viewing.approvedDate).toLocaleDateString('en-US', {
@@ -831,7 +837,7 @@ const ParentLeaveRequest = () => {
                         variant="contained"
                         onClick={() => setViewing(null)}
                     >
-                        Close
+                        {t('parentLeaveRequest.close')}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -844,27 +850,27 @@ const ParentLeaveRequest = () => {
                 fullWidth
             >
                 <DialogTitle sx={{ color: 'error.main', fontWeight: 'bold' }}>
-                    Confirm Delete
+                    {t('parentLeaveRequest.confirmDelete')}
                 </DialogTitle>
                 <DialogContent>
                     <Typography>
-                        Are you sure you want to delete this leave request?
+                        {t('parentLeaveRequest.confirmDeleteMessage')}
                     </Typography>
                     {deleteDialog.request && (
                         <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
                             <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                Student: {deleteDialog.request.student?.name}
+                                {t('parentLeaveRequest.studentLabel')} {deleteDialog.request.student?.name}
                             </Typography>
                             <Typography variant="body2">
-                                Period: {new Date(deleteDialog.request.startDate).toLocaleDateString()} - {new Date(deleteDialog.request.endDate).toLocaleDateString()}
+                                {t('parentLeaveRequest.periodLabel')} {new Date(deleteDialog.request.startDate).toLocaleDateString()} - {new Date(deleteDialog.request.endDate).toLocaleDateString()}
                             </Typography>
                             <Typography variant="body2">
-                                Reason: {deleteDialog.request.reason}
+                                {t('parentLeaveRequest.reasonLabel')} {deleteDialog.request.reason}
                             </Typography>
                         </Box>
                     )}
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                        This action cannot be undone.
+                        {t('parentLeaveRequest.cannotUndo')}
                     </Typography>
                 </DialogContent>
                 <DialogActions>
@@ -872,14 +878,14 @@ const ParentLeaveRequest = () => {
                         onClick={() => setDeleteDialog({ open: false, request: null })}
                         sx={{ mr: 1 }}
                     >
-                        Cancel
+                        {t('parentLeaveRequest.cancel')}
                     </Button>
                     <Button
                         onClick={confirmDelete}
                         variant="contained"
                         color="error"
                     >
-                        Delete
+                        {t('parentLeaveRequest.delete')}
                     </Button>
                 </DialogActions>
             </Dialog>
@@ -934,10 +940,10 @@ const ParentLeaveRequest = () => {
                         target="_blank"
                         variant="contained"
                     >
-                        Download
+                        {t('parentLeaveRequest.download')}
                     </Button>
                     <Button onClick={() => setOpenPreview(false)}>
-                        Close
+                        {t('parentLeaveRequest.close')}
                     </Button>
                 </DialogActions>
             </Dialog>

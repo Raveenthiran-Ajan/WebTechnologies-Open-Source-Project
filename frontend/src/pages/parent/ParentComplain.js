@@ -308,7 +308,7 @@ const ParentComplaints = () => {
                             </Box>
                         ) : complainError ? (
                             <Alert severity="error" sx={{ mb: 2 }}>
-                                Error loading complaints: {complainError}
+                                {t('parentComplain.errorLoadingComplaints')}: {complainError}
                             </Alert>
                         ) : (
                             <>
