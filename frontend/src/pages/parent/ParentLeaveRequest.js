@@ -22,7 +22,15 @@ import {
     MenuItem,
     Tabs,
     Tab,
+    FormControlLabel,
+    Checkbox,
+    Input,
 } from '@mui/material';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import PreviewIcon from '@mui/icons-material/Preview';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ImageIcon from '@mui/icons-material/Image';
 import {
     DataGrid,
     GridToolbarContainer,
@@ -35,6 +43,8 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { addLeaveRequest, deleteLeaveRequest } from '../../redux/leaveRequestRelated/leaveRequestHandle';
 import { getLeaveRequestsByParent } from '../../redux/leaveRequestRelated/leaveRequestHandle';
+
+const REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
 const ParentLeaveRequest = () => {
     const dispatch = useDispatch();
@@ -53,6 +63,29 @@ const ParentLeaveRequest = () => {
     const [message, setMessage] = useState('');
     const [alertSeverity, setAlertSeverity] = useState('success');
     const [tabValue, setTabValue] = useState(0); // 0 for pending, 1 for processed
+    const [isEmergency, setIsEmergency] = useState(false);
+    const [attachments, setAttachments] = useState([]);
+    const [previewFile, setPreviewFile] = useState(null);
+    const [openPreview, setOpenPreview] = useState(false);
+    const [deleteDialog, setDeleteDialog] = useState({ open: false, request: null });
+
+    const canPreview = (mimeType) => {
+        return mimeType.startsWith('image/') || mimeType === 'application/pdf';
+    };
+
+    const getFileIcon = (mimeType) => {
+        if (mimeType.startsWith('image/')) return <ImageIcon />;
+        if (mimeType === 'application/pdf') return <PictureAsPdfIcon />;
+        return <AttachFileIcon />;
+    };
+
+    const getFileType = (mimeType) => {
+        if (mimeType.startsWith('image/')) return 'Image';
+        if (mimeType === 'application/pdf') return 'PDF Document';
+        if (mimeType === 'application/msword' || mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return 'Word Document';
+        if (mimeType === 'application/vnd.ms-excel' || mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') return 'Excel Document';
+        return 'Document';
+    };
 
     useEffect(() => {
         const fetchLeaveRequests = async () => {
@@ -90,16 +123,19 @@ const ParentLeaveRequest = () => {
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Set to start of day for comparison
 
-        if (new Date(startDate) < today) {
-            setMessage("Start date cannot be in the past.");
-            setAlertSeverity('warning');
-            return;
-        }
+        // Only validate past dates if not an emergency
+        if (!isEmergency) {
+            if (new Date(startDate) < today) {
+                setMessage("Start date cannot be in the past. For past dates, check 'Emergency/Medical Leave'.");
+                setAlertSeverity('warning');
+                return;
+            }
 
-        if (new Date(endDate) < today) {
-            setMessage("End date cannot be in the past.");
-            setAlertSeverity('warning');
-            return;
+            if (new Date(endDate) < today) {
+                setMessage("End date cannot be in the past. For past dates, check 'Emergency/Medical Leave'.");
+                setAlertSeverity('warning');
+                return;
+            }
         }
 
         if (new Date(startDate) > new Date(endDate)) {
@@ -109,18 +145,23 @@ const ParentLeaveRequest = () => {
         }
 
         setSubmitLoading(true);
-        const fields = {
-            user: currentUser._id,
-            student,
-            date,
-            startDate,
-            endDate,
-            reason: reason.trim(),
-            school: currentUser.school._id,
-        };
+        const formData = new FormData();
+        formData.append('user', currentUser._id);
+        formData.append('student', student);
+        formData.append('date', date);
+        formData.append('startDate', startDate);
+        formData.append('endDate', endDate);
+        formData.append('reason', reason.trim());
+        formData.append('school', currentUser.school._id);
+        formData.append('isEmergency', isEmergency);
+
+        // Add attachments
+        attachments.forEach((file, index) => {
+            formData.append('attachments', file);
+        });
 
         try {
-            const result = await dispatch(addLeaveRequest(fields));
+            const result = await dispatch(addLeaveRequest(formData));
             if (result.success) {
                 setMessage("Leave request submitted successfully!");
                 setAlertSeverity('success');
@@ -130,6 +171,8 @@ const ParentLeaveRequest = () => {
                 setEndDate('');
                 setReason('');
                 setDate(new Date().toISOString().split('T')[0]);
+                setIsEmergency(false);
+                setAttachments([]);
                 await dispatch(getLeaveRequestsByParent(currentUser._id));
             } else {
                 setMessage(result.message || "Error submitting leave request.");
@@ -226,6 +269,10 @@ const ParentLeaveRequest = () => {
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
                         {params.value.name || 'N/A'}
                     </Typography>
+                ) : tabValue === 0 ? ( // Show "Not yet" for pending requests
+                    <Typography variant="body2" sx={{ fontStyle: 'italic', color: 'text.secondary' }}>
+                        Not yet
+                    </Typography>
                 ) : null
             ),
         },
@@ -250,30 +297,29 @@ const ParentLeaveRequest = () => {
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 150,
+            width: 200,
             headerAlign: 'center',
             align: 'center',
             sortable: false,
             renderCell: (params) => (
                 <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                    {tabValue === 0 ? ( // Only show delete for pending requests
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleView(params.row)}
+                        sx={{ textTransform: 'none', minWidth: 'auto', px: 2 }}
+                    >
+                        View Details
+                    </Button>
+                    {tabValue === 0 && ( // Only show delete for pending requests
                         <IconButton
                             color="error"
                             onClick={() => handleDelete(params.row)}
                             title="Delete Request"
+                            size="small"
                         >
                             <DeleteIcon />
                         </IconButton>
-                    ) : (
-                        // Show view button for processed requests
-                        <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => handleView(params.row)}
-                            sx={{ textTransform: 'none' }}
-                        >
-                            View Details
-                        </Button>
                     )}
                 </Box>
             ),
@@ -293,7 +339,8 @@ const ParentLeaveRequest = () => {
         _id: request._id,
         approvedBy: request.approvedBy,
         approvedDate: request.approvedDate,
-        rejectionReason: request.rejectionReason
+        rejectionReason: request.rejectionReason,
+        isEmergency: request.isEmergency
     }));
 
     const handleTabChange = (event, newValue) => {
@@ -304,20 +351,26 @@ const ParentLeaveRequest = () => {
         setViewing(row);
     };
 
-    const handleDelete = async (row) => {
-        if (window.confirm('Are you sure you want to delete this leave request?')) {
-            try {
-                await dispatch(deleteLeaveRequest(row._id));
-                setMessage('Leave request deleted successfully');
-                setAlertSeverity('success');
-                if (currentUser) {
-                    await dispatch(getLeaveRequestsByParent(currentUser._id));
-                }
-            } catch (error) {
-                console.error('Error deleting leave request:', error);
-                setMessage('Failed to delete leave request. Please try again.');
-                setAlertSeverity('error');
+    const handleDelete = (row) => {
+        setDeleteDialog({ open: true, request: row });
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteDialog.request) return;
+
+        try {
+            await dispatch(deleteLeaveRequest(deleteDialog.request._id));
+            setMessage('Leave request deleted successfully');
+            setAlertSeverity('success');
+            setDeleteDialog({ open: false, request: null });
+            if (currentUser) {
+                await dispatch(getLeaveRequestsByParent(currentUser._id));
             }
+        } catch (error) {
+            console.error('Error deleting leave request:', error);
+            setMessage('Failed to delete leave request. Please try again.');
+            setAlertSeverity('error');
+            setDeleteDialog({ open: false, request: null });
         }
     };
 
@@ -462,7 +515,7 @@ const ParentLeaveRequest = () => {
                                         shrink: true,
                                     }}
                                     inputProps={{
-                                        min: today
+                                        min: isEmergency ? undefined : today
                                     }}
                                     required
                                 />
@@ -478,9 +531,21 @@ const ParentLeaveRequest = () => {
                                         shrink: true,
                                     }}
                                     inputProps={{
-                                        min: today
+                                        min: isEmergency ? undefined : today
                                     }}
                                     required
+                                />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={isEmergency}
+                                            onChange={(e) => setIsEmergency(e.target.checked)}
+                                            color="primary"
+                                        />
+                                    }
+                                    label="Emergency/Medical Leave (allows past dates)"
                                 />
                             </Grid>
                             <Grid item xs={12}>
@@ -494,6 +559,49 @@ const ParentLeaveRequest = () => {
                                     placeholder="Please provide detailed reason for the leave request..."
                                     required
                                 />
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="subtitle2" gutterBottom>
+                                    Attach Evidence (Optional) - Photos, PDFs, or Documents
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                    <Button
+                                        variant="outlined"
+                                        component="label"
+                                        startIcon={<CloudUploadIcon />}
+                                        sx={{ alignSelf: 'flex-start' }}
+                                    >
+                                        Choose Files
+                                        <Input
+                                            type="file"
+                                            multiple
+                                            accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx"
+                                            onChange={(e) => {
+                                                const files = Array.from(e.target.files);
+                                                setAttachments(prev => [...prev, ...files].slice(0, 5)); // Max 5 files
+                                            }}
+                                            sx={{ display: 'none' }}
+                                        />
+                                    </Button>
+                                    {attachments.length > 0 && (
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                            {attachments.map((file, index) => (
+                                                <Chip
+                                                    key={index}
+                                                    label={`${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`}
+                                                    onDelete={() => {
+                                                        setAttachments(prev => prev.filter((_, i) => i !== index));
+                                                    }}
+                                                    icon={<AttachFileIcon />}
+                                                    size="small"
+                                                />
+                                            ))}
+                                        </Box>
+                                    )}
+                                    <Typography variant="caption" color="text.secondary">
+                                        Maximum 5 files, 10MB each. Supported: Images, PDFs, Documents
+                                    </Typography>
+                                </Box>
                             </Grid>
                         </Grid>
                     </DialogContent>
@@ -560,16 +668,25 @@ const ParentLeaveRequest = () => {
 
                             <Grid item xs={12}>
                                 <Typography variant="subtitle2" color="textSecondary">Status</Typography>
-                                <Chip
-                                    label={viewing.status || 'Pending'}
-                                    size="small"
-                                    color={
-                                        viewing.status === 'Approved' ? 'success' :
-                                        viewing.status === 'Rejected' ? 'error' : 'warning'
-                                    }
-                                    variant="filled"
-                                    sx={{ mt: 1 }}
-                                />
+                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1 }}>
+                                    <Chip
+                                        label={viewing.status || 'Pending'}
+                                        size="small"
+                                        color={
+                                            viewing.status === 'Approved' ? 'success' :
+                                            viewing.status === 'Rejected' ? 'error' : 'warning'
+                                        }
+                                        variant="filled"
+                                    />
+                                    {viewing.isEmergency && (
+                                        <Chip
+                                            label="Emergency"
+                                            size="small"
+                                            color="error"
+                                            variant="outlined"
+                                        />
+                                    )}
+                                </Box>
                             </Grid>
 
                             {viewing.approvedBy && (
@@ -635,6 +752,52 @@ const ParentLeaveRequest = () => {
                                 </Grid>
                             )}
 
+                            {viewing.attachments && viewing.attachments.length > 0 && (
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle2" color="textSecondary">Attachments</Typography>
+                                    <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                        {viewing.attachments.map((attachment, index) => (
+                                            <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                                                {getFileIcon(attachment.mimeType)}
+                                                <Typography variant="body2" sx={{ flex: 1 }}>
+                                                    {getFileType(attachment.mimeType)}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {(attachment.size / 1024 / 1024).toFixed(2)} MB
+                                                </Typography>
+                                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                                    {canPreview(attachment.mimeType) && (
+                                                        <Button
+                                                            variant="contained"
+                                                            size="small"
+                                                            startIcon={<PreviewIcon />}
+                                                            onClick={() => {
+                                                                setPreviewFile(attachment);
+                                                                setOpenPreview(true);
+                                                            }}
+                                                            sx={{ minWidth: 'auto', fontSize: '0.75rem', py: 0.5 }}
+                                                        >
+                                                            Preview
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        variant="outlined"
+                                                        size="small"
+                                                        startIcon={<AttachFileIcon />}
+                                                        component="a"
+                                                        href={`${REACT_APP_BASE_URL}/download/leave-request/${attachment.filename}`}
+                                                        target="_blank"
+                                                        sx={{ minWidth: 'auto', fontSize: '0.75rem', py: 0.5 }}
+                                                    >
+                                                        Download
+                                                    </Button>
+                                                </Box>
+                                            </Box>
+                                        ))}
+                                    </Box>
+                                </Grid>
+                            )}
+
                             <Grid item xs={12}>
                                 <Typography variant="subtitle2" color="textSecondary">Requested Date</Typography>
                                 <Typography variant="body1">
@@ -668,6 +831,112 @@ const ParentLeaveRequest = () => {
                         variant="contained"
                         onClick={() => setViewing(null)}
                     >
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog
+                open={deleteDialog.open}
+                onClose={() => setDeleteDialog({ open: false, request: null })}
+                maxWidth="sm"
+                fullWidth
+            >
+                <DialogTitle sx={{ color: 'error.main', fontWeight: 'bold' }}>
+                    Confirm Delete
+                </DialogTitle>
+                <DialogContent>
+                    <Typography>
+                        Are you sure you want to delete this leave request?
+                    </Typography>
+                    {deleteDialog.request && (
+                        <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                Student: {deleteDialog.request.student?.name}
+                            </Typography>
+                            <Typography variant="body2">
+                                Period: {new Date(deleteDialog.request.startDate).toLocaleDateString()} - {new Date(deleteDialog.request.endDate).toLocaleDateString()}
+                            </Typography>
+                            <Typography variant="body2">
+                                Reason: {deleteDialog.request.reason}
+                            </Typography>
+                        </Box>
+                    )}
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                        This action cannot be undone.
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={() => setDeleteDialog({ open: false, request: null })}
+                        sx={{ mr: 1 }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={confirmDelete}
+                        variant="contained"
+                        color="error"
+                    >
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Document Preview Dialog */}
+            <Dialog
+                open={openPreview}
+                onClose={() => setOpenPreview(false)}
+                maxWidth="md"
+                fullWidth
+                PaperProps={{
+                    sx: { height: '80vh' }
+                }}
+            >
+                <DialogTitle>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {previewFile && getFileIcon(previewFile.mimeType)}
+                        {previewFile?.originalName}
+                    </Box>
+                </DialogTitle>
+                <DialogContent sx={{ p: 0 }}>
+                    {previewFile && (
+                        <Box sx={{ width: '100%', height: '100%', minHeight: '400px' }}>
+                            {previewFile.mimeType.startsWith('image/') ? (
+                                <img
+                                    src={`${REACT_APP_BASE_URL}/preview/leave-request/${previewFile.filename}`}
+                                    alt={previewFile.originalName}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'contain'
+                                    }}
+                                />
+                            ) : previewFile.mimeType === 'application/pdf' ? (
+                                <iframe
+                                    src={`${REACT_APP_BASE_URL}/preview/leave-request/${previewFile.filename}`}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        border: 'none'
+                                    }}
+                                    title={previewFile.originalName}
+                                />
+                            ) : null}
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        component="a"
+                        href={`${REACT_APP_BASE_URL}/download/leave-request/${previewFile?.filename}`}
+                        target="_blank"
+                        variant="contained"
+                    >
+                        Download
+                    </Button>
+                    <Button onClick={() => setOpenPreview(false)}>
                         Close
                     </Button>
                 </DialogActions>

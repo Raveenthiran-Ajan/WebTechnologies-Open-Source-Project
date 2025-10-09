@@ -62,7 +62,7 @@ const noticeStorage = multer.diskStorage({
         cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
     },
 });
-const noticeUpload = multer({ 
+const noticeUpload = multer({
     storage: noticeStorage,
     limits: {
         fileSize: 30 * 1024 * 1024, // 30MB
@@ -75,6 +75,36 @@ const noticeUpload = multer({
             return cb(null, true);
         } else {
             cb(new Error('Invalid file type'));
+        }
+    }
+});
+
+// Configure multer for leave request attachments
+const leaveRequestStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = 'uploads/leave-requests/';
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+        }
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
+    },
+});
+const leaveRequestUpload = multer({
+    storage: leaveRequestStorage,
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB per file
+    },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only images, PDFs, and documents are allowed.'));
         }
     }
 });
@@ -169,12 +199,31 @@ router.get('/ComplainList/:id', complainList);
 router.put('/ComplainUpdate/:id', complainUpdate);
 
 // Leave Request
-router.post('/LeaveRequestCreate', leaveRequestCreate);
+router.post('/LeaveRequestCreate', leaveRequestUpload.array('attachments', 5), leaveRequestCreate);
 router.get('/LeaveRequestList/:id', leaveRequestList);
 router.put('/LeaveRequestUpdate/:id', leaveRequestUpdate);
 router.delete('/LeaveRequestDelete/:id', leaveRequestDelete);
 router.get('/LeaveRequestsByParent/:parentId', getLeaveRequestsByParent);
 router.get('/LeaveRequestsByTeacher/:teacherId', getLeaveRequestsByTeacher);
+router.get('/download/leave-request/:filename', (req, res) => {
+    const filePath = path.join(__dirname, '../uploads/leave-requests', req.params.filename);
+    res.download(filePath, (err) => {
+        if (err) {
+            console.error('Download error:', err);
+            res.status(404).json({ message: 'File not found' });
+        }
+    });
+});
+
+router.get('/preview/leave-request/:filename', (req, res) => {
+    const filePath = path.join(__dirname, '../uploads/leave-requests', req.params.filename);
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            console.error('Preview error:', err);
+            res.status(404).json({ message: 'File not found' });
+        }
+    });
+});
 
 // Sclass
 router.post('/SclassCreate', sclassCreate);

@@ -30,7 +30,13 @@ import {
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import PreviewIcon from '@mui/icons-material/Preview';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ImageIcon from '@mui/icons-material/Image';
 import { getLeaveRequestsByTeacher, updateLeaveRequest } from '../../redux/leaveRequestRelated/leaveRequestHandle';
+
+const REACT_APP_BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:5000";
 
 const TeacherLeaveRequests = () => {
     const dispatch = useDispatch();
@@ -46,6 +52,26 @@ const TeacherLeaveRequests = () => {
     const [alertSeverity, setAlertSeverity] = useState('success');
     const [submitLoading, setSubmitLoading] = useState(false);
     const [tabValue, setTabValue] = useState(0); // 0 for pending, 1 for processed
+    const [previewFile, setPreviewFile] = useState(null);
+    const [openPreview, setOpenPreview] = useState(false);
+
+    const canPreview = (mimeType) => {
+        return mimeType.startsWith('image/') || mimeType === 'application/pdf';
+    };
+
+    const getFileIcon = (mimeType) => {
+        if (mimeType.startsWith('image/')) return <ImageIcon />;
+        if (mimeType === 'application/pdf') return <PictureAsPdfIcon />;
+        return <AttachFileIcon />;
+    };
+
+    const getFileType = (mimeType) => {
+        if (mimeType.startsWith('image/')) return 'Image';
+        if (mimeType === 'application/pdf') return 'PDF Document';
+        if (mimeType === 'application/msword' || mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return 'Word Document';
+        if (mimeType === 'application/vnd.ms-excel' || mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') return 'Excel Document';
+        return 'Document';
+    };
 
     useEffect(() => {
         const fetchLeaveRequests = async () => {
@@ -231,7 +257,9 @@ const TeacherLeaveRequests = () => {
         _id: request._id,
         approvedBy: request.approvedBy,
         approvedDate: request.approvedDate,
-        rejectionReason: request.rejectionReason
+        rejectionReason: request.rejectionReason,
+        attachments: request.attachments,
+        isEmergency: request.isEmergency
     }));
 
     const handleTabChange = (event, newValue) => {
@@ -448,6 +476,52 @@ const TeacherLeaveRequests = () => {
                                     })}
                                 </Typography>
                             </Grid>
+
+                            {viewing.attachments && viewing.attachments.length > 0 && (
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle2" color="textSecondary">Attachments</Typography>
+                                    <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                        {viewing.attachments.map((attachment, index) => (
+                                            <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                                                {getFileIcon(attachment.mimeType)}
+                                                <Typography variant="body2" sx={{ flex: 1 }}>
+                                                    {getFileType(attachment.mimeType)}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary">
+                                                    {(attachment.size / 1024 / 1024).toFixed(2)} MB
+                                                </Typography>
+                                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                                    {canPreview(attachment.mimeType) && (
+                                                        <Button
+                                                            variant="contained"
+                                                            size="small"
+                                                            startIcon={<PreviewIcon />}
+                                                            onClick={() => {
+                                                                setPreviewFile(attachment);
+                                                                setOpenPreview(true);
+                                                            }}
+                                                            sx={{ minWidth: 'auto', fontSize: '0.75rem', py: 0.5 }}
+                                                        >
+                                                            Preview
+                                                        </Button>
+                                                    )}
+                                                    <Button
+                                                        variant="outlined"
+                                                        size="small"
+                                                        startIcon={<AttachFileIcon />}
+                                                        component="a"
+                                                        href={`${REACT_APP_BASE_URL}/download/leave-request/${attachment.filename}`}
+                                                        target="_blank"
+                                                        sx={{ minWidth: 'auto', fontSize: '0.75rem', py: 0.5 }}
+                                                    >
+                                                        Download
+                                                    </Button>
+                                                </Box>
+                                            </Box>
+                                        ))}
+                                    </Box>
+                                </Grid>
+                            )}
                         </Grid>
                     )}
                 </DialogContent>
@@ -554,6 +628,64 @@ const TeacherLeaveRequests = () => {
                     >
                         {submitLoading ? <CircularProgress size={24} color="inherit" /> :
                          actionType === 'approve' ? 'Approve' : 'Reject'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Document Preview Dialog */}
+            <Dialog
+                open={openPreview}
+                onClose={() => setOpenPreview(false)}
+                maxWidth="md"
+                fullWidth
+                PaperProps={{
+                    sx: { height: '80vh' }
+                }}
+            >
+                <DialogTitle>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {previewFile && getFileIcon(previewFile.mimeType)}
+                        {previewFile?.originalName}
+                    </Box>
+                </DialogTitle>
+                <DialogContent sx={{ p: 0 }}>
+                    {previewFile && (
+                        <Box sx={{ width: '100%', height: '100%', minHeight: '400px' }}>
+                            {previewFile.mimeType.startsWith('image/') ? (
+                                <img
+                                    src={`${REACT_APP_BASE_URL}/preview/leave-request/${previewFile.filename}`}
+                                    alt={previewFile.originalName}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'contain'
+                                    }}
+                                />
+                            ) : previewFile.mimeType === 'application/pdf' ? (
+                                <iframe
+                                    src={`${REACT_APP_BASE_URL}/preview/leave-request/${previewFile.filename}`}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        border: 'none'
+                                    }}
+                                    title={previewFile.originalName}
+                                />
+                            ) : null}
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        component="a"
+                        href={`${REACT_APP_BASE_URL}/download/leave-request/${previewFile?.filename}`}
+                        target="_blank"
+                        variant="contained"
+                    >
+                        Download
+                    </Button>
+                    <Button onClick={() => setOpenPreview(false)}>
+                        Close
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -92,14 +92,20 @@ export const deleteLeaveRequest = (requestId) => async (dispatch) => {
     }
 };
 
-export const addLeaveRequest = (fields) => async (dispatch) => {
+export const addLeaveRequest = (formData) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.post(`${REACT_APP_BASE_URL}/LeaveRequestCreate`, fields);
+        const result = await axios.post(`${REACT_APP_BASE_URL}/LeaveRequestCreate`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
 
         if (result.data) {
-            const updatedList = await axios.get(`${REACT_APP_BASE_URL}/LeaveRequestsByParent/${fields.user}`);
+            // Extract user ID from formData if it's FormData
+            const userId = formData instanceof FormData ? formData.get('user') : formData.user;
+            const updatedList = await axios.get(`${REACT_APP_BASE_URL}/LeaveRequestsByParent/${userId}`);
             dispatch(getSuccess(updatedList.data));
             return { success: true, message: 'Leave request added successfully' };
         }

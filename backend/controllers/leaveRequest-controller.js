@@ -2,25 +2,43 @@ const LeaveRequest = require('../models/leaveRequestSchema.js');
 
 const leaveRequestCreate = async (req, res) => {
     try {
-        const { startDate, endDate } = req.body;
+        const { startDate, endDate, isEmergency } = req.body;
 
-        // Validate dates are not in the past
+        // Validate dates are not in the past (unless emergency)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        if (new Date(startDate) < today) {
-            return res.status(400).json({ message: "Start date cannot be in the past" });
-        }
+        if (!isEmergency) {
+            if (new Date(startDate) < today) {
+                return res.status(400).json({ message: "Start date cannot be in the past. For past dates, mark as emergency leave." });
+            }
 
-        if (new Date(endDate) < today) {
-            return res.status(400).json({ message: "End date cannot be in the past" });
+            if (new Date(endDate) < today) {
+                return res.status(400).json({ message: "End date cannot be in the past. For past dates, mark as emergency leave." });
+            }
         }
 
         if (new Date(startDate) > new Date(endDate)) {
             return res.status(400).json({ message: "End date cannot be before start date" });
         }
 
-        const leaveRequest = new LeaveRequest(req.body);
+        // Handle file attachments
+        let attachments = [];
+        if (req.files && req.files.length > 0) {
+            attachments = req.files.map(file => ({
+                filename: file.filename,
+                originalName: file.originalname,
+                mimeType: file.mimetype,
+                size: file.size
+            }));
+        }
+
+        const leaveRequestData = {
+            ...req.body,
+            attachments
+        };
+
+        const leaveRequest = new LeaveRequest(leaveRequestData);
         const result = await leaveRequest.save();
         res.send(result);
     } catch (err) {
@@ -130,6 +148,14 @@ const leaveRequestDelete = async (req, res) => {
 const getLeaveRequestsByParent = async (req, res) => {
     try {
         const { parentId } = req.params;
+
+        if (!parentId || parentId === 'undefined') {
+            return res.status(400).json({
+                success: false,
+                data: { pending: [], processed: [] },
+                message: "Invalid parent ID"
+            });
+        }
 
         // Get pending leave requests
         const pendingRequests = await LeaveRequest.find({

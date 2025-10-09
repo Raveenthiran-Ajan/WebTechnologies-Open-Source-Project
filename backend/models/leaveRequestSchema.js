@@ -49,7 +49,33 @@ const leaveRequestSchema = new mongoose.Schema({
     rejectionReason: {
         type: String,
         default: null
-    }
+    },
+    isEmergency: {
+        type: Boolean,
+        default: false
+    },
+    attachments: [{
+        filename: {
+            type: String,
+            required: true
+        },
+        originalName: {
+            type: String,
+            required: true
+        },
+        mimeType: {
+            type: String,
+            required: true
+        },
+        size: {
+            type: Number,
+            required: true
+        },
+        uploadedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }]
 });
 
 module.exports = mongoose.model("leaveRequest", leaveRequestSchema);
