@@ -103,6 +103,13 @@ const ShowSubjects = () => {
                     <Typography variant="h5" gutterBottom>
                         No subjects found
                     </Typography>
+                    <Button
+                        variant="contained"
+                        startIcon={<PostAddIcon />}
+                        onClick={() => navigate('/Admin/addsubject')}
+                    >
+                        Add Subject
+                    </Button>
                 </Box>
                 )
             }
