@@ -158,15 +158,15 @@ const TeacherUploadAssignment = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    if (selectedClassIds.length > 0 && currentUser && currentUser._id) {
-      console.log("Selected class IDs:", selectedClassIds);
-      // Fetch subjects for all selected classes
+    if (teacherClasses.length > 0 && currentUser && currentUser._id) {
+      console.log("Teacher classes:", teacherClasses);
+      // Fetch subjects for all teacher classes
       Promise.all(
-        selectedClassIds.map((classId) =>
-          axios.get(`${API_BASE_URL}/assignments/teacher-subjects/${currentUser._id}/${classId}`)
+        teacherClasses.map((cls) =>
+          axios.get(`${API_BASE_URL}/assignments/teacher-subjects/${currentUser._id}/${cls._id}`)
             .then(res => res.data)
             .catch(err => {
-              console.error(`Failed to fetch teacher subjects for class ${classId}`, err);
+              console.error(`Failed to fetch teacher subjects for class ${cls._id}`, err);
               return [];
             })
         )
@@ -186,7 +186,7 @@ const TeacherUploadAssignment = () => {
     } else {
       setTeacherSubjects([]);
     }
-  }, [selectedClassIds, currentUser]);
+  }, [teacherClasses, currentUser]);
 
   // Clear subject when selected classes change
   useEffect(() => {
@@ -491,13 +491,25 @@ const TeacherUploadAssignment = () => {
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Subject</Typography>
-                <TextField
-                  fullWidth
-                  required
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Enter Subject"
-                />
+                  <TextField
+                    select
+                    fullWidth
+                    required
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    label="Select Subject"
+                    disabled={teacherSubjects.length === 0}
+                  >
+                    {teacherSubjects.length > 0 ? (
+                      teacherSubjects.map((subj) => (
+                        <MenuItem key={subj._id} value={subj.subName || subj._id}>
+                          {subj.subName || subj._id}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem disabled>No subjects available for selected classes</MenuItem>
+                    )}
+                  </TextField>
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <Typography sx={{ fontWeight: 600, color: '#333', mb: 1, display: 'block' }}>Deadline Date & Time (Required)</Typography>
