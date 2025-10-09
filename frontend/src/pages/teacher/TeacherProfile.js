@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Card, CardContent, Typography, Button, Modal, Box, TextField, Snackbar, Alert } from '@mui/material';
+import { Card, CardContent, Typography, Button, Modal, Box, TextField, Snackbar, Alert, Chip } from '@mui/material';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../../redux/userRelated/userHandle';
+import { getTeacherDetails } from '../../redux/teacherRelated/teacherHandle';
 import { underControl } from '../../redux/userRelated/userSlice';
 
 const TeacherProfile = () => {
  const dispatch = useDispatch();
  const { currentUser, status } = useSelector((state) => state.user);
+ const { teacherDetails } = useSelector((state) => state.teacher);
 
  const [open, setOpen] = useState(false);
  const [oldPassword, setOldPassword] = useState('');
@@ -18,6 +20,8 @@ const TeacherProfile = () => {
  const teachSclass = currentUser.teachSclass;
  const teachSubject = currentUser.teachSubject;
  const teachSchool = currentUser.school;
+
+ const teacherData = teacherDetails || currentUser;
 
   const handleOpen = () => {
     setOpen(true);
@@ -46,16 +50,62 @@ const TeacherProfile = () => {
     }
   }, [status, dispatch]);
 
+  useEffect(() => {
+    if (currentUser?._id) {
+      dispatch(getTeacherDetails(currentUser._id));
+    }
+  }, [dispatch, currentUser?._id]);
+
   return (
-    <>
+    <Box sx={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '100vh', 
+      padding: 2 
+    }}>
       <ProfileCard>
         <ProfileCardContent>
-          <ProfileText>Name: {currentUser?.name || 'N/A'}</ProfileText>
-          <ProfileText>Email: {currentUser?.email || 'N/A'}</ProfileText>
-          <ProfileText>Class: {teachSclass?.sclassName || 'Not Assigned'}</ProfileText>
-          <ProfileText>Subject: {teachSubject?.subName || 'Not Assigned'}</ProfileText>
-          <ProfileText>School: {teachSchool?.schoolName || 'Not Assigned'}</ProfileText>
-          <Button variant="contained" onClick={handleOpen}>Change Password</Button>
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+            Teacher Profile
+          </Typography>
+          <ProfileText><strong>Name:</strong> {teacherData?.name || 'N/A'}</ProfileText>
+          <ProfileText><strong>Email:</strong> {teacherData?.email || 'N/A'}</ProfileText>
+          <ProfileText><strong>School:</strong> {teacherData?.school?.schoolName || 'Not Assigned'}</ProfileText>
+          
+          <Box sx={{ mt: 2, mb: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Assigned Classes:</Typography>
+            {teacherData?.teachSclasses && teacherData.teachSclasses.length > 0 ? (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {teacherData.teachSclasses.map((cls) => (
+                  <Chip key={cls._id} label={cls.sclassName} color="primary" variant="outlined" />
+                ))}
+              </Box>
+            ) : (
+              <Typography variant="body2" color="text.secondary">No classes assigned</Typography>
+            )}
+          </Box>
+          
+          <Box sx={{ mt: 2, mb: 2 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Assigned Subjects:</Typography>
+            {teacherData?.teachSubjects && teacherData.teachSubjects.length > 0 ? (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {teacherData.teachSubjects.map((sub) => (
+                  <Chip key={sub._id} label={sub.subName} color="secondary" variant="outlined" />
+                ))}
+              </Box>
+            ) : (
+              <Typography variant="body2" color="text.secondary">No subjects assigned</Typography>
+            )}
+          </Box>
+          
+          {teacherData?.attendanceClass && (
+            <ProfileText><strong>Class Teacher for:</strong> {teacherData.attendanceClass.sclassName}</ProfileText>
+          )}
+          
+          <Box sx={{ mt: 3 }}>
+            <Button variant="contained" onClick={handleOpen}>Change Password</Button>
+          </Box>
         </ProfileCardContent>
       </ProfileCard>
       <Modal
@@ -105,16 +155,16 @@ const TeacherProfile = () => {
           Password changed successfully!
         </Alert>
       </Snackbar>
-    </>
+    </Box>
   )
 }
 
 export default TeacherProfile
 
 const ProfileCard = styled(Card)`
-  margin: 20px;
-  width: 400px;
-  border-radius: 10px;
+  width: 600px;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 `;
 
 const ProfileCardContent = styled(CardContent)`
