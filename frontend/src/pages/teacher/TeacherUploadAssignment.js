@@ -237,8 +237,8 @@ const TeacherUploadAssignment = () => {
       filtered = filtered.filter((submission) => {
         const sclass = submission.studentId?.sclassName;
         if (!sclass) return false;
-        if (typeof sclass === 'object' && sclass.sclassName) return sclass.sclassName === selectedClassId;
-        return String(sclass) === selectedClassId;
+        if (typeof sclass === 'object' && sclass._id) return String(sclass._id) === String(selectedClassId);
+        return String(sclass) === String(selectedClassId);
       });
     }
 
@@ -925,24 +925,24 @@ const TeacherUploadAssignment = () => {
                 <Typography variant="caption" sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
                   Filter by Class
                 </Typography>
-                <TextField
-                  select
-                  value={selectedClassId}
-                  onChange={(e) => setSelectedClassId(e.target.value)}
-                  SelectProps={{ native: true }}
-                  size="small"
-                  sx={{
-                    minWidth: 180,
-                    '& .MuiInputBase-root': { height: 40 },
-                  }}
-                >
-                  <option value="">All Classes</option>
-                  {Array.isArray(teacherClasses) && teacherClasses.filter(cls => cls && cls._id).map((cls) => (
-                    <option key={cls._id} value={cls.sclassName}>
-                      Class {cls.sclassName}
-                    </option>
-                  ))}
-                </TextField>
+              <TextField
+                select
+                value={selectedClassId}
+                onChange={(e) => setSelectedClassId(e.target.value)}
+                SelectProps={{ native: true }}
+                size="small"
+                sx={{
+                  minWidth: 180,
+                  '& .MuiInputBase-root': { height: 40 },
+                }}
+              >
+                <option value="">All Classes</option>
+                {Array.isArray(teacherClasses) && teacherClasses.filter(cls => cls && cls._id).map((cls) => (
+                  <option key={cls._id} value={cls._id}>
+                    Class {cls.sclassName}
+                  </option>
+                ))}
+              </TextField>
               </Box>
                {gradeFilterRange && (
                  <Chip label={`Grade: ${gradeFilterRange[0]}-${gradeFilterRange[1]}`} onDelete={() => setGradeFilterRange(null)} />

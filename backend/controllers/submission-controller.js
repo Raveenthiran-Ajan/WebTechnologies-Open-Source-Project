@@ -62,8 +62,14 @@ exports.submitAssignment = async (req, res) => {
 exports.getSubmissionsByAssignment = async (req, res) => {
   try {
     const submissions = await Submission.find({ assignmentId: req.params.assignmentId })
-      .populate("studentId", "name email")
-      .populate("studentId.sclassName", "sclassName"); // populate class name
+      .populate({
+        path: 'studentId',
+        select: 'name email',
+        populate: {
+          path: 'sclassName',
+          select: 'sclassName'
+        }
+      });
     res.json(submissions);
   } catch (error) {
     res.status(500).json({ error: error.message });
