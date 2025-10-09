@@ -1,18 +1,17 @@
-# Timetable Module Fixes
+# Timetable Enhancement Tasks
 
-## Backend Changes
-- [ ] Update getTimetable in class-controller.js to populate teacher with name
-- [ ] Update updateTimetable in class-controller.js to populate teacher in response
+## Backend Enhancements
+- [x] Add subject weekly period limit validation in updateTimetable function (class-controller.js)
+- [x] Add check to prevent overlapping subjects in the same day/period slot (class-controller.js)
 
-## Frontend Changes
-- [ ] Install jsPDF library in frontend
-- [ ] Update StudentTimetable.js download function to generate PDF
-- [ ] Update TeacherTimetable.js download function to generate PDF
-- [ ] Update AdminTimetable.js download function to generate PDF
-- [ ] Update Timetable.js (admin edit) styling to match student/teacher blue theme
+## Frontend Enhancements
+- [x] Implement color coding for timetable slots (white: empty, green: saved, yellow: warning, red: invalid) in Timetable.js
+- [x] Add hover highlights and info tooltips for slots in Timetable.js
+- [x] Add editing mode banner in Timetable.js
+- [x] Add frontend validation to prevent overlapping subjects and invalid data in Timetable.js
+- [x] Disable save button if validations fail in Timetable.js
 
 ## Testing
-- [ ] Test teacher name display after save
-- [ ] Test saving without edits keeps timetable
-- [ ] Test PDF download for student, teacher, admin
-- [ ] Test UI consistency across views
+- [ ] Test backend validations with sample data (including teacher conflicts and subject limits)
+- [ ] Test frontend UI enhancements and validations (color coding, tooltips, dropdown initialization)
+- [ ] Test full flow: edit, validate, save, refresh (with warnings for subject limits)

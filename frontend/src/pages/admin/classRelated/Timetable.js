@@ -19,6 +19,8 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Tooltip,
+  Alert as MuiAlert,
 } from "@mui/material";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -39,7 +41,16 @@ const timeSlots = [
 const Timetable = ({ classID }) => {
   const dispatch = useDispatch();
 
-  const [timetable, setTimetable] = useState({});
+  const [timetable, setTimetable] = useState(() => {
+    const obj = {};
+    daysOfWeek.forEach(day => {
+      obj[day] = {};
+      periods.forEach(period => {
+        obj[day][period] = { subjectId: '', teacherId: '', subjectName: '', teacherName: '' };
+      });
+    });
+    return obj;
+  });
   const [editMode, setEditMode] = useState(false);
   const [availableSubjects, setAvailableSubjects] = useState([]);
   const [availableTeachers, setAvailableTeachers] = useState({});
@@ -47,6 +58,12 @@ const Timetable = ({ classID }) => {
   const [selectedTeachers, setSelectedTeachers] = useState({});
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [loadingTeachers, setLoadingTeachers] = useState({});
+
+  // Validation states
+  const [slotStatus, setSlotStatus] = useState({}); // key: day-period, value: 'empty'|'saved'|'warning'|'invalid'|'exceeded'
+  const [validationErrors, setValidationErrors] = useState([]);
+  const [isSaveDisabled, setIsSaveDisabled] = useState(false);
+  const [exceedingSubjects, setExceedingSubjects] = useState(new Set());
 
   useEffect(() => {
     async function fetchTimetable() {
@@ -83,6 +100,21 @@ const Timetable = ({ classID }) => {
           setTimetable(timetableObj);
           setSelectedSubjects(newSelectedSubjects);
           setSelectedTeachers(newSelectedTeachers);
+          // Initialize slotStatus as saved for loaded slots
+          const initialStatus = {};
+          Object.entries(timetableObj).forEach(([day, periodsObj]) => {
+            Object.entries(periodsObj).forEach(([period, slot]) => {
+              const key = `${day}-${period}`;
+              if (slot.subjectId && slot.teacherId) {
+                initialStatus[key] = 'saved';
+              } else {
+                initialStatus[key] = 'empty';
+              }
+            });
+          });
+          setSlotStatus(initialStatus);
+          setValidationErrors([]);
+          setIsSaveDisabled(false);
         }
       } catch (error) {
         console.error("Failed to fetch timetable", error);
@@ -128,6 +160,79 @@ const Timetable = ({ classID }) => {
     }
   }, [editMode, classID]);
 
+  useEffect(() => {
+    if (editMode && Object.keys(selectedSubjects).length > 0) {
+      Object.entries(selectedSubjects).forEach(([key, subjectId]) => {
+        if (subjectId && !availableTeachers[key]) {
+          const [day, period] = key.split('-');
+          fetchAvailableTeachers(subjectId, day, period);
+        }
+      });
+    }
+  }, [editMode, selectedSubjects]);
+
+  const validateTimetable = (currentTimetable, currentSelectedSubjects, currentSelectedTeachers) => {
+    const errors = [];
+    const slotMap = {};
+    const newSlotStatus = {};
+    const newExceedingSubjects = new Set();
+
+    Object.entries(currentTimetable).forEach(([day, periodsObj]) => {
+      Object.entries(periodsObj).forEach(([period, slot]) => {
+        const key = `${day}-${period}`;
+        if (slot.subjectId) {
+          // Check overlapping
+          const slotKey = `${day}-${period}`;
+          if (slotMap[slotKey]) {
+            errors.push(`Overlapping subjects in ${day} period ${period}`);
+            newSlotStatus[key] = 'invalid';
+          } else {
+            slotMap[slotKey] = true;
+            if (slot.teacherId) {
+              newSlotStatus[key] = 'saved';
+            } else {
+              newSlotStatus[key] = 'warning';
+            }
+          }
+        } else {
+          newSlotStatus[key] = 'empty';
+        }
+      });
+    });
+
+    // Check subject period limits
+    const subjectCount = {};
+    Object.entries(currentTimetable).forEach(([day, periodsObj]) => {
+      Object.entries(periodsObj).forEach(([period, slot]) => {
+        if (slot.subjectId) {
+          subjectCount[slot.subjectId] = (subjectCount[slot.subjectId] || 0) + 1;
+        }
+      });
+    });
+
+    availableSubjects.forEach(subject => {
+      if (subject.periodsPerWeek && subjectCount[subject._id] > subject.periodsPerWeek) {
+        errors.push(`You have assigned more than the allowed number of periods for ${subject.subName} this week. Please adjust the timetable before saving.`);
+        newExceedingSubjects.add(subject._id);
+      }
+    });
+
+    // Update slotStatus for exceeding subjects
+    Object.entries(currentTimetable).forEach(([day, periodsObj]) => {
+      Object.entries(periodsObj).forEach(([period, slot]) => {
+        const key = `${day}-${period}`;
+        if (slot.subjectId && newExceedingSubjects.has(slot.subjectId)) {
+          newSlotStatus[key] = 'exceeded';
+        }
+      });
+    });
+
+    setSlotStatus(newSlotStatus);
+    setValidationErrors(errors);
+    setIsSaveDisabled(errors.length > 0);
+    setExceedingSubjects(newExceedingSubjects);
+  };
+
   const handleSubjectChange = (day, period, subjectId) => {
     const key = `${day}-${period}`;
     setSelectedSubjects(prev => ({ ...prev, [key]: subjectId }));
@@ -153,6 +258,10 @@ const Timetable = ({ classID }) => {
         }
       }
     }));
+
+    // Update slot status and validate
+    setSlotStatus(prev => ({ ...prev, [key]: subjectId ? 'warning' : 'empty' }));
+    validateTimetable({ ...timetable, [day]: { ...timetable[day], [period]: { ...timetable[day][period], subjectId } } }, { ...selectedSubjects, [key]: subjectId }, { ...selectedTeachers, [key]: '' });
   };
 
   const handleTeacherChange = (day, period, teacherId) => {
@@ -173,6 +282,10 @@ const Timetable = ({ classID }) => {
         }
       }
     }));
+
+    // Update slot status and validate
+    setSlotStatus(prev => ({ ...prev, [key]: teacherId ? 'saved' : 'warning' }));
+    validateTimetable(timetable, selectedSubjects, { ...selectedTeachers, [key]: teacherId });
   };
 
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
@@ -258,7 +371,7 @@ const Timetable = ({ classID }) => {
       console.log('Save response data:', data);
       // Convert back to object
       const timetableObj = {};
-      data.forEach(entry => {
+      data.timetable.forEach(entry => {
         if (!timetableObj[entry.day]) timetableObj[entry.day] = {};
         timetableObj[entry.day][entry.period] = {
           subjectId: entry.subjectId || '',
@@ -281,6 +394,11 @@ const Timetable = ({ classID }) => {
       <Typography variant="h5" gutterBottom>
         Class Timetable
       </Typography>
+      {editMode && (
+        <MuiAlert severity="info" sx={{ mb: 2 }}>
+          Editing Mode: Make changes and save to update the timetable. Ensure no overlapping subjects and assign teachers.
+        </MuiAlert>
+      )}
       <TableContainer component={Paper}>
         <Table aria-label="timetable table">
           <TableHead>
@@ -296,53 +414,69 @@ const Timetable = ({ classID }) => {
               <React.Fragment key={period}>
                 <TableRow>
                   <TableCell>{timeSlots[period - 1]}</TableCell>
-                  {daysOfWeek.map(day => (
-                    <TableCell key={`${day}-${period}`}>
-                      {editMode ? (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <FormControl size="small" fullWidth>
-                            <InputLabel>Subject</InputLabel>
-                            <Select
-                              value={selectedSubjects[`${day}-${period}`] || ''}
-                              onChange={(e) => handleSubjectChange(day, period, e.target.value)}
-                              label="Subject"
-                            >
-                              <MenuItem value="">
-                                <em>None</em>
-                              </MenuItem>
-                              {Array.isArray(availableSubjects) ? availableSubjects.map((subject) => (
-                                <MenuItem key={subject._id} value={subject._id}>
-                                  {subject.subName}
-                                </MenuItem>
-                              )) : null}
-                            </Select>
-                          </FormControl>
-                          <FormControl size="small" fullWidth>
-                            <InputLabel>Teacher</InputLabel>
-                            <Select
-                              value={selectedTeachers[`${day}-${period}`] || ''}
-                              onChange={(e) => handleTeacherChange(day, period, e.target.value)}
-                              label="Teacher"
-                              disabled={!selectedSubjects[`${day}-${period}`] || loadingTeachers[`${day}-${period}`]}
-                            >
-                              <MenuItem value="">
-                                <em>None</em>
-                              </MenuItem>
-                              {Array.isArray(availableTeachers[`${day}-${period}`]) ? availableTeachers[`${day}-${period}`].map((teacher) => (
-                                <MenuItem key={teacher._id} value={teacher._id}>
-                                  {teacher.name}
-                                </MenuItem>
-                              )) : null}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                      ) : (
-                        timetable[day]?.[period]?.subjectName && timetable[day]?.[period]?.teacherName
-                          ? `${timetable[day][period].subjectName} (${timetable[day][period].teacherName})`
-                          : timetable[day]?.[period]?.subjectName || ''
-                      )}
-                    </TableCell>
-                  ))}
+                  {daysOfWeek.map(day => {
+                    const key = `${day}-${period}`;
+                    const status = slotStatus[key] || 'empty';
+                    const tooltipTitle = status === 'saved' ? 'Saved' : status === 'warning' ? 'Subject selected, teacher not assigned' : status === 'invalid' ? 'Invalid: overlapping or limit exceeded' : status === 'exceeded' ? 'Subject exceeds weekly period limit' : 'Empty';
+                    const bgColor = status === 'saved' ? '#d4edda' : status === 'warning' ? '#fff3cd' : status === 'invalid' ? '#f8d7da' : status === 'exceeded' ? '#ffe6e6' : '#ffffff';
+                    return (
+                      <TableCell
+                        key={key}
+                        sx={{
+                          backgroundColor: bgColor,
+                          '&:hover': { backgroundColor: '#e0e0e0' }
+                        }}
+                      >
+                        <Tooltip title={tooltipTitle}>
+                          <Box>
+                            {editMode ? (
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                <FormControl size="small" fullWidth>
+                                  <InputLabel>Subject</InputLabel>
+                                  <Select
+                                    value={selectedSubjects[key] || ''}
+                                    onChange={(e) => handleSubjectChange(day, period, e.target.value)}
+                                    label="Subject"
+                                  >
+                                    <MenuItem value="">
+                                      <em>None</em>
+                                    </MenuItem>
+                                    {Array.isArray(availableSubjects) ? availableSubjects.map((subject) => (
+                                      <MenuItem key={subject._id} value={subject._id}>
+                                        {subject.subName}
+                                      </MenuItem>
+                                    )) : null}
+                                  </Select>
+                                </FormControl>
+                                <FormControl size="small" fullWidth>
+                                  <InputLabel>Teacher</InputLabel>
+                                  <Select
+                                    value={selectedTeachers[key] || ''}
+                                    onChange={(e) => handleTeacherChange(day, period, e.target.value)}
+                                    label="Teacher"
+                                    disabled={!selectedSubjects[key] || loadingTeachers[key]}
+                                  >
+                                    <MenuItem value="">
+                                      <em>None</em>
+                                    </MenuItem>
+                                    {Array.isArray(availableTeachers[key]) ? availableTeachers[key].map((teacher) => (
+                                      <MenuItem key={teacher._id} value={teacher._id}>
+                                        {teacher.name}
+                                      </MenuItem>
+                                    )) : null}
+                                  </Select>
+                                </FormControl>
+                              </Box>
+                            ) : (
+                              timetable[day]?.[period]?.subjectName && timetable[day]?.[period]?.teacherName
+                                ? `${timetable[day][period].subjectName} (${timetable[day][period].teacherName})`
+                                : timetable[day]?.[period]?.subjectName || ''
+                            )}
+                          </Box>
+                        </Tooltip>
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
                 {period === 4 && (
                   <TableRow key="interval">
@@ -357,10 +491,15 @@ const Timetable = ({ classID }) => {
           </TableBody>
         </Table>
       </TableContainer>
+      {editMode && isSaveDisabled && validationErrors.some(error => error.includes('periods for')) && (
+        <MuiAlert severity="warning" sx={{ mt: 2, mb: 1 }}>
+          ⚠️ Saving is disabled because one or more subjects exceed their allowed number of periods per week. Please adjust them to continue.
+        </MuiAlert>
+      )}
       <Box sx={{ mt: 2 }}>
         {editMode ? (
           <>
-            <Button variant="contained" color="primary" onClick={handleSave} sx={{ mr: 1 }}>
+            <Button variant="contained" color="primary" onClick={handleSave} disabled={isSaveDisabled} sx={{ mr: 1 }}>
               Save
             </Button>
             <Button variant="outlined" onClick={() => setEditMode(false)}>

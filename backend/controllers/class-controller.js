@@ -168,6 +168,8 @@ const getTimetable = async (req, res) => {
     }
 }
 
+const mongoose = require('mongoose');
+
 const updateTimetable = async (req, res) => {
     try {
         const { timetable } = req.body;
@@ -181,6 +183,53 @@ const updateTimetable = async (req, res) => {
             }
             return true;
         });
+
+        // Check for overlapping slots in the same class
+        const slotSet = new Set();
+        for (const slot of filteredTimetable) {
+            const { day, period } = slot;
+            const slotKey = `${day}-${period}`;
+            if (slotSet.has(slotKey)) {
+                return res.status(400).json({
+                    message: "Multiple subjects cannot be assigned to the same day and period slot."
+                });
+            }
+            slotSet.add(slotKey);
+        }
+
+        // Validate subject weekly period limits
+        const subjectCount = {};
+        for (const slot of filteredTimetable) {
+            if (slot.subjectId) {
+                subjectCount[slot.subjectId] = (subjectCount[slot.subjectId] || 0) + 1;
+            }
+        }
+
+        for (const subjectId in subjectCount) {
+            const subject = await Subject.findById(subjectId);
+            if (!subject) {
+                return res.status(400).json({
+                    message: `Subject with ID ${subjectId} not found.`
+                });
+            }
+            if (subject.periodsPerWeek && subjectCount[subjectId] > subject.periodsPerWeek) {
+                return res.status(400).json({
+                    message: `You have assigned more than the allowed number of periods for ${subject.subName} this week. Please adjust the timetable before saving.`
+                });
+            }
+        }
+
+        // Validate teacher IDs are valid ObjectIds
+        for (const slot of filteredTimetable) {
+            const { teacher } = slot;
+            if (!teacher) continue;
+
+            if (!mongoose.Types.ObjectId.isValid(teacher)) {
+                return res.status(400).json({
+                    message: "The selected teacher is not valid. Please check and select a valid teacher from the list."
+                });
+            }
+        }
 
         // Validate clashes before saving
         for (const slot of filteredTimetable) {
@@ -209,7 +258,7 @@ const updateTimetable = async (req, res) => {
 
             if (hasClash) {
                 return res.status(400).json({
-                    message: `Scheduling clash detected for teacher ${teacherIdStr} on ${day} period ${period}`
+                    message: "Teacher is already assigned to another class during this time slot."
                 });
             }
         }
@@ -220,12 +269,12 @@ const updateTimetable = async (req, res) => {
             { new: true }
         ).populate('timetable.teacher', 'name');
         if (sclass) {
-            res.send(sclass.timetable);
+            res.send({ timetable: sclass.timetable });
         } else {
             res.send({ message: "No class found" });
         }
     } catch (err) {
-        res.status(500).json(err);
+        res.status(500).json({ message: "Failed to update timetable", error: err.message });
     }
 }
 
