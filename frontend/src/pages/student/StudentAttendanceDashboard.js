@@ -659,7 +659,7 @@ const StudentAttendanceDashboard = () => {
                     <TableHead>
                         <TableRow>
                             <TableCell><strong>Term</strong></TableCell>
-                            <TableCell align="center"><strong>Working Days</strong></TableCell>
+                            <TableCell align="center"><strong>Academic Days</strong></TableCell>
                             <TableCell align="center"><strong>Present</strong></TableCell>
                             <TableCell align="center"><strong>Absent</strong></TableCell>
                             <TableCell align="center"><strong>Holiday</strong></TableCell>

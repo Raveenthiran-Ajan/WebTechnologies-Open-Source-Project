@@ -332,7 +332,7 @@ const AdminAttendanceReport = () => {
                             {reportData.workingDays}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Working Days
+                            Academic Days
                         </Typography>
                     </CardContent>
                 </Card>

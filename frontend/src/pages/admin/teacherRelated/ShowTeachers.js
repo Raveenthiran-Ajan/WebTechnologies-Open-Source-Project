@@ -237,14 +237,38 @@ const ShowTeachers = () => {
 
     function CustomToolbar() {
         return (
-            <GridToolbarContainer>
-                <GridToolbarFilterButton />
-                <GridToolbarDensitySelector />
-                <GridToolbarExport />
+            <GridToolbarContainer sx={{
+                display: 'flex',
+                gap: 1,
+                mb: 1,
+                p: 1,
+                borderBottom: '1px solid #ccc'
+            }}>
+                <GridToolbarColumnsButton sx={{ 
+                    color: 'primary.main',
+                    '&:hover': { bgcolor: 'primary.lighter' }
+                }} />
+                <GridToolbarFilterButton sx={{ 
+                    color: 'primary.main',
+                    '&:hover': { bgcolor: 'primary.lighter' }
+                }} />
+                <GridToolbarDensitySelector sx={{ 
+                    color: 'primary.main',
+                    '&:hover': { bgcolor: 'primary.lighter' }
+                }} />
+                <GridToolbarExport sx={{ 
+                    color: 'primary.main',
+                    '&:hover': { bgcolor: 'primary.lighter' }
+                }} />
                 <Box sx={{ flexGrow: 1 }} />
                 <Button
+                    variant="contained"
                     startIcon={<PersonAddAlt1Icon />}
                     onClick={() => navigate('/Admin/teachers/chooseclass')}
+                    sx={{
+                        bgcolor: 'primary.main',
+                        '&:hover': { bgcolor: 'primary.dark' }
+                    }}
                 >
                     Add Teacher
                 </Button>
@@ -382,17 +406,18 @@ const ShowTeachers = () => {
                                 pageSizeOptions={[5, 10, 25]}
                                 disableRowSelectionOnClick
                                 getRowHeight={() => 'auto'}
-                                disableColumnMenu
-                                disableColumnFilter
-                                disableColumnSelector
-                                disableDensitySelector
-                                hideFooterSelectedRowCount
                                 columnVisibilityModel={{
                                     name: true,
                                     teachSubjects: true,
                                     teachSclasses: true,
                                     attendanceClass: true,
                                     actions: true
+                                }}
+                                slotProps={{
+                                    toolbar: {
+                                        showQuickFilter: true,
+                                        quickFilterProps: { debounceMs: 500 }
+                                    }
                                 }}
                                 getRowId={(row) => row.id}
                                 sx={{
