@@ -400,7 +400,7 @@ const Timetable = ({ classID }) => {
         </MuiAlert>
       )}
       <TableContainer component={Paper}>
-        <Table aria-label="timetable table">
+        <Table aria-label="timetable table" stickyHeader>
           <TableHead>
             <TableRow>
               <TableCell>Time</TableCell>

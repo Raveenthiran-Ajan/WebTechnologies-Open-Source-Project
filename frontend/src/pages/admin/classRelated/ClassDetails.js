@@ -50,6 +50,33 @@ const ClassDetails = () => {
         }
     }, [dispatch, classID, location.search])
 
+    // Lock page scrolling when Class Details is open and restore on unmount
+    useEffect(() => {
+        const mainEl = document.querySelector('main');
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+        const prevMainOverflow = mainEl ? mainEl.style.overflow : undefined;
+        const prevMainHeight = mainEl ? mainEl.style.height : undefined;
+
+        // Prevent scrolling on body and the admin dashboard main container
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+        if (mainEl) {
+            mainEl.style.overflow = 'hidden';
+            // Ensure it occupies full viewport height to avoid extra scroll space
+            if (!mainEl.style.height) mainEl.style.height = '100vh';
+        }
+
+        return () => {
+            document.documentElement.style.overflow = prevHtmlOverflow;
+            document.body.style.overflow = prevBodyOverflow;
+            if (mainEl) {
+                if (prevMainOverflow !== undefined) mainEl.style.overflow = prevMainOverflow;
+                if (prevMainHeight !== undefined) mainEl.style.height = prevMainHeight;
+            }
+        };
+    }, []);
+
     if (error) {
         console.log(error)
     }
@@ -180,13 +207,13 @@ const ClassDetails = () => {
                         </Typography>
                     </Box>
                 ) : (
-                    <Box sx={{ height: 400, width: '100%' }}>
+                    <Box sx={{ height: 600, width: '100%' }}>
                         <DataGrid 
                             rows={subjectRows || []} 
                             columns={subjectColumns} 
                             components={{ Toolbar: SubjectsToolbar }}
-                            pageSize={5}
-                            rowsPerPageOptions={[5, 10, 25]}
+                            pageSize={10}
+                            rowsPerPageOptions={[10, 25, 50, 100]}
                         />
                     </Box>
                 )}
@@ -267,13 +294,13 @@ const ClassDetails = () => {
                         </Button>
                     </Box>
                 ) : (
-                    <Box sx={{ height: 400, width: '100%' }}>
+                    <Box sx={{ height: 600, width: '100%' }}>
                         <DataGrid 
                             rows={studentRows || []} 
                             columns={studentColumns} 
                             components={{ Toolbar: StudentsToolbar }}
-                            pageSize={5}
-                            rowsPerPageOptions={[5, 10, 25]}
+                            pageSize={10}
+                            rowsPerPageOptions={[10, 25, 50, 100]}
                         />
                     </Box>
                 )}
@@ -354,13 +381,13 @@ const ClassDetails = () => {
                         </Button>
                     </Box>
                 ) : (
-                    <Box sx={{ height: 400, width: '100%' }}>
+                    <Box sx={{ height: 600, width: '100%' }}>
                         <DataGrid 
                             rows={teacherRows || []} 
                             columns={teacherColumns} 
                             components={{ Toolbar: TeachersToolbar }}
-                            pageSize={5}
-                            rowsPerPageOptions={[5, 10, 25]}
+                            pageSize={10}
+                            rowsPerPageOptions={[10, 25, 50, 100]}
                         />
                     </Box>
                 )}
@@ -482,7 +509,8 @@ const ClassDetails = () => {
                                     <Tab label="Timetable" value="5" />
                                 </TabList>
                             </Box>
-                            <Container sx={{ marginTop: "3rem", marginBottom: "4rem" }}>
+                            {/* Scroll inside the tab content area only */}
+                            <Container sx={{ marginTop: "3rem", marginBottom: 0, height: 'calc(100vh - 6rem)', overflowY: 'auto', overflowX: 'hidden' }}>
                                 <TabPanel value="1">
                                     <ClassDetailsSection />
                                 </TabPanel>
