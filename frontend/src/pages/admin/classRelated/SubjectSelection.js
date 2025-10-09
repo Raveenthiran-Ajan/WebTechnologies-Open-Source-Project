@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, Container, Box, Typography, Grid, Checkbox, CircularProgress, FormControlLabel, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import { Add as AddIcon } from "@mui/icons-material";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
@@ -135,10 +136,7 @@ const SubjectSelection = () => {
                     Select the subjects you want to add to this class
                 </Typography>
 
-                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body1" color="text.secondary">
-                        Select the subjects you want to add to this class
-                    </Typography>
+                <Box sx={{ mb: 3, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                     <FormControlLabel
                         control={
                             <Checkbox
@@ -218,9 +216,16 @@ const SubjectSelection = () => {
                         <Typography variant="h6" color="text.secondary">
                             No subjects available
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                             Please add subjects first before creating a class
                         </Typography>
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => navigate('/Admin/addsubject')}
+                        >
+                            Add Subjects
+                        </Button>
                     </Box>
                 )}
 
