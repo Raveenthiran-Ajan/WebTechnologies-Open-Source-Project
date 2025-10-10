@@ -13,9 +13,9 @@
     "admin": "Admin",
     "adminDesc": "Login as an administrator to access the dashboard to manage app data.",
     "student": "Student",
-    "studentDesc": "Login as a student to explore course materials and assignments.",
+    "studentDesc": "Login as a student to explore subjects, assignments and attendance details.",
     "teacher": "Teacher",
-    "teacherDesc": "Login as a teacher to create courses, assignments, and track student progress.",
+    "teacherDesc": "Login as a teacher to create assignments, and track student progress.",
     "parent": "Parent",
     "parentDesc": "Login as a parent to view your children's attendance and marks."
   },
