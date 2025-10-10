@@ -183,7 +183,12 @@ const StudentAttendanceDashboard = () => {
             if (dayData.hasHoliday) monthlyData[monthKey].holiday++;
         });
 
-        return Object.values(monthlyData);
+        // Sort by date descending (most recent first)
+        return Object.values(monthlyData).sort((a, b) => {
+            const dateA = new Date(a.month + ' 1');
+            const dateB = new Date(b.month + ' 1');
+            return dateB - dateA;
+        });
     };
 
     const prepareTermChartData = () => {
@@ -468,6 +473,111 @@ const StudentAttendanceDashboard = () => {
                 </Grid>
             </Grid>
 
+            {/* Daily Attendance Table */}
+            <Paper sx={{ p: 3, mb: 3 }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+                    Daily Attendance Records
+                </Typography>
+
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell><strong>Date</strong></TableCell>
+                            <TableCell><strong>Day</strong></TableCell>
+                            <TableCell><strong>Status</strong></TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {filteredAttendance
+                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            .map((record, index) => {
+                                const date = new Date(record.date);
+                                const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+
+                                return (
+                                    <TableRow key={index} hover>
+                                        <TableCell>{date.toLocaleDateString()}</TableCell>
+                                        <TableCell>{dayName}</TableCell>
+                                        <TableCell>
+                                            <Chip
+                                                label={record.status}
+                                                color={
+                                                    record.status === 'Present' ? 'success' :
+                                                    record.status === 'Absent' ? 'error' :
+                                                    record.status === 'Holiday' ? 'warning' : 'default'
+                                                }
+                                                size="small"
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                    </TableBody>
+                </Table>
+
+                <TablePagination
+                    component="div"
+                    count={filteredAttendance.length}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    rowsPerPage={rowsPerPage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                    rowsPerPageOptions={[5, 10, 25]}
+                />
+            </Paper>
+
+            {/* Term Summary Table */}
+            <Paper sx={{ p: 3 }}>
+                <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+                    Term Summary
+                </Typography>
+
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell><strong>Term</strong></TableCell>
+                            <TableCell align="center"><strong>Academic Days</strong></TableCell>
+                            <TableCell align="center"><strong>Present</strong></TableCell>
+                            <TableCell align="center"><strong>Absent</strong></TableCell>
+                            <TableCell align="center"><strong>Holiday</strong></TableCell>
+                            <TableCell align="center"><strong>Attendance %</strong></TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {['Term 1', 'Term 2', 'Term 3'].map((termName) => {
+                            const termAttendance = filteredAttendance.filter(record => {
+                                const date = new Date(record.date);
+                                const month = date.getMonth() + 1;
+                                const termMonths = {
+                                    'Term 1': [1, 2, 3, 4],
+                                    'Term 2': [5, 6, 7, 8],
+                                    'Term 3': [9, 10, 11, 12]
+                                };
+                                return termMonths[termName]?.includes(month);
+                            });
+
+                            const totalDays = termAttendance.length;
+                            const present = termAttendance.filter(r => r.status === 'Present').length;
+                            const absent = termAttendance.filter(r => r.status === 'Absent').length;
+                            const holiday = termAttendance.filter(r => r.status === 'Holiday').length;
+                            const workingDays = totalDays - holiday;
+                            const percentage = workingDays > 0 ? ((present / workingDays) * 100).toFixed(1) : '0.0';
+
+                            return (
+                                <TableRow key={termName}>
+                                    <TableCell>{termName}</TableCell>
+                                    <TableCell align="center">{workingDays}</TableCell>
+                                    <TableCell align="center">{present}</TableCell>
+                                    <TableCell align="center">{absent}</TableCell>
+                                    <TableCell align="center">{holiday}</TableCell>
+                                    <TableCell align="center">{percentage}%</TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </Paper>
+
             {/* Chart Section with Toggle */}
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -594,111 +704,6 @@ const StudentAttendanceDashboard = () => {
                         </ResponsiveContainer>
                     )}
                 </Box>
-            </Paper>
-
-            {/* Daily Attendance Table */}
-            <Paper sx={{ p: 3, mb: 3 }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-                    Daily Attendance Records
-                </Typography>
-
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell><strong>Date</strong></TableCell>
-                            <TableCell><strong>Day</strong></TableCell>
-                            <TableCell><strong>Status</strong></TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {filteredAttendance
-                            .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            .map((record, index) => {
-                                const date = new Date(record.date);
-                                const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-
-                                return (
-                                    <TableRow key={index} hover>
-                                        <TableCell>{date.toLocaleDateString()}</TableCell>
-                                        <TableCell>{dayName}</TableCell>
-                                        <TableCell>
-                                            <Chip
-                                                label={record.status}
-                                                color={
-                                                    record.status === 'Present' ? 'success' :
-                                                    record.status === 'Absent' ? 'error' :
-                                                    record.status === 'Holiday' ? 'warning' : 'default'
-                                                }
-                                                size="small"
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                    </TableBody>
-                </Table>
-
-                <TablePagination
-                    component="div"
-                    count={filteredAttendance.length}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    rowsPerPage={rowsPerPage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                    rowsPerPageOptions={[5, 10, 25]}
-                />
-            </Paper>
-
-            {/* Term Summary Table */}
-            <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-                    Term Summary
-                </Typography>
-
-                <Table size="small">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell><strong>Term</strong></TableCell>
-                            <TableCell align="center"><strong>Academic Days</strong></TableCell>
-                            <TableCell align="center"><strong>Present</strong></TableCell>
-                            <TableCell align="center"><strong>Absent</strong></TableCell>
-                            <TableCell align="center"><strong>Holiday</strong></TableCell>
-                            <TableCell align="center"><strong>Attendance %</strong></TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {['Term 1', 'Term 2', 'Term 3'].map((termName) => {
-                            const termAttendance = filteredAttendance.filter(record => {
-                                const date = new Date(record.date);
-                                const month = date.getMonth() + 1;
-                                const termMonths = {
-                                    'Term 1': [1, 2, 3, 4],
-                                    'Term 2': [5, 6, 7, 8],
-                                    'Term 3': [9, 10, 11, 12]
-                                };
-                                return termMonths[termName]?.includes(month);
-                            });
-
-                            const totalDays = termAttendance.length;
-                            const present = termAttendance.filter(r => r.status === 'Present').length;
-                            const absent = termAttendance.filter(r => r.status === 'Absent').length;
-                            const holiday = termAttendance.filter(r => r.status === 'Holiday').length;
-                            const workingDays = totalDays - holiday;
-                            const percentage = workingDays > 0 ? ((present / workingDays) * 100).toFixed(1) : '0.0';
-
-                            return (
-                                <TableRow key={termName}>
-                                    <TableCell>{termName}</TableCell>
-                                    <TableCell align="center">{workingDays}</TableCell>
-                                    <TableCell align="center">{present}</TableCell>
-                                    <TableCell align="center">{absent}</TableCell>
-                                    <TableCell align="center">{holiday}</TableCell>
-                                    <TableCell align="center">{percentage}%</TableCell>
-                                </TableRow>
-                            );
-                        })}
-                    </TableBody>
-                </Table>
             </Paper>
         </Container>
     );
