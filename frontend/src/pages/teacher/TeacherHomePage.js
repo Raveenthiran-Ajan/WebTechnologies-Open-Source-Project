@@ -215,14 +215,6 @@ const TeacherHomePage = () => {
                         Take Attendance
                     </Button>
                     <Button
-                        variant="contained"
-                        color="secondary"
-                        onClick={() => teachingClasses.length > 0 ? window.location.href = `/Teacher/class/${typeof teachingClasses[0] === 'object' ? teachingClasses[0]._id : teachingClasses[0]}` : null}
-                        disabled={teachingClasses.length === 0}
-                    >
-                        View Class Details
-                    </Button>
-                    <Button
                         variant="outlined"
                         color="success"
                         onClick={() => window.location.href = '/Teacher/upload-assignment'}
