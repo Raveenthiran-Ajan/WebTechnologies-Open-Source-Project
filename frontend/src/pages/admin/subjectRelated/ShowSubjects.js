@@ -65,7 +65,7 @@ const ShowSubjects = () => {
     };
 
     const columns = [
-        { field: 'subName', headerName: 'Subject Name', width: 200 },
+        { field: 'subName', headerName: 'Subject Name', width: 300 },
         { field: 'subCode', headerName: 'Subject Code', width: 150 },
         {
             field: 'actions',
