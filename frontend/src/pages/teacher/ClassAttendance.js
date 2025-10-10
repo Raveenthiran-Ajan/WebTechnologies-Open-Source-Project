@@ -59,15 +59,53 @@ const ClassAttendance = () => {
     }, [dispatch, classId]);
     
     useEffect(() => {
-        // Initialize attendance data for all students as present by default
-        if (sclassStudents && sclassStudents.length > 0) {
-            const initialData = {};
-            sclassStudents.forEach(student => {
-                initialData[student._id] = 'Present';
-            });
-            setAttendanceData(initialData);
-        }
-    }, [sclassStudents]);
+        // Initialize attendance data for all students
+        const initializeAttendanceData = async () => {
+            if (sclassStudents && sclassStudents.length > 0) {
+                const initialData = {};
+                
+                // First, set default to Present for all students
+                sclassStudents.forEach(student => {
+                    initialData[student._id] = 'Present';
+                });
+                
+                // If attendance is already submitted for this date, load the existing data
+                if (isAlreadySubmitted) {
+                    try {
+                        // Load attendance data for all students for this date
+                        const attendancePromises = sclassStudents.map(student => 
+                            axios.get(`${API_BASE_URL}/Student/${student._id}`)
+                        );
+                        
+                        const responses = await Promise.all(attendancePromises);
+                        
+                        responses.forEach((resp, index) => {
+                            const student = sclassStudents[index];
+                            const attendance = resp.data?.attendance || [];
+                            
+                            // Find attendance record for the selected date
+                            const record = attendance.find(a => {
+                                const sameDay = new Date(a.date).toDateString() === new Date(attendanceDate).toDateString();
+                                const isDaily = a.isTermAttendance === false || a.isTermAttendance === undefined;
+                                return sameDay && isDaily && (!a.subName || a.subName === null);
+                            });
+                            
+                            if (record) {
+                                initialData[student._id] = record.status;
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error loading existing attendance data:', error);
+                        // Keep default values if loading fails
+                    }
+                }
+                
+                setAttendanceData(initialData);
+            }
+        };
+        
+        initializeAttendanceData();
+    }, [sclassStudents, isAlreadySubmitted, attendanceDate]);
 
     // Check if attendance already submitted for the selected date (class-wide daily attendance)
     useEffect(() => {
