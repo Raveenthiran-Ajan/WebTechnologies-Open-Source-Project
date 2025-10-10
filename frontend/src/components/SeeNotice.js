@@ -43,11 +43,11 @@ const SeeNotice = () => {
                 </Typography>
             ) : (
                 <>
-                    <Typography variant="h4" component="h3" sx={{ fontSize: '30px', marginBottom: '40px', color: 'purple', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography variant="h4" component="h3" sx={{ fontSize: '30px', marginBottom: '40px', color: '#1976d2', display: 'flex', alignItems: 'center', gap: 1 }}>
                         <AnnouncementOutlinedIcon />
                         {getText('recentNotices')}
                     </Typography>
-                    <Paper sx={{ width: '100%', p: 2, borderRadius: 2, border: '1px solid purple' }}>
+                    <Paper sx={{ width: '100%', p: 2, borderRadius: 2, border: '1px solid #1976d2' }}>
                         <Grid container spacing={2}>
                             {Array.isArray(noticesList) && noticesList.length > 0 ? (
                                 noticesList.map((notice) => {
@@ -56,8 +56,8 @@ const SeeNotice = () => {
                                     const truncatedDetails = notice.details.length > 100 ? notice.details.substring(0, 100) + '...' : notice.details;
                                     return (
                                         <Grid item xs={12} sm={6} md={4} key={notice._id}>
-                                            <Card sx={{ height: '100%', '&:hover': { boxShadow: 3, borderColor: 'purple' } }}>
-                                                <CardHeader title={notice.title} sx={{ backgroundColor: 'purple', color: 'white' }} />
+                                            <Card sx={{ height: '100%', '&:hover': { boxShadow: 3, borderColor: '#1976d2' } }}>
+                                                <CardHeader title={notice.title} sx={{ backgroundColor: '#1976d2', color: 'white' }} />
                                                 <CardContent>
                                                     <Typography variant="body2" color="text.secondary">
                                                         {truncatedDetails}
