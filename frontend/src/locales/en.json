@@ -256,6 +256,8 @@
     "wednesday": "Wednesday",
     "thursday": "Thursday",
     "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
     "downloadTimetable": "Download Timetable",
     "selectChildMessage": "Please select a child to view their timetable.",
     "interval": "Interval (10:30-10:45)"
@@ -296,6 +298,7 @@
     "attendanceRecords": "Attendance Records",
     "noAttendanceRecords": "No attendance records match the selected filters",
     "date": "Date",
+    "day": "Day",
     "status": "Status",
     "subject": "Subject",
     "notAssigned": "Not Assigned",

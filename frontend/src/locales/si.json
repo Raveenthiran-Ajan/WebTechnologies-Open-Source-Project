@@ -256,6 +256,8 @@
     "wednesday": "බදාදා",
     "thursday": "බ්‍රහස්පතින්දා",
     "friday": "සිකුරාදා",
+    "saturday": "සෙනසුරාදා",
+    "sunday": "ඉරිදා",
     "downloadTimetable": "කාලසටහන බාගත කරන්න",
     "selectChildMessage": "ඔවුන්ගේ කාලසටහන බැලීමට කරුණාකර දරුවෙකු තෝරන්න.",
     "interval": "විරාමය (10:30-10:45)"
@@ -296,6 +298,7 @@
     "attendanceRecords": "පැමිණීම් වාර්තා",
     "noAttendanceRecords": "තෝරාගත් පෙරහන්ට ගැලපෙන පැමිණීම් වාර්තා කිසිවක් නොමැත",
     "date": "දිනය",
+    "day": "සතියේ දිනය",
     "status": "තත්ත්වය",
     "subject": "විෂයය",
     "notAssigned": "නියම නොකර ඇත",

@@ -44,7 +44,7 @@ const ChildrenList = () => {
         if (term === 'all') return;
         const allowed = termMonths[term] || [];
         const monthNum = parseInt(month, 10);
-        if (!allowed.includes(monthNum)) {
+        if (month !== 'all' && !allowed.includes(monthNum)) {
             // Reset to first month of selected term if current month not in range
             setMonth(String(allowed[0]));
         }
@@ -354,7 +354,7 @@ const ChildrenList = () => {
                                             {(() => {
                                                 const availableMonths = term === 'all' 
                                                     ? ['all', ...Array.from({length: 12}, (_, i) => (i + 1).toString())]
-                                                    : (termMonths[term] || []).map(m => m.toString());
+                                                    : ['all', ...(termMonths[term] || []).map(m => m.toString())];
                                                 return availableMonths.map(m => (
                                                     <MenuItem key={m} value={m}>
                                                         {m === 'all' ? t('childrenList.allMonths') : monthNames[parseInt(m)]}
@@ -459,14 +459,22 @@ const ChildrenList = () => {
                                                 <TableHead>
                                                     <TableRow sx={{ bgcolor: 'grey.50' }}>
                                                         <TableCell sx={{ fontWeight: 'bold' }}>{t('childrenList.date')}</TableCell>
+                                                        <TableCell sx={{ fontWeight: 'bold' }}>{t('childrenList.day')}</TableCell>
                                                         <TableCell sx={{ fontWeight: 'bold' }}>{t('childrenList.status')}</TableCell>
                                                     </TableRow>
                                                 </TableHead>
                                                 <TableBody>
-                                                    {filtered.slice(-10).reverse().map((record, index) => (
+                                                    {filtered.slice(-10).reverse().map((record, index) => {
+                                                        const dayNum = new Date(record.date).getDay();
+                                                        const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                                                        const dayKey = dayKeys[dayNum];
+                                                        return (
                                                         <TableRow key={index}>
                                                             <TableCell>
                                                                 {new Date(record.date).toLocaleDateString()}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {t(dayKey)}
                                                             </TableCell>
                                                             <TableCell>
                                                                 <Chip 
@@ -480,7 +488,8 @@ const ChildrenList = () => {
                                                             </TableCell>
                                                             {/* Subject cell removed */}
                                                         </TableRow>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </TableBody>
                                             </Table>
                                         </TableContainer>
