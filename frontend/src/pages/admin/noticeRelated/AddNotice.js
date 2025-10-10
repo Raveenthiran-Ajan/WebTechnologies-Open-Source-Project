@@ -1,15 +1,11 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
 import { CircularProgress, TextField, Button, Container, Box, Typography, Grid, Tooltip, IconButton, Paper } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import FormatBoldIcon from '@mui/icons-material/FormatBold';
-import FormatItalicIcon from '@mui/icons-material/FormatItalic';
-import FormatUnderlinedIcon from '@mui/icons-material/FormatUnderlined';
-import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Popup from '../../../components/Popup';
 
 const AddNotice = () => {
@@ -22,7 +18,6 @@ const AddNotice = () => {
   const [details, setDetails] = useState('');
   const [date, setDate] = useState('');
   const [file, setFile] = useState([]);
-  const textAreaRef = useRef(null);
   const adminID = currentUser._id;
 
   const [loader, setLoader] = useState(false);
@@ -47,27 +42,6 @@ const AddNotice = () => {
   const removeFile = (index) => {
     setFile(file.filter((_, i) => i !== index));
   };
-
-  const insertFormatting = (before, after = '') => {
-    const textarea = textAreaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = details.substring(start, end);
-    const newText = details.substring(0, start) + before + selectedText + after + details.substring(end);
-    setDetails(newText);
-    
-    // Reset cursor position
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + before.length, end + before.length);
-    }, 0);
-  };
-
-  const formatBold = () => insertFormatting('**', '**');
-  const formatItalic = () => insertFormatting('*', '*');
-  const formatUnderline = () => insertFormatting('<u>', '</u>');
-  const formatBullet = () => insertFormatting('- ', '');
-  const formatNumber = () => insertFormatting('1. ', '');
 
   const cancelHandler = () => {
     navigate('/Admin/notices');
@@ -103,74 +77,17 @@ const AddNotice = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                Notice Details
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                <Tooltip title="Bold">
-                  <IconButton size="small" onClick={formatBold}>
-                    <FormatBoldIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Italic">
-                  <IconButton size="small" onClick={formatItalic}>
-                    <FormatItalicIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Underline">
-                  <IconButton size="small" onClick={formatUnderline}>
-                    <FormatUnderlinedIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Bullet List">
-                  <IconButton size="small" onClick={formatBullet}>
-                    <FormatListBulletedIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Numbered List">
-                  <IconButton size="small" onClick={formatNumber}>
-                    <FormatListNumberedIcon />
-                  </IconButton>
-                </Tooltip>
-              </Box>
               <TextField
                 fullWidth
+                label="Notice Details"
                 variant="outlined"
                 multiline
                 rows={4}
                 value={details}
                 onChange={(event) => setDetails(event.target.value)}
-                inputRef={textAreaRef}
                 placeholder="Enter notice details..."
                 required
               />
-              <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
-                Formatting: **bold**, *italic*, &lt;u&gt;underline&lt;/u&gt;, - bullet, 1. number
-              </Typography>
-              {details && (
-                <Box sx={{ mt: 2, p: 2, bgcolor: '#f8f9fa', borderRadius: 1, border: '1px solid #e0e0e0' }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, color: '#666' }}>
-                    Preview:
-                  </Typography>
-                  <div 
-                    style={{ 
-                      color: '#2c3e50',
-                      lineHeight: 1.6,
-                      whiteSpace: 'pre-wrap',
-                      fontSize: '0.875rem'
-                    }}
-                    dangerouslySetInnerHTML={{ 
-                      __html: details
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                        .replace(/<u>(.*?)<\/u>/g, '<u>$1</u>')
-                        .replace(/^- (.*)$/gm, '• $1')
-                        .replace(/^(\d+)\. (.*)$/gm, '$1. $2')
-                        .replace(/\n/g, '<br>')
-                    }}
-                  />
-                </Box>
-              )}
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -192,8 +109,9 @@ const AddNotice = () => {
                   variant="contained"
                   component="label"
                   color="primary"
+                  startIcon={<CloudUploadIcon />}
                 >
-                  Select Files
+                  Upload Files
                   <input
                     type="file"
                     hidden
