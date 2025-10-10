@@ -266,11 +266,17 @@ const Timetable = ({ classID }) => {
 
   const handleTeacherChange = (day, period, teacherId) => {
     const key = `${day}-${period}`;
+    const teachersForSlot = availableTeachers[key] || [];
+    const selectedTeacher = teachersForSlot.find(t => t._id === teacherId);
+    
+    // Prevent selecting unavailable teachers
+    if (selectedTeacher && !selectedTeacher.available) {
+      return;
+    }
+
     setSelectedTeachers(prev => ({ ...prev, [key]: teacherId }));
 
     // Update timetable with teacherId and name
-    const teachersForSlot = availableTeachers[key] || [];
-    const selectedTeacher = teachersForSlot.find(t => t._id === teacherId);
     setTimetable(prev => ({
       ...prev,
       [day]: {
@@ -460,8 +466,8 @@ const Timetable = ({ classID }) => {
                                       <em>None</em>
                                     </MenuItem>
                                     {Array.isArray(availableTeachers[key]) ? availableTeachers[key].map((teacher) => (
-                                      <MenuItem key={teacher._id} value={teacher._id}>
-                                        {teacher.name}
+                                      <MenuItem key={teacher._id} value={teacher._id} disabled={!teacher.available}>
+                                        {teacher.name} {!teacher.available ? `(assigned to ${teacher.conflictingClass})` : ''}
                                       </MenuItem>
                                     )) : null}
                                   </Select>

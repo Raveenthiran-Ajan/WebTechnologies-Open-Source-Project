@@ -338,12 +338,23 @@ const getAvailableSubjects = async (req, res) => {
 const getAvailableTeachers = async (req, res) => {
     try {
         const { classId, subjectId, day, period } = req.params;
-        // Get teachers for the subject
-        const subject = await Subject.findById(subjectId).populate('teacher');
-        if (!subject || !subject.teacher) {
-            return res.send({ message: "No teachers assigned to this subject" });
+        // Get teachers assigned to this subject in this class
+        const teachers = await Teacher.find({
+            'teachAssignments.subject': subjectId,
+            'teachAssignments.sclass': classId
+        }).populate('teachAssignments.subject').populate('teachAssignments.sclass');
+
+        // Filter to only those assigned to this specific subject-class
+        const subjectTeachers = teachers.filter(teacher =>
+            teacher.teachAssignments.some(assignment =>
+                assignment.subject._id.toString() === subjectId &&
+                assignment.sclass._id.toString() === classId
+            )
+        );
+
+        if (subjectTeachers.length === 0) {
+            return res.send([]);
         }
-        const subjectTeachers = Array.isArray(subject.teacher) ? subject.teacher : [subject.teacher]; // Ensure array
 
         // Check for clashes: Find if any teacher is already scheduled at this day/period in other classes
         const clashes = await Sclass.find({
@@ -351,25 +362,33 @@ const getAvailableTeachers = async (req, res) => {
             'timetable.day': day,
             'timetable.period': parseInt(period),
             'timetable.teacher': { $exists: true }
-        });
+        }).populate('timetable.teacher', 'name');
 
-        // Extract teacher IDs assigned at this slot in other classes
-        const clashingTeacherIds = clashes.flatMap(sclass =>
+        // Create a map of clashing teacher IDs to their conflicting class names
+        const clashMap = {};
+        clashes.forEach(sclass => {
             sclass.timetable
                 .filter(slot => slot.day === day && slot.period === parseInt(period))
-                .map(slot => slot.teacher.toString())
-        );
+                .forEach(slot => {
+                    if (slot.teacher) {
+                        clashMap[slot.teacher._id.toString()] = sclass.sclassName;
+                    }
+                });
+        });
 
-        // Filter out teachers who have clashes
-        const availableTeachers = subjectTeachers.filter(teacher =>
-            !clashingTeacherIds.includes(teacher._id.toString())
-        );
+        // Build response with availability status
+        const teacherList = subjectTeachers.map(teacher => {
+            const teacherId = teacher._id.toString();
+            const isAvailable = !clashMap[teacherId];
+            return {
+                _id: teacher._id,
+                name: teacher.name,
+                available: isAvailable,
+                conflictingClass: isAvailable ? null : clashMap[teacherId]
+            };
+        });
 
-        if (availableTeachers.length > 0) {
-            res.send(availableTeachers);
-        } else {
-            res.send({ message: "No available teachers for this slot" });
-        }
+        res.send(teacherList);
     } catch (err) {
         res.status(500).json(err);
     }

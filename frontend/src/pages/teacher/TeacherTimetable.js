@@ -53,7 +53,9 @@ const TeacherTimetable = () => {
           const response = await fetch(`http://localhost:5000/Sclass/Timetable/${cls._id}`);
           const data = await response.json();
           if (Array.isArray(data)) {
-            data.forEach(entry => {
+            // Filter to only entries where the teacher is the current user
+            const teacherEntries = data.filter(entry => entry.teacher && entry.teacher._id === currentUser._id);
+            teacherEntries.forEach(entry => {
               if (!timetableObj[entry.day]) timetableObj[entry.day] = {};
               timetableObj[entry.day][entry.period] = {
                 className: cls.sclassName,
