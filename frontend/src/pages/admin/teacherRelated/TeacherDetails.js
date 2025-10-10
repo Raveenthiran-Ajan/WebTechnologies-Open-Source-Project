@@ -204,13 +204,6 @@ const TeacherDetails = () => {
                                         </Button>
                                     ) : null}
                                     
-                                    <Button 
-                                        variant="contained" 
-                                        color="secondary"
-                                        onClick={() => navigate(`/Admin/teachers/teacher/timetable/${teacherDetails?._id}`)}
-                                    >
-                                        View Timetable
-                                    </Button>
                                     <Button variant="outlined" onClick={() => navigate(-1)}>
                                         Go Back
                                     </Button>
