@@ -25,8 +25,9 @@ const ViewChildDetails = () => {
             return "0.00";
         }
         const totalPresent = attendance.filter(att => att.status === 'Present').length;
-        const totalSessions = attendance.length;
-        return ((totalPresent / totalSessions) * 100).toFixed(2);
+        const totalAcademic = attendance.filter(att => att.status !== 'Holiday').length;
+        if (totalAcademic === 0) return "0.00";
+        return ((totalPresent / totalAcademic) * 100).toFixed(2);
     };
 
     // Helper function to get class name

@@ -291,6 +291,7 @@
     "december": "December",
     "presentDays": "Present Days",
     "absentDays": "Absent Days",
+    "academicDays": "Academic Days",
     "attendancePercentage": "Attendance %",
     "attendanceRecords": "Attendance Records",
     "noAttendanceRecords": "No attendance records match the selected filters",

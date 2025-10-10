@@ -9,6 +9,7 @@ import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import SchoolIcon from '@mui/icons-material/School';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import { getParentDetails, getChildDetails } from '../../redux/parentRelated/parentHandle';
@@ -103,8 +104,9 @@ const ChildrenList = () => {
             return "0.00";
         }
         const totalPresent = attendance.filter(att => att.status === 'Present').length;
-        const totalSessions = attendance.length;
-        return ((totalPresent / totalSessions) * 100).toFixed(2);
+        const totalAcademic = attendance.filter(att => att.status !== 'Holiday').length;
+        if (totalAcademic === 0) return "0.00";
+        return ((totalPresent / totalAcademic) * 100).toFixed(2);
     };
 
     const filterAttendance = (attendance) => {
@@ -349,19 +351,16 @@ const ChildrenList = () => {
                                             label={t('childrenList.month')}
                                             onChange={(e) => setMonth(e.target.value)}
                                         >
-                                            <MenuItem value="all">{t('childrenList.allMonths')}</MenuItem>
-                                            <MenuItem value="1">{t('childrenList.january')}</MenuItem>
-                                            <MenuItem value="2">{t('childrenList.february')}</MenuItem>
-                                            <MenuItem value="3">{t('childrenList.march')}</MenuItem>
-                                            <MenuItem value="4">{t('childrenList.april')}</MenuItem>
-                                            <MenuItem value="5">{t('childrenList.may')}</MenuItem>
-                                            <MenuItem value="6">{t('childrenList.june')}</MenuItem>
-                                            <MenuItem value="7">{t('childrenList.july')}</MenuItem>
-                                            <MenuItem value="8">{t('childrenList.august')}</MenuItem>
-                                            <MenuItem value="9">{t('childrenList.september')}</MenuItem>
-                                            <MenuItem value="10">{t('childrenList.october')}</MenuItem>
-                                            <MenuItem value="11">{t('childrenList.november')}</MenuItem>
-                                            <MenuItem value="12">{t('childrenList.december')}</MenuItem>
+                                            {(() => {
+                                                const availableMonths = term === 'all' 
+                                                    ? ['all', ...Array.from({length: 12}, (_, i) => (i + 1).toString())]
+                                                    : (termMonths[term] || []).map(m => m.toString());
+                                                return availableMonths.map(m => (
+                                                    <MenuItem key={m} value={m}>
+                                                        {m === 'all' ? t('childrenList.allMonths') : monthNames[parseInt(m)]}
+                                                    </MenuItem>
+                                                ));
+                                            })()}
                                         </Select>
                                     </FormControl>
                                 </Grid>
@@ -376,7 +375,7 @@ const ChildrenList = () => {
                                 </Typography>
                             )}
                             <Grid container spacing={2} sx={{ mb: 3 }}>
-                                <Grid item xs={12} sm={6} md={4}>
+                                <Grid item xs={12} sm={6} md={3}>
                                     <Card sx={{ backgroundColor: 'rgba(76, 175, 80, 0.1)', border: '1px solid #4caf50' }}>
                                         <CardContent sx={{ textAlign: 'center' }}>
                                             <CheckCircleIcon sx={{ fontSize: 40, color: '#4caf50', mb: 1 }} />
@@ -393,7 +392,7 @@ const ChildrenList = () => {
                                     </Card>
                                 </Grid>
 
-                                <Grid item xs={12} sm={6} md={4}>
+                                <Grid item xs={12} sm={6} md={3}>
                                     <Card sx={{ backgroundColor: 'rgba(244, 67, 54, 0.1)', border: '1px solid #f44336' }}>
                                         <CardContent sx={{ textAlign: 'center' }}>
                                             <CancelIcon sx={{ fontSize: 40, color: '#f44336', mb: 1 }} />
@@ -410,7 +409,24 @@ const ChildrenList = () => {
                                     </Card>
                                 </Grid>
 
-                                <Grid item xs={12} sm={6} md={4}>
+                                <Grid item xs={12} sm={6} md={3}>
+                                    <Card sx={{ backgroundColor: 'rgba(255, 152, 0, 0.1)', border: '1px solid #ff9800' }}>
+                                        <CardContent sx={{ textAlign: 'center' }}>
+                                            <SchoolIcon sx={{ fontSize: 40, color: '#ff9800', mb: 1 }} />
+                                            <Typography variant="h4" fontWeight="bold" color="#ff9800">
+                                                {(() => {
+                                                    const att = (currentChild && selectedChild && currentChild._id === selectedChild._id && currentChild.attendance) ? currentChild.attendance : (selectedChild?.attendance || []);
+                                                    return filterAttendance(att).length;
+                                                })()}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {t('childrenList.academicDays')}
+                                            </Typography>
+                                        </CardContent>
+                                    </Card>
+                                </Grid>
+
+                                <Grid item xs={12} sm={6} md={3}>
                                     <Card sx={{ backgroundColor: 'rgba(33, 150, 243, 0.1)', border: '1px solid #2196f3' }}>
                                         <CardContent sx={{ textAlign: 'center' }}>
                                             <AssessmentIcon sx={{ fontSize: 40, color: '#2196f3', mb: 1 }} />
