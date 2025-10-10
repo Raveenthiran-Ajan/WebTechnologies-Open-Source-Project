@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserDetails } from '../../../redux/userRelated/userHandle';
+import { getUserDetails, deleteUser } from '../../../redux/userRelated/userHandle';
 import { useNavigate, useParams } from 'react-router-dom'
 import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
 import { Box, Button, Collapse, IconButton, Table, TableBody, TableHead, Typography, Tab, Paper, BottomNavigation, BottomNavigationAction, Container } from '@mui/material';
@@ -18,6 +18,7 @@ import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import Popup from '../../../components/Popup';
+import DeleteConfirmDialog from '../../../components/DeleteConfirmDialog';
 import dayjs from 'dayjs';
 
 const ViewStudent = () => {
@@ -51,6 +52,10 @@ const ViewStudent = () => {
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
+    const [deleteDialog, setDeleteDialog] = useState({
+        open: false,
+        itemName: ""
+    });
 
     const handleOpen = (subId) => {
         setOpenStates((prevState) => ({
@@ -79,15 +84,27 @@ const ViewStudent = () => {
         }
     }, [userDetails]);
 
-    const deleteHandler = () => {
-        setMessage("Sorry the delete function has been disabled for now.")
-        setShowPopup(true)
+    const deleteHandler = (itemName) => {
+        setDeleteDialog({
+            open: true,
+            itemName
+        });
+    };
 
-        // dispatch(deleteUser(studentID, address))
-        //     .then(() => {
-        //         navigate(-1)
-        //     })
-    }
+    const confirmDelete = () => {
+        dispatch(deleteUser(studentID, address))
+            .then(() => {
+                navigate(-1);
+            })
+            .catch((error) => {
+                setMessage("Failed to delete student");
+                setShowPopup(true);
+            });
+    };
+
+    const cancelDelete = () => {
+        setDeleteDialog({ open: false, itemName: "" });
+    };
 
     const removeHandler = (id, deladdress) => {
         dispatch(removeStuff(id, deladdress))
@@ -399,9 +416,17 @@ const ViewStudent = () => {
                             </Box>
                         </Box>
                         
-                        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+                        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 2 }}>
                             <Button variant="outlined" onClick={() => navigate(-1)}>
                                 Go Back
+                            </Button>
+                            <Button 
+                                variant="contained" 
+                                color="error" 
+                                startIcon={<DeleteIcon />}
+                                onClick={() => deleteHandler(userDetails?.name)}
+                            >
+                                Delete Student
                             </Button>
                         </Box>
                     </Box>
@@ -435,6 +460,13 @@ const ViewStudent = () => {
                     </Box>
                 </>
             }
+            <DeleteConfirmDialog
+                open={deleteDialog.open}
+                onClose={cancelDelete}
+                onConfirm={confirmDelete}
+                itemName={deleteDialog.itemName}
+                loading={false}
+            />
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
 
         </>

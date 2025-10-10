@@ -20,6 +20,7 @@ import {
     GridToolbarExport
 } from '@mui/x-data-grid';
 import Popup from '../../../components/Popup';
+import DeleteConfirmDialog from '../../../components/DeleteConfirmDialog';
 
 const ShowTeachers = () => {
     const navigate = useNavigate();
@@ -30,15 +31,41 @@ const ShowTeachers = () => {
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
     const [view, setView] = useState('list');
+    const [deleteDialog, setDeleteDialog] = useState({
+        open: false,
+        id: null,
+        address: null,
+        itemName: ""
+    });
 
     useEffect(() => {
         dispatch(getAllTeachers(currentUser._id));
     }, [currentUser._id, dispatch]);
 
-    const deleteHandler = (id, address) => {
+    const deleteHandler = (id, address, itemName) => {
+        setDeleteDialog({
+            open: true,
+            id,
+            address,
+            itemName
+        });
+    };
+
+    const confirmDelete = () => {
+        const { id, address } = deleteDialog;
         dispatch(deleteUser(id, address)).then(() => {
             dispatch(getAllTeachers(currentUser._id));
+            setMessage("Teacher deleted successfully");
+            setShowPopup(true);
+            setDeleteDialog({ open: false, id: null, address: null, itemName: "" });
+        }).catch((error) => {
+            setMessage("Failed to delete teacher");
+            setShowPopup(true);
         });
+    };
+
+    const cancelDelete = () => {
+        setDeleteDialog({ open: false, id: null, address: null, itemName: "" });
     };
 
     const handleViewChange = (event, newView) => {
@@ -179,7 +206,7 @@ const ShowTeachers = () => {
                 return (
                     <Box>
                         <IconButton
-                            onClick={() => deleteHandler(params.row.id, "Teacher")}
+                            onClick={() => deleteHandler(params.row.id, "Teacher", params.row.name)}
                             title="Delete Teacher"
                         >
                             <Delete color="error" />
@@ -326,7 +353,7 @@ const ShowTeachers = () => {
                                 <IconButton size="small" onClick={() => navigate(`/Admin/teachers/edit-assignments/${teacher._id}`)} title="Edit Assignments">
                                     <Edit />
                                 </IconButton>
-                                <IconButton size="small" onClick={() => deleteHandler(teacher._id, "Teacher")} color="error" title="Delete Teacher">
+                                <IconButton size="small" onClick={() => deleteHandler(teacher._id, "Teacher", teacher.name)} color="error" title="Delete Teacher">
                                     <Delete />
                                 </IconButton>
                             </CardActions>
@@ -473,6 +500,13 @@ const ShowTeachers = () => {
                     </Box>
                 )
             }
+            <DeleteConfirmDialog
+                open={deleteDialog.open}
+                onClose={cancelDelete}
+                onConfirm={confirmDelete}
+                itemName={deleteDialog.itemName}
+                loading={false}
+            />
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </Paper>
     );

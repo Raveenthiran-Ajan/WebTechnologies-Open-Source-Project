@@ -326,7 +326,7 @@ const AdminAttendanceReport = () => {
             <Paper sx={{ p: 3, mb: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Typography variant="h6" fontWeight="bold">
-                        Attendance Overview
+                        Student Attendance Percentage
                     </Typography>
                 </Box>
 
@@ -339,7 +339,7 @@ const AdminAttendanceReport = () => {
                             <RechartsTooltip 
                                 formatter={(value, name, props) => [
                                     `${value}%`, 
-                                    `Roll: ${props.payload.rollNum}`
+                                    `${props.payload.fullName} (Roll: ${props.payload.rollNum})`
                                 ]}
                             />
                             <Legend />
@@ -354,6 +354,7 @@ const AdminAttendanceReport = () => {
     // Chart data
     const barData = studentsData.map(student => ({
         name: student.name.length > 10 ? student.name.substring(0, 10) + '...' : student.name,
+        fullName: student.name,
         rollNum: student.rollNum,
         attendance: parseFloat(student.overallPercentage.toFixed(1))
     }));

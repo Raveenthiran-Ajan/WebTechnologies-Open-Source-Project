@@ -24,6 +24,7 @@ import {
 } from '@mui/x-data-grid';
 import SchoolIcon from '@mui/icons-material/School';
 import Popup from '../../../components/Popup';
+import DeleteConfirmDialog from '../../../components/DeleteConfirmDialog';
 
 const ShowStudents = () => {
     const navigate = useNavigate();
@@ -41,6 +42,12 @@ const ShowStudents = () => {
     });
     const [viewMode, setViewMode] = useState(() => {
         return localStorage.getItem('studentClassViewMode') || 'box';
+    });
+    const [deleteDialog, setDeleteDialog] = useState({
+        open: false,
+        id: null,
+        address: null,
+        itemName: ""
     });
 
     useEffect(() => {
@@ -69,29 +76,40 @@ const ShowStudents = () => {
         }
     }, [error]);
 
-    const deleteHandler = async (id, address) => {
-        const confirmDelete = window.confirm('Are you sure you want to delete this student? This action cannot be undone.');
-        
-        if (confirmDelete) {
-            try {
-                await dispatch(deleteUser(id, address));
-                
-                // Clear the current list and refresh
-                dispatch(clearStudentsList());
-                
-                setMessage('✅ Student has been successfully removed from the system');
-                setShowPopup(true);
-                
-                // Trigger a refresh of the student list
-                setRefreshTrigger(prev => prev + 1);
-                
-            } catch (error) {
-                console.error('Delete error:', error);
-                setMessage('❌ Unable to delete student: ' + (error.message || 'Please try again or contact support'));
-                setShowPopup(true);
-            }
+    const deleteHandler = (id, address, itemName) => {
+        setDeleteDialog({
+            open: true,
+            id,
+            address,
+            itemName
+        });
+    };
+
+    const confirmDelete = async () => {
+        const { id, address } = deleteDialog;
+        try {
+            await dispatch(deleteUser(id, address));
+            
+            // Clear the current list and refresh
+            dispatch(clearStudentsList());
+            
+            setMessage('✅ Student has been successfully removed from the system');
+            setShowPopup(true);
+            
+            // Trigger a refresh of the student list
+            setRefreshTrigger(prev => prev + 1);
+            
+            setDeleteDialog({ open: false, id: null, address: null, itemName: "" });
+        } catch (error) {
+            console.error('Delete error:', error);
+            setMessage('❌ Unable to delete student: ' + (error.message || 'Please try again or contact support'));
+            setShowPopup(true);
         }
-    }
+    };
+
+    const cancelDelete = () => {
+        setDeleteDialog({ open: false, id: null, address: null, itemName: "" });
+    };
 
     const classColumns = [
         { field: 'sclassName', headerName: 'Class Name', flex: 1 },
@@ -159,7 +177,7 @@ const ShowStudents = () => {
                 return (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <IconButton
-                            onClick={() => deleteHandler(params.row.id, "Student")}
+                            onClick={() => deleteHandler(params.row.id, "Student", params.row.name)}
                         >
                             <Tooltip title="Delete">
                                 <Delete color="error" />
@@ -390,6 +408,13 @@ const ShowStudents = () => {
                     </Box>
                 )
             }
+            <DeleteConfirmDialog
+                open={deleteDialog.open}
+                onClose={cancelDelete}
+                onConfirm={confirmDelete}
+                itemName={deleteDialog.itemName}
+                loading={false}
+            />
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </Paper>
     );

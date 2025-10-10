@@ -22,6 +22,7 @@ import {
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import Popup from "../../../components/Popup";
+import DeleteConfirmDialog from '../../../components/DeleteConfirmDialog';
 import Delete from "@mui/icons-material/Delete";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import axios from 'axios';
@@ -93,8 +94,16 @@ const ClassDetails = () => {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editingSubject, setEditingSubject] = useState(null);
     const [editSessions, setEditSessions] = useState(1);
+    const [deleteDialog, setDeleteDialog] = useState({
+        open: false,
+        id: null,
+        address: null,
+        itemName: "",
+        confirmMessage: "",
+        successMessage: ""
+    });
 
-    const deleteHandler = async (deleteID, address) => {
+    const deleteHandler = (deleteID, address, itemName) => {
         let confirmMessage = '';
         let successMessage = '';
         
@@ -104,42 +113,60 @@ const ClassDetails = () => {
         } else if (address === 'Student') {
             confirmMessage = 'Are you sure you want to remove this student from the class? This will remove their attendance, grades, and assignments for this class. This action cannot be undone.';
             successMessage = '👨‍🎓 Student has been successfully removed from the class';
+        } else if (address === 'Teacher') {
+            confirmMessage = 'Are you sure you want to remove this teacher from the class? This will remove their teaching assignment for this class. This action cannot be undone.';
+            successMessage = '👨‍🏫 Teacher has been successfully removed from the class';
         }
         
-        const confirmDelete = window.confirm(confirmMessage);
-        
-        if (confirmDelete) {
-            try {
-                if (address === 'Subject') {
-                    // Remove subject from class
-                    const updatedSubjects = subjectsList
-                        .filter(sub => sub._id !== deleteID)
-                        .map(sub => ({ subject: sub._id, sessions: sub.sessions }));
-                    await dispatch(updateStuff({ id: classID, subjects: updatedSubjects }, "Sclass"));
-                } else {
-                    // Handle student deletion
-                    await dispatch(deleteUser(deleteID, address));
-                }
-                
-                // Refresh appropriate data based on what was deleted
-                if (address === 'Subject') {
-                    dispatch(resetSubjects());
-                    dispatch(getSubjectList(classID, "ClassSubjects"));
-                } else if (address === 'Student') {
-                    dispatch(getClassStudents(classID));
-                }
-                
-                setMessage(successMessage);
-                setShowPopup(true);
-                
-            } catch (error) {
-                console.error('Delete error:', error);
-                const errorMessage = error.response?.data?.message || error.message || 'Please try again or contact support';
-                setMessage('❌ Unable to delete ' + address.toLowerCase() + ': ' + errorMessage);
-                setShowPopup(true);
+        setDeleteDialog({
+            open: true,
+            id: deleteID,
+            address,
+            itemName,
+            confirmMessage,
+            successMessage
+        });
+    };
+
+    const confirmDelete = async () => {
+        const { id, address, successMessage } = deleteDialog;
+        try {
+            if (address === 'Subject') {
+                // Remove subject from class
+                const updatedSubjects = subjectsList
+                    .filter(sub => sub._id !== id)
+                    .map(sub => ({ subject: sub._id, sessions: sub.sessions }));
+                await dispatch(updateStuff({ id: classID, subjects: updatedSubjects }, "Sclass"));
+            } else {
+                // Handle student and teacher deletion
+                await dispatch(deleteUser(id, address));
             }
+            
+            // Refresh appropriate data based on what was deleted
+            if (address === 'Subject') {
+                dispatch(resetSubjects());
+                dispatch(getSubjectList(classID, "ClassSubjects"));
+            } else if (address === 'Student') {
+                dispatch(getClassStudents(classID));
+            } else if (address === 'Teacher') {
+                dispatch(getClassTeachers(classID));
+            }
+            
+            setMessage(successMessage);
+            setShowPopup(true);
+            
+            setDeleteDialog({ open: false, id: null, address: null, itemName: "", confirmMessage: "", successMessage: "" });
+        } catch (error) {
+            console.error('Delete error:', error);
+            const errorMessage = error.response?.data?.message || error.message || 'Please try again or contact support';
+            setMessage('❌ Unable to delete ' + address.toLowerCase() + ': ' + errorMessage);
+            setShowPopup(true);
         }
-    }
+    };
+
+    const cancelDelete = () => {
+        setDeleteDialog({ open: false, id: null, address: null, itemName: "", confirmMessage: "", successMessage: "" });
+    };
 
     const subjectColumns = [
         { field: 'name', headerName: 'Subject Name', width: 200 },
@@ -159,7 +186,7 @@ const ClassDetails = () => {
                         }}>
                             <EditIcon color="primary" />
                         </IconButton>
-                        <IconButton onClick={() => deleteHandler(params.row.id, "Subject")}>
+                        <IconButton onClick={() => deleteHandler(params.row.id, "Subject", params.row.name)}>
                             <Delete color="error" />
                         </IconButton>
                         <Button
@@ -232,7 +259,7 @@ const ClassDetails = () => {
             renderCell: (params) => {
                 return (
                     <Box>
-                        <IconButton onClick={() => deleteHandler(params.row.id, "Student")}>
+                        <IconButton onClick={() => deleteHandler(params.row.id, "Student", params.row.name)}>
                             <PersonRemoveIcon color="error" />
                         </IconButton>
                         <Button
@@ -319,7 +346,7 @@ const ClassDetails = () => {
             renderCell: (params) => {
                 return (
                     <Box>
-                        <IconButton onClick={() => deleteHandler(params.row.id, "Teacher")}>
+                        <IconButton onClick={() => deleteHandler(params.row.id, "Teacher", params.row.name)}>
                             <Delete color="error" />
                         </IconButton>
                         <Button
@@ -531,6 +558,14 @@ const ClassDetails = () => {
                     </Box>
                 </>
             )}
+            <DeleteConfirmDialog
+                open={deleteDialog.open}
+                onClose={cancelDelete}
+                onConfirm={confirmDelete}
+                message={deleteDialog.confirmMessage}
+                itemName={deleteDialog.itemName}
+                loading={false}
+            />
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
 
             <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
@@ -568,6 +603,14 @@ const ClassDetails = () => {
                     }}>Update</Button>
                 </DialogActions>
             </Dialog>
+            <DeleteConfirmDialog
+                open={deleteDialog.open}
+                onClose={cancelDelete}
+                onConfirm={confirmDelete}
+                message={deleteDialog.confirmMessage}
+                itemName={deleteDialog.itemName}
+                loading={false}
+            />
         </>
     );
 };

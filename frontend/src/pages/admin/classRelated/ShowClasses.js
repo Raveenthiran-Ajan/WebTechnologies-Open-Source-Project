@@ -24,6 +24,7 @@ import {
     GridToolbarExport
 } from '@mui/x-data-grid';
 import Popup from '../../../components/Popup';
+import DeleteConfirmDialog from '../../../components/DeleteConfirmDialog';
 
 const ShowClasses = () => {
     const navigate = useNavigate();
@@ -36,6 +37,12 @@ const ShowClasses = () => {
     const [anchorEl, setAnchorEl] = useState({});
     const [view, setView] = useState('list');
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [deleteDialog, setDeleteDialog] = useState({
+        open: false,
+        id: null,
+        address: null,
+        itemName: ""
+    });
 
     const adminID = currentUser._id;
 
@@ -43,28 +50,39 @@ const ShowClasses = () => {
         dispatch(getAllSclasses(adminID, "Sclass"));
     }, [adminID, dispatch, refreshTrigger]);
 
-    const deleteHandler = async (id, address) => {
-        const confirmDelete = window.confirm('Are you sure you want to delete this class? This will also delete all associated students, subjects, and data. This action cannot be undone.');
-        
-        if (confirmDelete) {
-            try {
-                console.log('Deleting class with ID:', id, 'Address:', address);
-                await dispatch(deleteUser(id, address));
-                console.log('Class deleted successfully, refreshing list...');
-                
-                setMessage('Class deleted successfully');
-                setShowPopup(true);
-                
-                // Trigger a refresh of the classes list
-                setRefreshTrigger(prev => prev + 1);
-                
-            } catch (error) {
-                console.error('Delete error:', error);
-                setMessage('Failed to delete class: ' + (error.message || 'Unknown error'));
-                setShowPopup(true);
-            }
+    const deleteHandler = (id, address, itemName) => {
+        setDeleteDialog({
+            open: true,
+            id,
+            address,
+            itemName
+        });
+    };
+
+    const confirmDelete = async () => {
+        const { id, address } = deleteDialog;
+        try {
+            console.log('Deleting class with ID:', id, 'Address:', address);
+            await dispatch(deleteUser(id, address));
+            console.log('Class deleted successfully, refreshing list...');
+            
+            setMessage('Class deleted successfully');
+            setShowPopup(true);
+            
+            // Trigger a refresh of the classes list
+            setRefreshTrigger(prev => prev + 1);
+            
+            setDeleteDialog({ open: false, id: null, address: null, itemName: "" });
+        } catch (error) {
+            console.error('Delete error:', error);
+            setMessage('Failed to delete class: ' + (error.message || 'Unknown error'));
+            setShowPopup(true);
         }
-    }
+    };
+
+    const cancelDelete = () => {
+        setDeleteDialog({ open: false, id: null, address: null, itemName: "" });
+    };
 
     const handleMenuOpen = (event, id) => {
         setAnchorEl({ ...anchorEl, [id]: event.currentTarget });
@@ -131,7 +149,7 @@ const ShowClasses = () => {
                 return (
                     <Box>
                         <IconButton
-                            onClick={() => deleteHandler(params.row.id, "Sclass")}
+                            onClick={() => deleteHandler(params.row.id, "Sclass", params.row.sclassName)}
                         >
                             <Delete color="error" />
                         </IconButton>
@@ -241,7 +259,7 @@ const ShowClasses = () => {
                                 <IconButton size="small" onClick={() => navigate("/Admin/teachers/add?classId=" + sclass._id)} title="Add Teacher">
                                     <SupervisorAccountOutlinedIcon />
                                 </IconButton>
-                                <IconButton size="small" onClick={() => deleteHandler(sclass._id, "Sclass")} color="error">
+                                <IconButton size="small" onClick={() => deleteHandler(sclass._id, "Sclass", sclass.sclassName)} color="error">
                                     <Delete />
                                 </IconButton>
                                 {/* The "Add Subjects" can be accessed from the class details page */}
@@ -309,6 +327,13 @@ const ShowClasses = () => {
                     </Box>
                 )
             }
+            <DeleteConfirmDialog
+                open={deleteDialog.open}
+                onClose={cancelDelete}
+                onConfirm={confirmDelete}
+                itemName={deleteDialog.itemName}
+                loading={false}
+            />
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </Paper>
     );

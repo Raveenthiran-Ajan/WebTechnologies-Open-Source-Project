@@ -384,5 +384,13 @@
     "startDatePastError": "Start date cannot be in the past. For past dates, check 'Emergency/Medical Leave'.",
     "endDatePastError": "End date cannot be in the past. For past dates, check 'Emergency/Medical Leave'.",
     "endDateBeforeStartError": "End date cannot be before start date."
+  },
+  "deleteConfirm": {
+    "title": "Confirm Delete",
+    "message": "Are you sure you want to delete",
+    "messageEnd": "? This action cannot be undone.",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "cancel": "Cancel"
   }
 }

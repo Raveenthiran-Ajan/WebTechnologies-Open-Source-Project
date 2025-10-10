@@ -15,6 +15,7 @@ import {
     GridToolbarExport
 } from '@mui/x-data-grid';
 import Popup from '../../../components/Popup';
+import DeleteConfirmDialog from '../../../components/DeleteConfirmDialog';
 
 const ShowSubjects = () => {
     const navigate = useNavigate();
@@ -24,17 +25,44 @@ const ShowSubjects = () => {
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
+    const [deleteDialog, setDeleteDialog] = useState({
+        open: false,
+        id: null,
+        address: null,
+        itemName: ""
+    });
 
     useEffect(() => {
         dispatch(getSubjectList(currentUser._id, "AllSubjects"));
     }, [currentUser._id, dispatch]);
 
-    const deleteHandler = (id, address) => {
+    const deleteHandler = (id, address, itemName) => {
+        setDeleteDialog({
+            open: true,
+            id,
+            address,
+            itemName
+        });
+    };
+
+    const confirmDelete = () => {
+        const { id, address } = deleteDialog;
         dispatch(deleteUser(id, address))
             .then(() => {
                 dispatch(getSubjectList(currentUser._id, "AllSubjects"));
+                setMessage("Subject deleted successfully");
+                setShowPopup(true);
+                setDeleteDialog({ open: false, id: null, address: null, itemName: "" });
             })
-    }
+            .catch((error) => {
+                setMessage("Failed to delete subject");
+                setShowPopup(true);
+            });
+    };
+
+    const cancelDelete = () => {
+        setDeleteDialog({ open: false, id: null, address: null, itemName: "" });
+    };
 
     const columns = [
         { field: 'subName', headerName: 'Subject Name', width: 200 },
@@ -47,7 +75,7 @@ const ShowSubjects = () => {
                 return (
                     <Box>
                         <IconButton
-                            onClick={() => deleteHandler(params.row.id, "Subject")}
+                            onClick={() => deleteHandler(params.row.id, "Subject", params.row.subName)}
                         >
                             <Delete color="error" />
                         </IconButton>
@@ -113,6 +141,13 @@ const ShowSubjects = () => {
                 </Box>
                 )
             }
+            <DeleteConfirmDialog
+                open={deleteDialog.open}
+                onClose={cancelDelete}
+                onConfirm={confirmDelete}
+                itemName={deleteDialog.itemName}
+                loading={false}
+            />
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </Paper>
     );

@@ -14,6 +14,8 @@ import {
     GridToolbarDensitySelector,
     GridToolbarExport
 } from '@mui/x-data-grid';
+import Popup from '../../../components/Popup';
+import DeleteConfirmDialog from '../../../components/DeleteConfirmDialog';
 
 const ShowParents = () => {
     const navigate = useNavigate();
@@ -21,6 +23,14 @@ const ShowParents = () => {
     const { parentsList, loading } = useSelector((state) => state.parent);
     const { currentUser } = useSelector(state => state.user);
     const [selectedChild, setSelectedChild] = useState({});
+    const [showPopup, setShowPopup] = useState(false);
+    const [message, setMessage] = useState("");
+    const [deleteDialog, setDeleteDialog] = useState({
+        open: false,
+        id: null,
+        address: null,
+        itemName: ""
+    });
 
     const adminID = currentUser._id;
 
@@ -35,9 +45,26 @@ const ShowParents = () => {
         }));
     };
 
-    const deleteHandler = (id, address) => {
+    const deleteHandler = (id, address, itemName) => {
+        setDeleteDialog({
+            open: true,
+            id,
+            address,
+            itemName
+        });
+    };
+
+    const confirmDelete = () => {
+        const { id, address } = deleteDialog;
         dispatch(deleteParent(id, address));
-    }
+        setMessage("Parent deleted successfully");
+        setShowPopup(true);
+        setDeleteDialog({ open: false, id: null, address: null, itemName: "" });
+    };
+
+    const cancelDelete = () => {
+        setDeleteDialog({ open: false, id: null, address: null, itemName: "" });
+    };
 
     const columns = [
         { field: 'name', headerName: 'Parent Name', width: 200 },
@@ -91,7 +118,7 @@ const ShowParents = () => {
                     <Box>
                         <IconButton
                             variant="outlined"
-                            onClick={() => deleteHandler(params.row.id, "Parent")}
+                            onClick={() => deleteHandler(params.row.id, "Parent", params.row.name)}
                         >
                             <Delete color="error" />
                         </IconButton>
@@ -165,6 +192,14 @@ const ShowParents = () => {
                 </Box>
                 )
             }
+            <DeleteConfirmDialog
+                open={deleteDialog.open}
+                onClose={cancelDelete}
+                onConfirm={confirmDelete}
+                itemName={deleteDialog.itemName}
+                loading={false}
+            />
+            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </Paper>
     );
 };
